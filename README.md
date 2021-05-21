@@ -1,4 +1,4 @@
-# hello-sqlite
+# Hello SQLite!
 
 A starter that has a database
 
