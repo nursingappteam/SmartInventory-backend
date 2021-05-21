@@ -7,11 +7,13 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'views'),
     filename: 'bundle.js',
+    library: 'mylib'
   },
   resolve: {
     extensions: ['.js'],
   },
-  target: 'node',
-  externals: [nodeExternals()]
+  externals: {
+    axios: 'axios',
+  },
 };
 
