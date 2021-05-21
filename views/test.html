@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="./node_modules/axios/dist/axios.min.js"></script>
+  </head>
+  <body>
+  <script type="text/javascript">
+  const getDreams = () => {
+ axios.get('https://hello-sqlite-revamp.glitch.me')
+ .then(response => {
+  const users = response.data.data;
+  console.log(`GET users`, users);
+})
+ .catch(error => console.error(error));
+};
+getUsers();  
+  </script>
+  </body>
+</html>
