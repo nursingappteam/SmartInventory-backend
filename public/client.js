@@ -60,14 +60,3 @@ clearButton.addEventListener('click', event => {
     });
   dreamsList.innerHTML = "";
 });
-
-
-//testing
-const getDreams = () => {
-          axios
-            .get("https://hello-sqlite-revamp.glitch.me/getDreams")
-            .then(response => {
-              console.log(response.data);
-            })
-            .catch(error => console.error(error));
-        };
