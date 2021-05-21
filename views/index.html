@@ -3,19 +3,27 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="A cool thing made with Glitch">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="A cool thing made with Glitch" />
 
     <title>Welcome to Glitch!</title>
 
-    <link id="favicon" rel="icon" href="https://glitch.com/edit/favicon-app.ico" type="image/x-icon">
+    <link
+      id="favicon"
+      rel="icon"
+      href="https://glitch.com/edit/favicon-app.ico"
+      type="image/x-icon"
+    />
     <!-- import the webpage's stylesheet -->
-    <link rel="stylesheet" href="/style.css">
-    
+    <link rel="stylesheet" href="/style.css" />
+
     <!-- import the webpage's client-side javascript file -->
     <script src="/client.js" defer></script>
+
+    <!-- sue testing -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   </head>
   <body>
     <header>
@@ -26,26 +34,35 @@
 
     <main>
       <p class="bold">Oh hi,</p>
-      
+
       <p>Tell me your hopes and dreams:</p>
-      
+
       <form>
-        <input name="dream" aria-label="a new dream" type="text" maxlength="100" placeholder="Dreams!">
+        <input
+          name="dream"
+          aria-label="a new dream"
+          type="text"
+          maxlength="100"
+          placeholder="Dreams!"
+        />
         <button type="submit" id="submit-dream">Submit Dream</button>
       </form>
-      
+
       <section class="dreams">
         <ul id="dreams"></ul>
         <button id="clear-dreams">
           Clear Dreams
         </button>
       </section>
-      
+
+      <!-- sue testing -->
+      <script type="text/javascript">
+        
+        getDreams();
+      </script>
     </main>
 
-    <footer>
-      Made with <a href="https://glitch.com">Glitch</a>!
-    </footer>
+    <footer>Made with <a href="https://glitch.com">Glitch</a>!</footer>
 
     <!-- include the Glitch button to show what the webpage is about and
           to make it easier for folks to view source and remix -->
