@@ -61,4 +61,4 @@ clearButton.addEventListener('click', event => {
   dreamsList.innerHTML = "";
 });
 
-import axios from "./views/modules/axios.min.js";
+import axios from "axios";
