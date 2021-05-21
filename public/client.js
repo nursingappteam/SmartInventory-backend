@@ -60,5 +60,3 @@ clearButton.addEventListener('click', event => {
     });
   dreamsList.innerHTML = "";
 });
-
-//import axios from "axios";

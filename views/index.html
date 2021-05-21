@@ -18,13 +18,9 @@
     />
     <!-- import the webpage's stylesheet -->
     <link rel="stylesheet" href="/style.css" />
-
-    <!-- import axios to make requests-->
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     
     <!-- import the webpage's client-side javascript file -->
     <script src="client.js" type="module" defer></script>
-    <script src="bundle.js"></script>
 
   </head>
   <body>
@@ -56,20 +52,6 @@
           Clear Dreams
         </button>
       </section>
-
-      <!--sue testing-->
-      <script type="text/javascript">
-        const getDreams = () => {
-          console.log("getting dreams");
-          axios
-            .get("https://hello-sqlite-revamp.glitch.me/getDreams")
-            .then(response => {
-              console.log(response.data);
-            })
-            .catch(error => console.error(error));
-        };
-        getDreams();
-      </script>
     </main>
 
     <footer>Made with <a href="https://glitch.com">Glitch</a>!</footer>
