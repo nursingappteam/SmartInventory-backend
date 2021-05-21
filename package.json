@@ -4,7 +4,7 @@
   "description": "A Node app with SQLite database, instantly up and running.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js && node client.js"
+    "start": "concurrently \"node client.js && node server.js\""
   },
   "dependencies": {
     "fastify": "^3.14.1",
@@ -13,7 +13,8 @@
     "handlebars": "^4.7.7",
     "point-of-view": "^4.14.0",
     "sqlite3": "^4.1.1",
-    "axios": "^0.21.1"
+    "axios": "^0.21.1",
+    "concurrently": "^6.1.0"
   },
   "engines": {
     "node": "12.x"
