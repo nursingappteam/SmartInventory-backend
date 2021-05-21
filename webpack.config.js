@@ -3,7 +3,7 @@ var nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   mode: 'development',
-  entry: './server.js',
+  entry: './public/client.js',
   output: {
     path: path.resolve(__dirname, 'views'),
     filename: 'bundle.js',
@@ -11,12 +11,7 @@ module.exports = {
   resolve: {
     extensions: ['.js'],
   },
-  module: {
-    rules: [
-      {
-        exclude: /node_modules/
-      }
-    ]
-  }
+  target: 'node',
+  externals: [nodeExternals()]
 };
 

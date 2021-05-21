@@ -8,6 +8,7 @@ dependencies:
   sqlite3: 4.2.0
   webpack: 4.46.0
   webpack-cli: 3.3.12
+  webpack-node-externals: 3.0.0
 packages:
   /@fastify/forwarded/1.0.0:
     dev: false
@@ -3327,6 +3328,12 @@ packages:
       webpack: 4.x.x
     resolution:
       integrity: sha512-NVWBaz9k839ZH/sinurM+HcDvJOTXwSjYp1ku+5XKeOC03z8v5QitnK/x+lAxGXFyhdayoIf/GOpv85z3/xPag==
+  /webpack-node-externals/3.0.0:
+    dev: false
+    engines:
+      node: '>=6'
+    resolution:
+      integrity: sha512-LnL6Z3GGDPht/AigwRh2dvL9PQPFQ8skEpVrWZXLWBYmqcaojHNN0onvHzie6rq7EWKrrBfPYqNEzTJgiwEQDQ==
   /webpack-sources/1.4.3:
     dependencies:
       source-list-map: 2.0.1
@@ -3459,3 +3466,4 @@ specifiers:
   sqlite3: ^4.1.1
   webpack: ^4.30.0
   webpack-cli: ^3.3.0
+  webpack-node-externals: ^3.0.0
