@@ -60,3 +60,4 @@ clearButton.addEventListener('click', event => {
     });
   dreamsList.innerHTML = "";
 });
+
