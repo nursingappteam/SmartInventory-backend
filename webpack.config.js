@@ -1,24 +1,22 @@
 const path = require('path');
+var nodeExternals = require('webpack-node-externals');
 
 module.exports = {
-  mode: 'production',
-  context: path.join(__dirname, './'),
-  entry: './app/app.jsx',
+  mode: 'development',
+  entry: './server.js',
   output: {
-    path: path.join(__dirname, 'public'),
+    path: path.resolve(__dirname, 'views'),
     filename: 'bundle.js',
   },
   resolve: {
-    extensions: ['.js', '.jsx'],
+    extensions: ['.js'],
   },
   module: {
     rules: [
       {
-        test: /\.jsx?$/,
-        loader: 'jsx-loader',
-        exclude: /node_modules/,
-        include: path.join(__dirname, 'app'),
-      },
-    ],
-  },
+        exclude: /node_modules/
+      }
+    ]
+  }
 };
+
