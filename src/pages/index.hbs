@@ -41,7 +41,7 @@
     <div class="wrapper">
       <div class="content" role="main">
         <!-- This is the start of content for our page -->
-        <h1 class="title">Hello Node!</h1>
+        <h1 class="title">Hello SQLite!</h1>
         
         <!-- Add text indicating that we've changed color OR had an error -->
         {{#if color}}
@@ -63,7 +63,7 @@
             {{#unless color}}
             <!-- There are fancier ways to do this, but nesting two "#unless" statements sets up a "if these are both missing..." condition -->
             <p>
-              Learn about communication with a server by talking about color.
+              Use an SQLite database with your Node.js app.
             </p>
             {{/unless}}
           {{/unless}}
@@ -71,12 +71,13 @@
           <!-- The "What's your favorite color?" form sends a POST request to the server, check server.js to see how it works -->
           <form class="theme-select" method="post" action="/template">
             <input type="radio" id="relax" name="color" value="relax"/>
-            <label for="red">Relax</label>
+            <label for="red">Relax 🌊</label>
             <input type="radio" id="party" name="color" value="party"/>
-            <label for="red">Party</label>
-            <input type="radio" id="cool" name="color" value="cool"/>
-            <label for="red">Green</label>
-            <button type="submit">Submit</button>
+            <label for="party">Party 🎉</label>
+            <input type="radio" id="neutral" name="color" value="neutral"/>
+            <label for="neutral">Neutral 🌱</label><br/>
+            <button type="submit">Update</button>
+            <!--add checked attribute on load and when post-->
           </form>
           
         </div>
