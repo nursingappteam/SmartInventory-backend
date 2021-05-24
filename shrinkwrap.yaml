@@ -1,5 +1,4 @@
 dependencies:
-  axios: 0.21.1
   fastify: 3.15.1
   fastify-formbody: 5.0.0
   fastify-static: 4.2.2
@@ -79,12 +78,6 @@ packages:
     dev: false
     resolution:
       integrity: sha512-XW2CMCmZaCmCCsIaJaLKxAzPwF37fXi1KGxNOvedOpeisLdmxZnblGc3hpHWYnlP+KOUxZsazh43WXNHgXpbqw==
-  /axios/0.21.1:
-    dependencies:
-      follow-redirects: 1.14.1
-    dev: false
-    resolution:
-      integrity: sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==
   /balanced-match/1.0.2:
     dev: false
     resolution:
@@ -223,7 +216,7 @@ packages:
     dev: false
     resolution:
       integrity: sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw==
-  /fast-json-stringify/2.7.4:
+  /fast-json-stringify/2.7.5:
     dependencies:
       ajv: 6.12.6
       deepmerge: 4.2.2
@@ -233,7 +226,7 @@ packages:
     engines:
       node: '>= 10.0.0'
     resolution:
-      integrity: sha512-fc2bvaF7C6fa+Q/8D9SbjJC70F/PueIR9gaZPr/85WLjJjpUbwszm7vvK7fu+c/W6sCCeeEOMs+ry8/LV6xBPg==
+      integrity: sha512-VClYNkPo7tyZr0BMrRWraDMTJwjH6dIaHc/b/BiA4Z2MpxpKZBu45akYVb0dOVwQbF22zUMmhdg1WjrUjzAN2g==
   /fast-redact/3.0.1:
     dev: false
     engines:
@@ -285,7 +278,7 @@ packages:
       abstract-logging: 2.0.1
       ajv: 6.12.6
       avvio: 7.2.2
-      fast-json-stringify: 2.7.4
+      fast-json-stringify: 2.7.5
       fastify-error: 0.3.1
       fastify-warning: 0.2.0
       find-my-way: 4.1.0
@@ -323,12 +316,6 @@ packages:
     dev: false
     resolution:
       integrity: sha512-4zPxDyhCyiN2wIAtSLI6gc82/EjqZc1onI4Mz/l0pWrAlsSfYH/2ZIcU+e3oA2wDwbzIWNKwa23F8rh6+DRWkw==
-  /follow-redirects/1.14.1:
-    dev: false
-    engines:
-      node: '>=4.0'
-    resolution:
-      integrity: sha512-HWqDgT7ZEkqRzBvc2s64vSZ/hfOceEol3ac/7tKwzuvEyWx3/4UegXh5oBOIotkGsObyk3xznnSRVADBgWSQVg==
   /fresh/0.5.2:
     dev: false
     engines:
@@ -990,7 +977,6 @@ registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
-  axios: ^0.21.1
   fastify: ^3.14.1
   fastify-formbody: ^5.0.0
   fastify-static: ^4.0.0
