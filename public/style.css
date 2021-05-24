@@ -126,7 +126,7 @@ p {
 }
 
 /* Title h1 style */
-.title {
+h1 {
   color: #2800FF;
   font-family: HK Grotesk;
   font-style: normal;
@@ -200,6 +200,6 @@ h2 {
   color: #2800FF;
 }
 
-.relax h2 {
-  #0277BD;
+h1.relax {
+  color: #0277BD;
 }

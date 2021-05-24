@@ -131,6 +131,8 @@ fastify.post("/template", (request, reply) => {
   console.log(request.body.color)
   // params is an object we'll pass to our handlebars template
   let params = { seo: seo };
+  //will look color scheme up in db
+  params.color = request.body.color;
   // The Handlebars code will be able to access the parameter values and build them into the page
   reply.view("/src/pages/index.hbs", params);
 });
