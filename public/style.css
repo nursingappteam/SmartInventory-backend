@@ -8,7 +8,7 @@ to this section's matching END comment to see page-specific styles.
 ******************************************************************************/
 /* Our default values set as CSS variables */
 :root {
-  --color-bg: #FFFFFF;
+  --color-bg: #EFEFEF;
   --color-text-main: #000000;
   --color-primary: #EFEFEF;
   --wrapper-height: 87vh;
@@ -121,7 +121,7 @@ body {
   justify-content: left;
 }
 
-p {
+p, label {
   font-size: 1.25rem;
 }
 
@@ -184,7 +184,7 @@ input {
   padding: 0.5rem 1rem;
 }
 button:hover {
-  
+  background: var(--color-primary);
 }
 label {
   color: #000000;
@@ -211,4 +211,14 @@ h2 {
 .relax button {
   border: 1px solid #006064;
   color: #006064;
+}
+.party h1, .party h2 {
+  color: #990000;
+}
+.party p, .party label {
+  color: #4A148C;
+}
+.party button {
+  border: 1px solid #BF360C;
+  color: #BF360C;
 }
