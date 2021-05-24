@@ -88,7 +88,7 @@ fastify.post("/theme", (request, reply) => {
   let params = { seo: seo };
   //TODO update db with user choice
   
-  params.color = request.body.color;
+  params.color_primary = request.body.color;
   // The Handlebars code will be able to access the parameter values and build them into the page
   reply.view("/src/pages/index.hbs", params);
 });
