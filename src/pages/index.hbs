@@ -47,7 +47,7 @@
           </p>
           
           <!-- The "What's your favorite color?" form sends a POST request to the server, check server.js to see how it works -->
-          <form class="theme-select" method="post" action="/template">
+          <form class="theme-select" method="post" action="/theme">
             <input type="radio" id="neutral" name="color" value="neutral" checked/>
             <label for="neutral">Neutral 🖊️</label>
             <input type="radio" id="relax" name="color" value="relax"/>
@@ -59,6 +59,7 @@
           </form>
           {{#if color}}
           <script type="text/javascript">
+            //update with user selection
           document.getElementById("{{color}}").checked=true;
           </script>
           {{/if}}
