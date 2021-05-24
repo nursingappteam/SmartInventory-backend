@@ -16,7 +16,7 @@ This project includes a [Node.js](https://nodejs.org/en/about/) server script th
 
 When the app runs Glitch builds the database:
 
-← `sqlite.db` is created and placed in the `.data` folder, a hidden directory whose contents aren’t copied when a project is remixed. You can see the contents of `.data` in the console by selecting __Tools__ >  __Logs__.
+← `themedata.db` is created and placed in the `.data` folder, a hidden directory whose contents aren’t copied when a project is remixed. You can see the contents of `.data` in the console by selecting __Tools__ >  __Logs__.
 
 ## Next steps
 
