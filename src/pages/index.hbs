@@ -29,18 +29,16 @@
     
     <script type="text/javascript">
       {{#if color_primary}}
-    document.documentElement.style.setProperty('--color-primary', '{{color_primary}}');
-    document.documentElement.style.setProperty('--color-bg', '{{color_secondary}}');
+      document.documentElement.style.setProperty('--color-text-main', '{{color_primary}}');
+      document.documentElement.style.setProperty('--color-bg', '{{color_secondary}}');
       {{/if}}
     </script>
     
-   
   </head>
   <body>
     <div class="wrapper">
       <div class="content" role="main">
         <!-- Apply the class according to the user selected theme if there is one -->
-        <div class="{{color}}">
           
         <!-- This is the start of content for our page -->
         <h1>Hello SQLite!</h1>
@@ -65,10 +63,10 @@
             <button type="submit">Update</button>
             <!--add checked attribute on load and when post-->
           </form>
-          {{#if color}}
+          {{#if theme}}
           <script type="text/javascript">
             //update with user selection
-          document.getElementById("{{color}}").checked=true;
+          document.getElementById("{{theme}}").checked=true;
           </script>
           {{/if}}
           
@@ -90,7 +88,6 @@
           </p>
         </div>
         
-        </div>
       </div>
     </div>
     <!-- The footer holds our remix button — you can use it for structure or cut it out ✂ -->

@@ -6,7 +6,6 @@ const fs = require("fs");
 
 const path = require("path");
 
-
 // init sqlite db
 const dbFile = "./.data/preferences.db";
 const exists = fs.existsSync(dbFile);
@@ -44,7 +43,7 @@ if (seo.url === "glitch-default") {
 // if ./.data/sqlite.db does not exist, create it, otherwise print records to console
 db.serialize(() => {
   if (!exists) {
-//  db.run('DROP TABLE Themes')
+    //  db.run('DROP TABLE Themes')
     db.run(
       "CREATE TABLE Themes (id INTEGER PRIMARY KEY AUTOINCREMENT, theme TEXT, col1 TEXT, col2 TEXT)"
     );
@@ -73,29 +72,29 @@ fastify.get("/", (request, reply) => {
   reply.view("/src/pages/index.hbs", params);
 });
 
-
 // endpoint to get all the themes in the database
-fastify.get("/themes", (request, reply) => { 
+fastify.get("/themes", (request, reply) => {
   db.all("SELECT * from Themes", (err, rows) => {
-    console.log(rows)
+    console.log(rows);
     reply.send(JSON.stringify(rows));
   });
 });
 
 //updates ui
 fastify.post("/theme", (request, reply) => {
-  console.log(request.body.color)
+  console.log(request.body.theme);
   // params is an object we'll pass to our handlebars template
   let params = { seo: seo };
-  //TODO pull from db
-  db.all("SELECT * from Themes WHERE theme='"+request.body.theme+"'", (err, rows) => {
-    
-  
-  params.color_primary = rows[0].col1;
-    params.color_secondary = rows[0].col2;
-  // The Handlebars code will be able to access the parameter values and build them into the page
-  reply.view("/src/pages/index.hbs", params);
-  });
+  db.all(
+    "SELECT * from Themes WHERE theme='" + request.body.theme + "'",
+    (err, rows) => {
+      params.theme = rows[0].theme;
+      params.color_primary = rows[0].col1;
+      params.color_secondary = rows[0].col2;
+      // The Handlebars code will be able to access the parameter values and build them into the page
+      reply.view("/src/pages/index.hbs", params);
+    }
+  );
 });
 
 // endpoint to add a dream to the database
