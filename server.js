@@ -34,6 +34,12 @@ fastify.register(require("point-of-view"), {
   }
 });
 
+// Load and parse SEO data
+const seo = require("./src/seo.json");
+if (seo.url === "glitch-default") {
+  seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
+}
+
 // if ./.data/sqlite.db does not exist, create it, otherwise print records to console
 db.serialize(() => {
   if (!exists) {
@@ -111,6 +117,22 @@ fastify.get("/clearDreams", (request, reply) => {
       }
     );
   }
+});
+
+//testing hbs
+fastify.get("/template", (request, reply) => {
+  // params is an object we'll pass to our handlebars template
+  let params = { seo: seo };
+  // The Handlebars code will be able to access the parameter values and build them into the page
+  reply.view("/src/pages/index.hbs", params);
+});
+//testing hbs
+fastify.post("/template", (request, reply) => {
+  console.log(request.body.color)
+  // params is an object we'll pass to our handlebars template
+  let params = { seo: seo };
+  // The Handlebars code will be able to access the parameter values and build them into the page
+  reply.view("/src/pages/index.hbs", params);
 });
 
 // helper function that prevents html/css/script malice

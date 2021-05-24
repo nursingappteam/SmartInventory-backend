@@ -1,6 +1,8 @@
 // client-side js
 // run by the browser each time your view template referencing it is loaded
 
+//REMOVE THIS IF WE USE HANDLEBARS
+
 console.log("hello world :o");
 
 const dreams = [];
