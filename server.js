@@ -69,19 +69,20 @@ fastify.get("/", function(request, reply) {
   reply.view(`/views/index.html`);
 });
 
-// endpoint to get all the dreams in the database
-fastify.get("/getDreams", (request, reply) => {
-  db.all("SELECT * from Dreams", (err, rows) => {
+// endpoint to get all the themes in the database
+fastify.get("/themes", (request, reply) => {
+  db.all("SELECT * from Themes", (err, rows) => {
     reply.send(JSON.stringify(rows));
   });
 });
 
 // endpoint to add a dream to the database
-fastify.post("/addDream", (request, reply) => {
-  console.log(`Add to dreams ${request.body.dream}`);
+fastify.post("/theme", (request, reply) => {
+  console.log(`Add to themes ${request.body.dream}`);
 
   // DISALLOW_WRITE is an ENV variable that gets reset for new projects
   // so they can write to the database
+  // TODO replace with user set env
   if (!process.env.DISALLOW_WRITE) {
     const cleansedDream = cleanseString(request.body.dream);
     db.run(`INSERT INTO Dreams (dream) VALUES (?)`, cleansedDream, error => {

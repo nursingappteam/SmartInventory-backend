@@ -202,15 +202,16 @@ h2 {
   color: #000000;
 }
 
+/* THEME COLORS */
 .relax h1, .relax h2 {
-  color: #0097A7;
+  color: #00838F;
 }
 .relax p, .relax label {
-  color: #006064;
+  color: #0D47A1;
 }
 .relax button {
-  border: 1px solid #006064;
-  color: #006064;
+  border: 1px solid #0D47A1;
+  color: #0D47A1;
 }
 .party h1, .party h2 {
   color: #990000;
@@ -219,6 +220,6 @@ h2 {
   color: #4A148C;
 }
 .party button {
-  border: 1px solid #BF360C;
-  color: #BF360C;
+  border: 1px solid #990000;
+  color: #990000;
 }
