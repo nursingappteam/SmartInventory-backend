@@ -8,7 +8,7 @@ const path = require("path");
 
 
 // init sqlite db
-const dbFile = "./.data/themes.db";
+const dbFile = "./.data/themedata.db";
 const exists = fs.existsSync(dbFile);
 const sqlite3 = require("sqlite3").verbose();
 const db = new sqlite3.Database(dbFile);
@@ -81,7 +81,7 @@ fastify.get("/themes", (request, reply) => {
   });
 });
 
-//testing hbs
+//updates ui
 fastify.post("/theme", (request, reply) => {
   console.log(request.body.color)
   // params is an object we'll pass to our handlebars template
@@ -91,7 +91,6 @@ fastify.post("/theme", (request, reply) => {
   // The Handlebars code will be able to access the parameter values and build them into the page
   reply.view("/src/pages/index.hbs", params);
 });
-
 
 // endpoint to add a dream to the database
 fastify.post("/new", (request, reply) => {
@@ -113,7 +112,7 @@ fastify.post("/new", (request, reply) => {
 });
 
 // endpoint to clear dreams from the database TODO change method and path
-fastify.get("/clearThemes", (request, reply) => {
+fastify.get("/clear", (request, reply) => {
   // DISALLOW_WRITE is an ENV variable that gets reset for new projects so you can write to the database
   if (!process.env.DISALLOW_WRITE) {
     db.each(
