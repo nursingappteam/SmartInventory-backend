@@ -8,7 +8,7 @@ const path = require("path");
 
 
 // init sqlite db
-const dbFile = "./.data/preferences.db";
+const dbFile = "./.data/prefs.db";
 const exists = fs.existsSync(dbFile);
 const sqlite3 = require("sqlite3").verbose();
 const db = new sqlite3.Database(dbFile);
@@ -137,15 +137,6 @@ fastify.get("/clear", (request, reply) => {
     );
   }
 });
-
-fastify.get("/reset", (request, reply) => {
-  db.serialize(() => {
-    db.run('DROP table Themes');
-      db.run(
-        'INSERT INTO Themes (theme) VALUES ("neutral", "#000000", "#FFFFFF"), ("party", "#990000", "#CCFFFF"), ("relax", "#00838F", "#FFFFCC")'
-      );
-    });
-})
 
 // helper function that prevents html/css/script malice
 const cleanseTheme = function(string) {
