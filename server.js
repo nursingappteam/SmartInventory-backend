@@ -8,7 +8,7 @@ const path = require("path");
 
 
 // init sqlite db
-const dbFile = "./.data/sqlite.db";
+const dbFile = "./.data/themes.db";
 const exists = fs.existsSync(dbFile);
 const sqlite3 = require("sqlite3").verbose();
 const db = new sqlite3.Database(dbFile);
@@ -64,28 +64,44 @@ db.serialize(() => {
     });
   }
 });
-/*
-// http://expressjs.com/en/starter/basic-routing.html
-fastify.get("/", function(request, reply) {
-  reply.view(`/views/index.html`);
+
+fastify.get("/", (request, reply) => {
+  // params is an object we'll pass to our handlebars template
+  let params = { seo: seo };
+  // The Handlebars code will be able to access the parameter values and build them into the page
+  reply.view("/src/pages/index.hbs", params);
 });
-*/
+
+
 // endpoint to get all the themes in the database
-fastify.get("/themes", (request, reply) => {
+fastify.get("/themes", (request, reply) => { 
   db.all("SELECT * from Themes", (err, rows) => {
+    console.log(rows)
     reply.send(JSON.stringify(rows));
   });
 });
 
-// endpoint to add a dream to the database
+//testing hbs
 fastify.post("/theme", (request, reply) => {
+  console.log(request.body.color)
+  // params is an object we'll pass to our handlebars template
+  let params = { seo: seo };
+  //will look color scheme up in db
+  params.color = request.body.color;
+  // The Handlebars code will be able to access the parameter values and build them into the page
+  reply.view("/src/pages/index.hbs", params);
+});
+
+
+// endpoint to add a dream to the database
+fastify.post("/new", (request, reply) => {
   console.log(`Add to themes ${request.body.theme}`);
 
   // DISALLOW_WRITE is an ENV variable that gets reset for new projects
   // so they can write to the database
   // TODO replace with user set env
   if (!process.env.DISALLOW_WRITE) {
-    const cleansedTheme = cleanseString(request.body.theme);
+    const cleansedTheme = cleanseTheme(request.body.theme);
     db.run(`INSERT INTO Themes (theme) VALUES (?)`, cleansedTheme, error => {
       if (error) {
         reply.send({ message: "error!" });
@@ -121,26 +137,8 @@ fastify.get("/clearThemes", (request, reply) => {
   }
 });
 
-//testing hbs
-fastify.get("/", (request, reply) => {
-  // params is an object we'll pass to our handlebars template
-  let params = { seo: seo };
-  // The Handlebars code will be able to access the parameter values and build them into the page
-  reply.view("/src/pages/index.hbs", params);
-});
-//testing hbs
-fastify.post("/theme", (request, reply) => {
-  console.log(request.body.color)
-  // params is an object we'll pass to our handlebars template
-  let params = { seo: seo };
-  //will look color scheme up in db
-  params.color = request.body.color;
-  // The Handlebars code will be able to access the parameter values and build them into the page
-  reply.view("/src/pages/index.hbs", params);
-});
-
 // helper function that prevents html/css/script malice
-const cleanseString = function(string) {
+const cleanseTheme = function(string) {
   return string.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 };
 
