@@ -31,19 +31,19 @@
   <body>
     <div class="wrapper">
       <div class="content" role="main">
+        <div class="{{color}}">
+          
         <!-- This is the start of content for our page -->
-        <h1 class="{{color}}">Hello SQLite!</h1>
+        <h1>Hello SQLite!</h1>
         
         <div class="color-form">
-          <!-- Our default paragraph/message -->
-          {{#unless colorError}}
-            {{#unless color}}
-            <!-- There are fancier ways to do this, but nesting two "#unless" statements sets up a "if these are both missing..." condition -->
             <p>
               Use an SQLite database with your Node.js app.
             </p>
-            {{/unless}}
-          {{/unless}}
+          
+          <p>
+            <em>Select a theme for the page!</em>
+          </p>
           
           <!-- The "What's your favorite color?" form sends a POST request to the server, check server.js to see how it works -->
           <form class="theme-select" method="post" action="/template">
@@ -80,6 +80,7 @@
           </p>
         </div>
         
+        </div>
       </div>
     </div>
     <!-- The footer holds our remix button — you can use it for structure or cut it out ✂ -->
