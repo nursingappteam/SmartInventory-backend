@@ -80,7 +80,7 @@ fastify.get("/choices", (request, reply) => {
 fastify.get("/logs", (request, reply) => {
   db.all("SELECT * from Log", (err, rows) => {
     console.log(rows);
-    let params = { seo: seo };
+    let params = {};
     params.logs=rows;
     reply.view("/src/pages/admin.hbs", params);
   });
@@ -115,6 +115,11 @@ fastify.post("/pick", (request, reply) => {
       }
     );
   });
+});
+
+fastify.get("/reset", (request, reply) => {
+  //check auth
+  
 });
 
 // endpoint to clear dreams from the database TODO change method and path
