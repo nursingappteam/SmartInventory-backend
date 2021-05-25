@@ -59,8 +59,8 @@ db.serialize(() => {
     /*
     db.serialize(() => {
     db.run("DROP TABLE Choices")
-    db.run("CREATE TABLE Choices (id INTEGER PRIMARY KEY AUTOINCREMENT, color TEXT, picks INTEGER)")
-    db.run("INSERT INTO Choices (color, picks) VALUES ('red', 0), ('green', 0), ('blue', 0)")
+    db.run("CREATE TABLE Choices (id INTEGER PRIMARY KEY AUTOINCREMENT, language TEXT, picks INTEGER)")
+    db.run("INSERT INTO Choices (language, picks) VALUES ('html', 0), ('js', 0), ('css', 0)")
     });*/
     console.log('Database "Themes" ready to go!');
     db.each("SELECT * from Themes", (err, row) => {
@@ -114,15 +114,15 @@ fastify.post("/theme", (request, reply) => {
 fastify.post("/pick", (request, reply) => {
   let params = { seo: seo, picked: true };
   db.all(
-    "UPDATE Choices SET picks = picks + 1 WHERE color = '" +
-      request.body.color +
+    "UPDATE Choices SET picks = picks + 1 WHERE language = '" +
+      request.body.language +
       "'",
     err => {
       if (!err) {
         db.all("SELECT * from Choices", (err, rows) => {
           //          console.log(JSON.stringify(rows.map(({ color, picks }) => ({color, picks}))))
           //let result = objArray.map(a => a.foo);
-          params.choices = JSON.stringify(rows.map(c => c.color));
+          params.choices = JSON.stringify(rows.map(c => c.language));
           params.picks = JSON.stringify(rows.map(c => c.picks));
           reply.view("/src/pages/index.hbs", params);
         });

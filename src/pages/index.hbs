@@ -45,11 +45,15 @@
         options: {
           legend: { display: false },
           scales: {
+            xAxes: [{
+              gridLines: { color: "rgba(0, 0, 0, 0)" }
+            }],
             yAxes: [{
               ticks: {
                 beginAtZero: true,
                 display: false
-              }
+              },
+              gridLines: { color: "rgba(0, 0, 0, 0)" }
             }]
           }
         }
@@ -119,12 +123,12 @@
             What do you like coding most?
           </p>
           <form method="post" action="/pick">
-            <input type="radio" id="red" name="color" value="red"/>
-            <label for="red">HTML</label>
-            <input type="radio" id="green" name="color" value="green"/>
-            <label for="green">JavaScript</label>
-            <input type="radio" id="blue" name="color" value="blue"/>
-            <label for="blue">CSS</label><br/><br/>
+            <input type="radio" id="html" name="language" value="html"/>
+            <label for="html">HTML</label>
+            <input type="radio" id="js" name="language" value="js"/>
+            <label for="js">JavaScript</label>
+            <input type="radio" id="css" name="language" value="css"/>
+            <label for="css">CSS</label><br/><br/>
             <button type="submit">
               Submit
             </button>
