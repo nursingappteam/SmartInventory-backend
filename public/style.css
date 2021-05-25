@@ -207,7 +207,6 @@ p a {
   text-decoration: none;
   font-weight: bold;
 }
-p.error {
+p.error, p.error a:link {
   color: #CC0000;
-  font-style: italic;
 }

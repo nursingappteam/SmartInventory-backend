@@ -33,7 +33,9 @@ The site __Admin__ page allows the user to clear the database log of picks–but
 To set your app up to allow clearing the log:
 
 * In your `.env` file, find the variable named `ADMIN_KEY` and give it a text string as a value.
-* With the __Admin__ page open in the preview, enter the same value and hit the __Clear__ button
+* With the __Admin__ page open in the preview, enter the same value and hit the __Clear__ button–this time it should allow you to clear the log.
+
+See the `clearLogs` endpoint in `server.js` to learn how this works.
 
 ![Glitch](https://cdn.glitch.com/a9975ea6-8949-4bab-addb-8a95021dc2da%2FLogo_Color.svg?v=1602781328576)
 

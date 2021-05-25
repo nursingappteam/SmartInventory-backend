@@ -142,7 +142,8 @@ fastify.post("/clearLogs", (request, reply) => {
         if (err) {
           reply.send({ message: "error!" });
         } else {
-          reply.send({ message: "success" });
+          params.logs=[];
+          reply.view("/src/pages/admin.hbs", params);
         }
       }
     );

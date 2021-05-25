@@ -24,13 +24,17 @@
           
         <!-- This is the start of content for our page -->
         <h1>Admin</h1>
+        
         <p>
           <strong>{{logs.length}} records!</strong>
+        </p>
+        
+        <p class="error">
+          You can add more to the log by navigating back to <a href="/">Home</a> and picking options from the poll.
         </p>
         <p>
           <em>Most recent records will be shown by default (max 20).</em>
         </p>
-        
         <table>
           <th>Choice</th><th>Time</th>
           {{#each logs}}
@@ -53,7 +57,6 @@
           <input type="password" id="pass" name="key" required><br/><br/>
           <button type="submit">Clear ⚠️</button>
         </form>
-        
       </div>
     </div>
     <!-- The footer holds our remix button — you can use it for structure or cut it out ✂ -->
