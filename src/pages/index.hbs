@@ -81,12 +81,16 @@
             <p>
               Use an SQLite database with your Node.js app.
             </p>
-          
+          <p>
+            <em>Enter a preference by sending a POST request to the API!</em>
+          </p>
+          <!--
           <p>
             <em>Select a theme for the page by sending a POST request to the API!</em>
           </p>
-          
+          -->
           <!-- The "What's your favorite color?" form sends a POST request to the server, check server.js to see how it works -->
+          <!--
           <form class="theme-select" method="post" action="/theme">
             <input type="radio" id="neutral" name="theme" value="neutral" checked/>
             <label for="neutral">Neutral 💡</label>
@@ -95,10 +99,11 @@
             <input type="radio" id="party" name="theme" value="party"/>
             <label for="party">Party 🎉</label><br/><br/>
             <button type="submit">Update</button>
+-->
             <!--add checked attribute on load and when post-->
             
             <!-- TODO add code to render based on database data, use colors here instead of emoji -->
-            
+   <!--         
           </form>
           {{#if theme}}
           <script type="text/javascript">
@@ -106,7 +111,7 @@
           document.getElementById("{{theme}}").checked=true;
           </script>
           {{/if}}
-          
+          -->
           {{#if picked}}
           <p>
             <canvas id="myChart"  height="150"></canvas>
