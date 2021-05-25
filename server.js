@@ -78,9 +78,14 @@ fastify.get("/choices", (request, reply) => {
 
 // endpoint to get all logs
 fastify.get("/logs", (request, reply) => {
+  let params = {};
+  //authenticate
+  if (!request.headers.authorization) {
+    reply.view("/src/pages/admin.hbs", params);
+  }
   db.all("SELECT * from Log", (err, rows) => {
     console.log(rows);
-    let params = {};
+    params.authenticated=true;
     params.logs=rows;
     reply.view("/src/pages/admin.hbs", params);
   });

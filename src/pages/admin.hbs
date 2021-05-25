@@ -24,7 +24,7 @@
           
         <!-- This is the start of content for our page -->
         <h1>Admin</h1>
-        
+        {{#if authenticated}}
         <p>
           <em>{{logs.length}} records</em>
         </p>
@@ -42,6 +42,19 @@
           </p>
           <button type="submit">Clear ⚠️</button>
         </form>
+        {{else}}
+        <p>
+          Please login:
+        </p>
+        <form>
+          <label for="username">Username:</label><br/>
+          <input type="text" id="username" name="username"><br/>
+          <label for="pass">Password:</label><br/>
+          <input type="password" id="pass" name="password" required><br/><br/>
+          <input type="submit" value="Sign in">
+          
+        </form>
+        {{/if}}
         <p>
         <a href="/"> &gt; Home</a>
         </p>
