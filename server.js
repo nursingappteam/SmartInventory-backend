@@ -68,7 +68,6 @@ db.serialize(() => {
         console.log(`record: ${row.theme}`);
       }
     });
-    
   }
 });
 
@@ -113,23 +112,23 @@ fastify.post("/theme", (request, reply) => {
 });
 
 fastify.post("/pick", (request, reply) => {
-  
   let params = { seo: seo, picked: true };
   db.all(
-    "UPDATE Choices SET picks = picks + 1 WHERE color = '"+request.body.color+"'",
-    (err) => {
-      if(!err){
+    "UPDATE Choices SET picks = picks + 1 WHERE color = '" +
+      request.body.color +
+      "'",
+    err => {
+      if (!err) {
         db.all("SELECT * from Choices", (err, rows) => {
-//          console.log(JSON.stringify(rows.map(({ color, picks }) => ({color, picks}))))
+          //          console.log(JSON.stringify(rows.map(({ color, picks }) => ({color, picks}))))
           //let result = objArray.map(a => a.foo);
           params.choices = JSON.stringify(rows.map(c => c.color));
           params.picks = JSON.stringify(rows.map(c => c.picks));
-            reply.view("/src/pages/index.hbs", params);
-  });
+          reply.view("/src/pages/index.hbs", params);
+        });
       }
     }
   );
-  
 });
 
 // endpoint to add a dream to the database

@@ -27,8 +27,35 @@
     <!-- Import the webpage's stylesheet -->
     <link rel="stylesheet" href="/style.css" />
     
-    
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script> 
+    <!-- Show choice chart -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script> 
+    <script type="text/javascript">
+    function showChart(choices, picks){
+      var ctx = document.getElementById('myChart');
+      var myLineChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: choices,
+          datasets: [{
+            data: picks,
+            backgroundColor: "blueviolet",
+            fill: true
+          }]
+        },
+        options: {
+          legend: { display: false },
+          scales: {
+            yAxes: [{
+              ticks: {
+                beginAtZero: true,
+                display: false
+              }
+            }]
+          }
+        }
+      });
+    }
+    </script>
     
     <script type="text/javascript">
       {{#if color_primary}}
@@ -80,36 +107,17 @@
           <p>
             <canvas id="myChart"  height="150"></canvas>
             <script type="text/javascript">
-            
-    	var ctx = document.getElementById('myChart');
-//console.log({{choices}})
-var myLineChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: {{{ choices }}},
-datasets: [{
-    data: {{{ picks }}},
-    backgroundColor: "blue",
-    fill: true
-  }]
-},
-options: {
-    legend: { display: false },
-    scales: {
-        yAxes: [{
-            ticks: {
-                beginAtZero: true,
-                display: false
-            }
-        }]
-
-    }
-}
-});
-          </script>
+              showChart({{{choices}}}, {{{picks}}});
+            </script>
           </p>
           
           {{else}}
+          <h2>
+            Poll
+          </h2>
+          <p>
+            What's your favorite xyz
+          </p>
           <form method="post" action="/pick">
             <input type="radio" id="red" name="color" value="red"/>
             <label for="red">Red</label>
