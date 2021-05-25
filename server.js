@@ -40,7 +40,7 @@ if (seo.url === "glitch-default") {
   seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
 }
 
-// if ./.data/sqlite.db does not exist, create it, otherwise print records to console
+// if db does not exist, create it, otherwise print records to console
 db.serialize(() => {
   if (!exists) {
     db.run(
@@ -67,59 +67,14 @@ fastify.get("/", (request, reply) => {
   // The Handlebars code will be able to access the parameter values and build them into the page
   reply.view("/src/pages/index.hbs", params);
 });
-
+/*
 // endpoint to get all the options in the database
 fastify.get("/choices", (request, reply) => {
   db.all("SELECT * from Choices", (err, rows) => {
     console.log(rows);
     reply.send(JSON.stringify(rows));
   });
-});
-
-// endpoint to get logs
-fastify.get("/logs", (request, reply) => {
-  let params = {};
-  // return most recent 20
-  db.all("SELECT * from Log ORDER BY time DESC LIMIT 20", (err, rows) => {
-    console.log(rows);
-    params.logs = rows;
-    reply.view("/src/pages/admin.hbs", params);
-  });
-});
-
-// endpoint to get all logs
-fastify.post("/clearLogs", (request, reply) => {
-  let params = {};
-  //authenticate
-  if (!request.body.key || request.body.key !== process.env.ADMIN_KEY) {
-    let params = {};
-    params.failed = true;
-    db.all("SELECT * from Log ORDER BY time DESC LIMIT 20", (err, rows) => {
-      console.log(rows);
-      params.logs = rows;
-      reply.view("/src/pages/admin.hbs", params);
-    });
-  } else {
-    db.each(
-      "SELECT * from Log",
-      (err, row) => {
-        console.log("row", row);
-        db.run(`DELETE FROM Log WHERE ID=?`, row.id, error => {
-          if (row) {
-            console.log(`deleted row ${row.id}`);
-          }
-        });
-      },
-      err => {
-        if (err) {
-          reply.send({ message: "error!" });
-        } else {
-          reply.send({ message: "success" });
-        }
-      }
-    );
-  }
-});
+});*/
 
 fastify.post("/pick", (request, reply) => {
   let params = { seo: seo, picked: true };
@@ -152,15 +107,35 @@ fastify.post("/pick", (request, reply) => {
   });
 });
 
-// endpoint to clear dreams from the database TODO change method and path
-fastify.get("/clear", (request, reply) => {
-  // DISALLOW_WRITE is an ENV variable that gets reset for new projects so you can write to the database
-  if (!process.env.DISALLOW_WRITE) {
+// endpoint to get logs
+fastify.get("/logs", (request, reply) => {
+  let params = {};
+  // return most recent 20
+  db.all("SELECT * from Log ORDER BY time DESC LIMIT 20", (err, rows) => {
+    console.log(rows);
+    params.logs = rows;
+    reply.view("/src/pages/admin.hbs", params);
+  });
+});
+
+// endpoint to get all logs
+fastify.post("/clearLogs", (request, reply) => {
+  let params = {};
+  //authenticate
+  if (!request.body.key || request.body.key !== process.env.ADMIN_KEY) {
+    let params = {};
+    params.failed = true;
+    db.all("SELECT * from Log ORDER BY time DESC LIMIT 20", (err, rows) => {
+      console.log(rows);
+      params.logs = rows;
+      reply.view("/src/pages/admin.hbs", params);
+    });
+  } else {
     db.each(
-      "SELECT * from Choices",
+      "SELECT * from Log",
       (err, row) => {
         console.log("row", row);
-        db.run(`DELETE FROM Choices WHERE ID=?`, row.id, error => {
+        db.run(`DELETE FROM Log WHERE ID=?`, row.id, error => {
           if (row) {
             console.log(`deleted row ${row.id}`);
           }

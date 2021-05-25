@@ -10,7 +10,7 @@ to this section's matching END comment to see page-specific styles.
 :root {
   --color-bg: #BDC9FF;
   --color-text-main: #000000;
-  --color-primary: #AFECE0;
+  --color-primary: #D7F5EF;
   --wrapper-height: 87vh;
   --image-max-width: 300px;
   --image-margin: 3rem;
@@ -163,7 +163,7 @@ h1 {
 }
 .poll-form button:hover {
   cursor: pointer;
-  box-shadow: -8px 4px 20px #9BE7D8;
+  box-shadow: -8px 4px 20px var(--color-primary);
 }
 form {
   margin: 0.75rem 0;
