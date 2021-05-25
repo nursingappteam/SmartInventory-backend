@@ -112,6 +112,23 @@ fastify.post("/theme", (request, reply) => {
   );
 });
 
+fastify.post("/pick", (request, reply) => {
+  
+  let params = { seo: seo, picked: true };
+  db.all(
+    "UPDATE Choices SET picks = picks + 1 WHERE color = '"+request.body.color+"'",
+    (err) => {
+      if(!err){
+        db.all("SELECT * from Choices", (err, rows) => {
+          params.choices = 
+            reply.view("/src/pages/index.hbs", params);
+  });
+      }
+    }
+  );
+  
+});
+
 // endpoint to add a dream to the database
 fastify.post("/new", (request, reply) => {
   console.log(`Add to themes ${request.body.theme}`);

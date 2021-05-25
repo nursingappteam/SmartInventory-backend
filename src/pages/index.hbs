@@ -73,7 +73,13 @@
           </script>
           {{/if}}
           
-          <form method="post" action="/choice">
+          {{#if picked}}
+          <p>
+            picked <!--chart-->
+          </p>
+          
+          {{else}}
+          <form method="post" action="/pick">
             <input type="radio" id="red" name="color" value="red"/>
             <label for="red">Red</label>
             <input type="radio" id="green" name="color" value="green"/>
@@ -84,6 +90,7 @@
               Submit
             </button>
           </form>
+          {{/if}}
           
         </div>
         <!--SWAP SQLITE LOGO?-->
