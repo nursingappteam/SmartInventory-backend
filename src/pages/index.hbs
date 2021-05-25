@@ -64,6 +64,7 @@
             <!--add checked attribute on load and when post-->
             
             <!-- TODO add code to render based on database data, use colors here instead of emoji -->
+            
           </form>
           {{#if theme}}
           <script type="text/javascript">
@@ -71,6 +72,18 @@
           document.getElementById("{{theme}}").checked=true;
           </script>
           {{/if}}
+          
+          <form method="post" action="/choice">
+            <input type="radio" id="red" name="color" value="red"/>
+            <label for="red">Red</label>
+            <input type="radio" id="green" name="color" value="green"/>
+            <label for="green">Green</label>
+            <input type="radio" id="blue" name="color" value="blue"/>
+            <label for="blue">Blue</label><br/><br/>
+            <button type="submit">
+              Submit
+            </button>
+          </form>
           
         </div>
         <!--SWAP SQLITE LOGO?-->

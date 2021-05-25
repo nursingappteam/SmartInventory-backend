@@ -56,12 +56,19 @@ db.serialize(() => {
       );
     });
   } else {
+    /*
+    db.serialize(() => {
+    db.run("DROP TABLE Choices")
+    db.run("CREATE TABLE Choices (id INTEGER PRIMARY KEY AUTOINCREMENT, color TEXT, picks INTEGER)")
+    db.run("INSERT INTO Choices (color, picks) VALUES ('red', 0), ('green', 0), ('blue', 0)")
+    });*/
     console.log('Database "Themes" ready to go!');
     db.each("SELECT * from Themes", (err, row) => {
       if (row) {
         console.log(`record: ${row.theme}`);
       }
     });
+    
   }
 });
 
@@ -75,6 +82,14 @@ fastify.get("/", (request, reply) => {
 // endpoint to get all the themes in the database
 fastify.get("/themes", (request, reply) => {
   db.all("SELECT * from Themes", (err, rows) => {
+    console.log(rows);
+    reply.send(JSON.stringify(rows));
+  });
+});
+
+// endpoint to get all the themes in the database
+fastify.get("/choices", (request, reply) => {
+  db.all("SELECT * from Choices", (err, rows) => {
     console.log(rows);
     reply.send(JSON.stringify(rows));
   });
