@@ -136,7 +136,7 @@ fastify.post("/pick", (request, reply) => {
 });
 
 fastify.post("/reset", (request, reply) => {
-  if (request.body.password && request.body.password === process.env.PASSWORD)
+  if (request.body.password && request.body.password===process.env.PASSWORD)
     db.each(
       "SELECT * from Logs",
       (err, row) => {
