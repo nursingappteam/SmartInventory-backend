@@ -76,26 +76,29 @@ fastify.get("/choices", (request, reply) => {
   });
 });
 
-// endpoint to get all logs
+// endpoint to get logs
 fastify.get("/logs", (request, reply) => {
   let params = {};
-  db.all("SELECT * from Log", (err, rows) => { console.log(rows)
-    params.logs=rows;
+  // return most recent 20
+  db.all("SELECT * from Log ORDER BY time DESC LIMIT 20", (err, rows) => {
+    console.log(rows);
+    params.logs = rows;
     reply.view("/src/pages/admin.hbs", params);
   });
-  
 });
 
 // endpoint to get all logs
 fastify.post("/clearLogs", (request, reply) => {
   let params = {};
   //authenticate
-  if (
-    !request.body.key ||
-    request.body.key !== process.env.ADMIN_KEY
-  ) {
+  if (!request.body.key || request.body.key !== process.env.ADMIN_KEY) {
+    let params = {};
     params.failed = true;
-    reply.view("/src/pages/admin.hbs", params);
+    db.all("SELECT * from Log ORDER BY time DESC LIMIT 20", (err, rows) => {
+      console.log(rows);
+      params.logs = rows;
+      reply.view("/src/pages/admin.hbs", params);
+    });
   } else {
     db.each(
       "SELECT * from Log",
@@ -128,7 +131,7 @@ fastify.post("/pick", (request, reply) => {
         "', '" +
         new Date().toLocaleString() +
         "')"
-    ); 
+    );
 
     db.all(
       "UPDATE Choices SET picks = picks + 1 WHERE language = '" +
