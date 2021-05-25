@@ -118,8 +118,9 @@ fastify.get("/logs", (request, reply) => {
 // endpoint to empty all logs
 fastify.post("/clearLogs", (request, reply) => {
   let params = {};
-  //authenticate
+  // Authenticate the user request by checking against the env key variable
   if (!request.body.key || request.body.key !== process.env.ADMIN_KEY) {
+    // Auth failed, return the log data plus a failed flag
     let params = {};
     params.failed = true;
     db.all("SELECT * from Log ORDER BY time DESC LIMIT 20", (err, rows) => {
@@ -128,6 +129,7 @@ fastify.post("/clearLogs", (request, reply) => {
       reply.view("/src/pages/admin.hbs", params);
     });
   } else {
+    // We have a valid key and can clear the log
     db.each(
       "SELECT * from Log",
       (err, row) => {
@@ -142,6 +144,7 @@ fastify.post("/clearLogs", (request, reply) => {
         if (err) {
           reply.send({ message: "error!" });
         } else {
+          // Log cleared, return an empty array
           params.logs=[];
           reply.view("/src/pages/admin.hbs", params);
         }

@@ -1,6 +1,8 @@
 # Hello SQLite!
 
-This project includes a [Node.js](https://nodejs.org/en/about/) server script that uses a persistent [SQLite](https://www.sqlite.org) database. The app also includes a front-end web page that connects to the database. The user can see the current data and submit new records to the database. 📊
+This project includes a [Node.js](https://nodejs.org/en/about/) server script that uses a persistent [SQLite](https://www.sqlite.org) database. The app also includes a front-end with two web pages that connect to the database via the API.
+
+The home page asks the user to choose an option and presents the results in a chart. The admin page presents the log of past choices and allows the user to clear it by supplying their admin key. 📊
 
 ## What's in this project?
 
