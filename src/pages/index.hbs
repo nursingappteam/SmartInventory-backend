@@ -95,12 +95,13 @@
             What do you like coding most?
           </p>
           <form method="post" action="/pick">
-            <input type="radio" id="html" name="language" value="html"/>
-            <label for="html">HTML</label>
-            <input type="radio" id="js" name="language" value="js"/>
-            <label for="js">JavaScript</label>
-            <input type="radio" id="css" name="language" value="css"/>
-            <label for="css">CSS</label><br/><br/>
+            
+            {{#each choices}}
+            <input type="radio" id="{{language}}" name="language" value="{{language}}"/>
+            <label for="{{language}}">{{language}}</label>
+            {{/each}}
+            
+            <br/><br/>
             <button type="submit">
               Submit
             </button>

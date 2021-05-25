@@ -63,18 +63,15 @@ db.serialize(() => {
 
 fastify.get("/", (request, reply) => {
   // params is an object we'll pass to our handlebars template
+
   let params = { seo: seo };
-  // The Handlebars code will be able to access the parameter values and build them into the page
-  reply.view("/src/pages/index.hbs", params);
-});
-/*
-// endpoint to get all the options in the database
-fastify.get("/choices", (request, reply) => {
   db.all("SELECT * from Choices", (err, rows) => {
-    console.log(rows);
-    reply.send(JSON.stringify(rows));
+    if (!err) {
+      params.choices = rows;
+      reply.view("/src/pages/index.hbs", params);
+    }
   });
-});*/
+});
 
 fastify.post("/pick", (request, reply) => {
   let params = { seo: seo, picked: true };
