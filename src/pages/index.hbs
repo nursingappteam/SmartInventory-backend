@@ -33,27 +33,18 @@
     function showChart(choices, picks){
       var ctx = document.getElementById('myChart');
       var myLineChart = new Chart(ctx, {
-        type: 'bar',
+        type: 'pie',
         data: {
           labels: choices,
           datasets: [{
             data: picks,
-            backgroundColor: ["#FF7698", "#05F293", "#FFFF60"],
+            backgroundColor: ["#05DA84", "#E6E656", "#E5AED6"],
+            borderColor: "#2800FF",
             fill: true
           }]
         },
         options: {
-          legend: { display: false },
-          scales: {
-            xAxes: [{
-              ticks: { fontColor: "black" },
-              gridLines: { color: "rgba(0, 0, 0, 0)", zeroLineColor: '#000000' }
-            }],
-            yAxes: [{
-              ticks: { beginAtZero: true, display: false, fontColor: "black" },
-              gridLines: { color: "rgba(0, 0, 0, 0)", zeroLineColor: '#000000' }
-            }]
-          }
+          legend: { display: false }
         }
       });
     }
@@ -79,10 +70,10 @@
             Votes
           </h2>
           <p>
-            What other people voted for:
+            What people voted for:
           </p>
           <p>
-            <canvas id="myChart"  height="150"></canvas>
+            <canvas id="myChart"  height="200"></canvas>
             <script type="text/javascript">
               showChart({{{choices}}}, {{{picks}}});
             </script>
@@ -96,7 +87,7 @@
           </p>
           <form method="post" action="/pick">
             
-            {{#each choices}}
+            {{#each options}}
             <input type="radio" id="{{language}}" name="language" value="{{language}}"/>
             <label for="{{language}}">{{language}}</label>
             {{/each}}

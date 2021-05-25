@@ -67,7 +67,7 @@ fastify.get("/", (request, reply) => {
   let params = { seo: seo };
   db.all("SELECT * from Choices", (err, rows) => {
     if (!err) {
-      params.choices = rows;
+      params.options = rows;
       reply.view("/src/pages/index.hbs", params);
     } else console.log(err)
   });
@@ -115,7 +115,7 @@ fastify.get("/logs", (request, reply) => {
   });
 });
 
-// endpoint to get all logs
+// endpoint to empty all logs
 fastify.post("/clearLogs", (request, reply) => {
   let params = {};
   //authenticate
