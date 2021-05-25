@@ -45,27 +45,24 @@ db.serialize(() => {
   if (!exists) {
     //  db.run('DROP TABLE Themes')
     db.run(
-      "CREATE TABLE Themes (id INTEGER PRIMARY KEY AUTOINCREMENT, theme TEXT, col1 TEXT, col2 TEXT)"
+      "CREATE TABLE Choices (id INTEGER PRIMARY KEY AUTOINCREMENT, language TEXT, picks INTEGER)"
     );
-    console.log("New table Themes created!");
 
     // insert default dreams
     db.serialize(() => {
       db.run(
-        'INSERT INTO Themes (theme, col1, col2) VALUES ("neutral", "#000000", "#FFFFFF"), ("party", "#990000", "#CCFFFF"), ("relax", "#00838F", "#FFFFCC")'
+        "INSERT INTO Choices (language, picks) VALUES ('html', 0), ('js', 0), ('css', 0)"
       );
     });
   } else {
+    
     /*
-    db.serialize(() => {
-    db.run("DROP TABLE Choices")
-    db.run("CREATE TABLE Choices (id INTEGER PRIMARY KEY AUTOINCREMENT, language TEXT, picks INTEGER)")
-    db.run("INSERT INTO Choices (language, picks) VALUES ('html', 0), ('js', 0), ('css', 0)")
-    });*/
-    console.log('Database "Themes" ready to go!');
-    db.each("SELECT * from Themes", (err, row) => {
+    db.run("CREATE TABLE Log (id INTEGER PRIMARY KEY AUTOINCREMENT, choice TEXT, time STRING)")
+    */
+    
+    db.each("SELECT * from Choices", (err, row) => {
       if (row) {
-        console.log(`record: ${row.theme}`);
+        console.log(`record: ${row.language}`);
       }
     });
   }
@@ -79,36 +76,11 @@ fastify.get("/", (request, reply) => {
 });
 
 // endpoint to get all the themes in the database
-fastify.get("/themes", (request, reply) => {
-  db.all("SELECT * from Themes", (err, rows) => {
-    console.log(rows);
-    reply.send(JSON.stringify(rows));
-  });
-});
-
-// endpoint to get all the themes in the database
 fastify.get("/choices", (request, reply) => {
   db.all("SELECT * from Choices", (err, rows) => {
     console.log(rows);
     reply.send(JSON.stringify(rows));
   });
-});
-
-//updates ui
-fastify.post("/theme", (request, reply) => {
-  console.log(request.body.theme);
-  // params is an object we'll pass to our handlebars template
-  let params = { seo: seo };
-  db.all(
-    "SELECT * from Themes WHERE theme='" + request.body.theme + "'",
-    (err, rows) => {
-      params.theme = rows[0].theme;
-      params.color_primary = rows[0].col1;
-      params.color_secondary = rows[0].col2;
-      // The Handlebars code will be able to access the parameter values and build them into the page
-      reply.view("/src/pages/index.hbs", params);
-    }
-  );
 });
 
 fastify.post("/pick", (request, reply) => {
@@ -131,34 +103,15 @@ fastify.post("/pick", (request, reply) => {
   );
 });
 
-// endpoint to add a dream to the database
-fastify.post("/new", (request, reply) => {
-  console.log(`Add to themes ${request.body.theme}`);
-
-  // DISALLOW_WRITE is an ENV variable that gets reset for new projects
-  // so they can write to the database
-  // TODO replace with user set env
-  if (!process.env.DISALLOW_WRITE) {
-    const cleansedTheme = cleanseTheme(request.body.theme);
-    db.run(`INSERT INTO Themes (theme) VALUES (?)`, cleansedTheme, error => {
-      if (error) {
-        reply.send({ message: "error!" });
-      } else {
-        reply.send({ message: "success" });
-      }
-    });
-  }
-});
-
 // endpoint to clear dreams from the database TODO change method and path
 fastify.get("/clear", (request, reply) => {
   // DISALLOW_WRITE is an ENV variable that gets reset for new projects so you can write to the database
   if (!process.env.DISALLOW_WRITE) {
     db.each(
-      "SELECT * from Themes",
+      "SELECT * from Choices",
       (err, row) => {
         console.log("row", row);
-        db.run(`DELETE FROM Themes WHERE ID=?`, row.id, error => {
+        db.run(`DELETE FROM Choices WHERE ID=?`, row.id, error => {
           if (row) {
             console.log(`deleted row ${row.id}`);
           }
@@ -174,11 +127,6 @@ fastify.get("/clear", (request, reply) => {
     );
   }
 });
-
-// helper function that prevents html/css/script malice
-const cleanseTheme = function(string) {
-  return string.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-};
 
 // Run the server and report out to the logs
 fastify.listen(process.env.PORT, function(err, address) {
