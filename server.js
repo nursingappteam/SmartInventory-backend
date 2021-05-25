@@ -80,7 +80,9 @@ fastify.get("/choices", (request, reply) => {
 fastify.get("/logs", (request, reply) => {
   db.all("SELECT * from Log", (err, rows) => {
     console.log(rows);
-    reply.send(JSON.stringify(rows));
+    let params = { seo: seo };
+    params.logs=rows;
+    reply.view("/src/pages/admin.hbs", params);
   });
 });
 

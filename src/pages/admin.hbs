@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+    <!-- 
+      This is the main Handlebars template for the site 
+      - When the user visits the homepage or submits a choice the app calls the endpoints in server.js
+      - The server script passes data in here and the Handlebars code builds it into the HTML page
+    -->
+    
+    <meta charset="utf-8" />
+    <link rel="icon" href="https://glitch.com/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{{seo.title}}</title>
+    
+    <!-- Meta tags for SEO and social sharing -->
+    <link rel="canonical" href="{{seo.url}}">
+    <meta name="description" content="{{seo.description}}">
+    <meta property="og:title" content="{{seo.title}}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="{{seo.url}}">
+    <meta property="og:description" content="{{seo.description}}">
+    <meta property="og:image" content="{{seo.image}}">
+    <meta name="twitter:card" content="summary">
+
+    <!-- Import the webpage's stylesheet -->
+    <link rel="stylesheet" href="/style.css" />
+    
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="content" role="main">
+          
+        <!-- This is the start of content for our page -->
+        <h1>Admin</h1>
+        
+        <p>
+          <em>{{logs.length}} records</em>
+        </p>
+        
+        <table>
+          <th>Choice</th><th>Time</th>
+          {{#each logs}}
+          <tr><td>{{choice}}</td><td>{{time}}</td></tr>
+          {{/each}}
+        </table>
+        
+        <form action="/reset" method="get">
+          <p>
+            Clear the log only if you are absolutely sure!!!
+          </p>
+          <button type="submit">Clear ⚠️</button>
+        </form>
+        
+      </div>
+    </div>
+    <!-- The footer holds our remix button — you can use it for structure or cut it out ✂ -->
+    <footer class="footer">
+      <div class="links"></div>
+      <a
+        class="btn--remix"
+        target="_top"
+        href="https://glitch.com/edit/#!/remix/glitch-hello-node"
+      >
+        <img
+          src="https://cdn.glitch.com/605e2a51-d45f-4d87-a285-9410ad350515%2FLogo_Color.svg?v=1618199565140"
+          alt=""
+        />
+        Remix on Glitch
+      </a>
+    </footer>
+  </body>
+</html>

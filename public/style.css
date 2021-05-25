@@ -193,3 +193,7 @@ label {
 h2 {
   color: #2800FF;
 }
+
+table {
+  text-align:left;
+}
