@@ -79,16 +79,24 @@ fastify.get("/choices", (request, reply) => {
 // endpoint to get all logs
 fastify.get("/logs", (request, reply) => {
   let params = {};
+    reply.view("/src/pages/admin.hbs", params);
+});
+
+// endpoint to get all logs
+fastify.post("/logs", (request, reply) => {
+  let params = {};
   //authenticate
-  if (!request.headers.authorization) {
+  if (!request.body.username || !request.body.password || request.body.password!==process.env.KEY) {
     reply.view("/src/pages/admin.hbs", params);
   }
+  else {
   db.all("SELECT * from Log", (err, rows) => {
     console.log(rows);
     params.authenticated=true;
     params.logs=rows;
     reply.view("/src/pages/admin.hbs", params);
   });
+  }
 });
 
 fastify.post("/pick", (request, reply) => {
