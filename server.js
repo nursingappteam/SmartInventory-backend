@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 // init sqlite db
-const dbFile = "./.data/preferences.db";
+const dbFile = "./.data/choices.db";
 const exists = fs.existsSync(dbFile);
 const sqlite3 = require("sqlite3").verbose();
 const db = new sqlite3.Database(dbFile);
@@ -43,23 +43,16 @@ if (seo.url === "glitch-default") {
 // if ./.data/sqlite.db does not exist, create it, otherwise print records to console
 db.serialize(() => {
   if (!exists) {
-    //  db.run('DROP TABLE Themes')
     db.run(
       "CREATE TABLE Choices (id INTEGER PRIMARY KEY AUTOINCREMENT, language TEXT, picks INTEGER)"
     );
-
-    // insert default dreams
-    db.serialize(() => {
-      db.run(
-        "INSERT INTO Choices (language, picks) VALUES ('html', 0), ('js', 0), ('css', 0)"
-      );
-    });
+    db.run(
+      "INSERT INTO Choices (language, picks) VALUES ('html', 0), ('js', 0), ('css', 0)"
+    );
+    db.run(
+      "CREATE TABLE Log (id INTEGER PRIMARY KEY AUTOINCREMENT, choice TEXT, time STRING)"
+    );
   } else {
-    
-    /*
-    db.run("CREATE TABLE Log (id INTEGER PRIMARY KEY AUTOINCREMENT, choice TEXT, time STRING)")
-    */
-    
     db.each("SELECT * from Choices", (err, row) => {
       if (row) {
         console.log(`record: ${row.language}`);
@@ -75,7 +68,7 @@ fastify.get("/", (request, reply) => {
   reply.view("/src/pages/index.hbs", params);
 });
 
-// endpoint to get all the themes in the database
+// endpoint to get all the options in the database
 fastify.get("/choices", (request, reply) => {
   db.all("SELECT * from Choices", (err, rows) => {
     console.log(rows);
@@ -83,24 +76,43 @@ fastify.get("/choices", (request, reply) => {
   });
 });
 
+// endpoint to get all logs
+fastify.get("/logs", (request, reply) => {
+  db.all("SELECT * from Log", (err, rows) => {
+    console.log(rows);
+    reply.send(JSON.stringify(rows));
+  });
+});
+
 fastify.post("/pick", (request, reply) => {
   let params = { seo: seo, picked: true };
-  db.all(
-    "UPDATE Choices SET picks = picks + 1 WHERE language = '" +
-      request.body.language +
-      "'",
-    err => {
-      if (!err) {
-        db.all("SELECT * from Choices", (err, rows) => {
-          //          console.log(JSON.stringify(rows.map(({ color, picks }) => ({color, picks}))))
-          //let result = objArray.map(a => a.foo);
-          params.choices = JSON.stringify(rows.map(c => c.language));
-          params.picks = JSON.stringify(rows.map(c => c.picks));
-          reply.view("/src/pages/index.hbs", params);
-        });
+
+  db.serialize(() => {
+    db.run(
+      "INSERT INTO Log (choice, time) VALUES ('" +
+        request.body.language +
+        "', '" +
+        new Date().toLocaleString() +
+        "')"
+    );
+
+    db.all(
+      "UPDATE Choices SET picks = picks + 1 WHERE language = '" +
+        request.body.language +
+        "'",
+      err => {
+        if (!err) {
+          db.all("SELECT * from Choices", (err, rows) => {
+            //          console.log(JSON.stringify(rows.map(({ color, picks }) => ({color, picks}))))
+            //let result = objArray.map(a => a.foo);
+            params.choices = JSON.stringify(rows.map(c => c.language));
+            params.picks = JSON.stringify(rows.map(c => c.picks));
+            reply.view("/src/pages/index.hbs", params);
+          });
+        }
       }
-    }
-  );
+    );
+  });
 });
 
 // endpoint to clear dreams from the database TODO change method and path
