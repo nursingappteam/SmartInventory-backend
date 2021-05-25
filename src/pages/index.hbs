@@ -78,38 +78,35 @@
           
           {{#if picked}}
           <p>
-            {{choices}}{{picks}}
             <canvas id="myChart"  height="150"></canvas>
             <script type="text/javascript">
             
-
-    	    var ctx = document.getElementById('myChart');
-              console.log({{choices}})
-            var myLineChart = new Chart(ctx, {
+    	var ctx = document.getElementById('myChart');
+//console.log({{choices}})
+var myLineChart = new Chart(ctx, {
     type: 'bar',
     data: {
-  labels: JSON.stringify({{choices}}),
-  datasets: [{
-    label: "Calls",
-    data: JSON.stringify({{picks}}),
-    lineTension: 0,
-    backgroundColor: "green",
+        labels: {{{ choices }}},
+datasets: [{
+    data: {{{ picks }}},
+    backgroundColor: "blue",
     fill: true
   }]
 },
-    options: {
-  legend: {
-    display: true,
-    position: 'top',
-    labels: {
-      boxWidth: 80,
-      fontColor: 'black'
+options: {
+    legend: { display: false },
+    scales: {
+        yAxes: [{
+            ticks: {
+                beginAtZero: true,
+                display: false
+            }
+        }]
+
     }
-  }
 }
 });
-    	
-</script>
+          </script>
           </p>
           
           {{else}}
