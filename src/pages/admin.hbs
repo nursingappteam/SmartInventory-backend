@@ -44,8 +44,13 @@
         </form>
         {{else}}
         <p>
-          Please login:
+          Please sign in with admin user details:
         </p>
+        {{#if failed}}
+        <p>
+          <em>Invalid credentials!</em>
+        </p>
+        {{/if}}
         <form action="/logs" method="post">
           <label for="username">Username:</label><br/>
           <input type="text" id="username" name="username"><br/>

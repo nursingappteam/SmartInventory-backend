@@ -79,23 +79,28 @@ fastify.get("/choices", (request, reply) => {
 // endpoint to get all logs
 fastify.get("/logs", (request, reply) => {
   let params = {};
-    reply.view("/src/pages/admin.hbs", params);
+  reply.view("/src/pages/admin.hbs", params);
 });
 
 // endpoint to get all logs
 fastify.post("/logs", (request, reply) => {
   let params = {};
   //authenticate
-  if (!request.body.username || !request.body.password || request.body.password!==process.env.KEY) {
+  if (
+    !request.body.username ||
+    !request.body.password ||
+    request.body.username !== process.env.ADMIN_USER ||
+    request.body.password !== process.env.PASSWORD
+  ) {
+    params.failed = true;
     reply.view("/src/pages/admin.hbs", params);
-  }
-  else {
-  db.all("SELECT * from Log", (err, rows) => {
-    console.log(rows);
-    params.authenticated=true;
-    params.logs=rows;
-    reply.view("/src/pages/admin.hbs", params);
-  });
+  } else {
+    db.all("SELECT * from Log", (err, rows) => {
+      console.log(rows);
+      params.authenticated = true;
+      params.logs = rows;
+      reply.view("/src/pages/admin.hbs", params);
+    });
   }
 });
 
@@ -130,9 +135,27 @@ fastify.post("/pick", (request, reply) => {
   });
 });
 
-fastify.get("/reset", (request, reply) => {
-  //check auth
-  
+fastify.post("/reset", (request, reply) => {
+  if (request.body.password && request.body.password === process.env.PASSWORD)
+    db.each(
+      "SELECT * from Logs",
+      (err, row) => {
+        console.log("row", row);
+        db.run(`DELETE FROM Logs WHERE ID=?`, row.id, error => {
+          if (row) {
+            console.log(`deleted row ${row.id}`);
+          }
+        });
+      },
+      err => {
+        if (err) {
+          reply.send({ message: "error!" });
+        } else {
+          reply.send({ message: "success" });
+        }
+      }
+    );
+  else reply.view("/src/pages/admin.hbs", {});
 });
 
 // endpoint to clear dreams from the database TODO change method and path
