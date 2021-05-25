@@ -47,7 +47,7 @@ db.serialize(() => {
       "CREATE TABLE Choices (id INTEGER PRIMARY KEY AUTOINCREMENT, language TEXT, picks INTEGER)"
     );
     db.run(
-      "INSERT INTO Choices (language, picks) VALUES ('html', 0), ('js', 0), ('css', 0)"
+      "INSERT INTO Choices (language, picks) VALUES ('HTML', 0), ('JavaScript', 0), ('CSS', 0)"
     );
     db.run(
       "CREATE TABLE Log (id INTEGER PRIMARY KEY AUTOINCREMENT, choice TEXT, time STRING)"
@@ -69,7 +69,7 @@ fastify.get("/", (request, reply) => {
     if (!err) {
       params.choices = rows;
       reply.view("/src/pages/index.hbs", params);
-    }
+    } else console.log(err)
   });
 });
 
