@@ -27,6 +27,9 @@
     <!-- Import the webpage's stylesheet -->
     <link rel="stylesheet" href="/style.css" />
     
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script> 
+    
     <script type="text/javascript">
       {{#if color_primary}}
       document.documentElement.style.setProperty('--color-text-main', '{{color_primary}}');
@@ -75,11 +78,38 @@
           
           {{#if picked}}
           <p>
-            picked <!--chart-->
             {{choices}}{{picks}}
+            <canvas id="myChart"  height="150"></canvas>
             <script type="text/javascript">
             
-            </script>
+
+    	    var ctx = document.getElementById('myChart');
+              console.log({{choices}})
+            var myLineChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+  labels: JSON.stringify({{choices}}),
+  datasets: [{
+    label: "Calls",
+    data: JSON.stringify({{picks}}),
+    lineTension: 0,
+    backgroundColor: "green",
+    fill: true
+  }]
+},
+    options: {
+  legend: {
+    display: true,
+    position: 'top',
+    labels: {
+      boxWidth: 80,
+      fontColor: 'black'
+    }
+  }
+}
+});
+    	
+</script>
           </p>
           
           {{else}}

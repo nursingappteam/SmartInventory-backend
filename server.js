@@ -122,8 +122,8 @@ fastify.post("/pick", (request, reply) => {
         db.all("SELECT * from Choices", (err, rows) => {
 //          console.log(JSON.stringify(rows.map(({ color, picks }) => ({color, picks}))))
           //let result = objArray.map(a => a.foo);
-          params.choices = JSON.stringify(rows.map(c => c.color));
-          params.picks = JSON.stringify(rows.map(c => c.picks));
+          params.choices = rows.map(c => c.color);
+          params.picks = rows.map(c => c.picks);
             reply.view("/src/pages/index.hbs", params);
   });
       }
