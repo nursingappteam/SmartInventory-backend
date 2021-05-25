@@ -46,14 +46,12 @@
           legend: { display: false },
           scales: {
             xAxes: [{
-              gridLines: { color: "rgba(0, 0, 0, 0)" }
+              ticks: { fontColor: "black" },
+              gridLines: { color: "rgba(0, 0, 0, 0)", zeroLineColor: '#000000' }
             }],
             yAxes: [{
-              ticks: {
-                beginAtZero: true,
-                display: false
-              },
-              gridLines: { color: "rgba(0, 0, 0, 0)" }
+              ticks: { beginAtZero: true, display: false, fontColor: "black" },
+              gridLines: { color: "rgba(0, 0, 0, 0)", zeroLineColor: '#000000' }
             }]
           }
         }
@@ -61,23 +59,15 @@
     }
     </script>
     
-    <script type="text/javascript">
-      {{#if color_primary}}
-      document.documentElement.style.setProperty('--color-text-main', '{{color_primary}}');
-      document.documentElement.style.setProperty('--color-bg', '{{color_secondary}}');
-      {{/if}}
-    </script>
-    
   </head>
   <body>
     <div class="wrapper">
       <div class="content" role="main">
-        <!-- Apply the class according to the user selected theme if there is one -->
           
         <!-- This is the start of content for our page -->
         <h1>Hello SQLite!</h1>
         
-        <div class="color-form">
+        <div class="poll-form">
             <p>
               Use an SQLite database with your Node.js app.
             </p>
@@ -117,10 +107,6 @@
           </form>
           {{/if}}
           
-        </div>
-        <!--SWAP SQLITE LOGO?-->
-        <div class="illo-container">
-          <img src="https://cdn.glitch.com/c62efef6-1e75-45cf-b248-afeccdda9477%2Fillustration.svg?v=1618196069568" class="illustration" alt="Node logo" />
         </div>
         
         <!-- Instructions on using this project -->
