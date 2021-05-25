@@ -12,6 +12,10 @@ This project includes a [Node.js](https://nodejs.org/en/about/) server script th
 
 ← `src/pages`: The handlebars files that make up the site front-end. The API in `server.js` sends data to these to update the UI.
 
+← `src/pages/index.hbs`: The site homepage presents a form when the user first visits. When the visitor submits a preference through the form, the app calls the `POST` endpount `/pick`, passing the user selection. The `server.js` endpoint updates the database and returns the user choices submitted so far, which the page presents in a chart (using [Chart.js](https://www.chartjs.org/docs/)–you can see the code in the page `head`);
+
+← `src/pages/admin.hbs`: The admin page presents a table displaying the log of most recent picks. You can clear the list by setting up your admin key in __Next steps__ below. If the user attempts to clear the list without a valid key, the page will just present the log again.
+
 ← `src/seo.json`: When you're ready to share your new site or add a custom domain, change SEO/meta settings in here.
 
 ← `package.json`: The NPM packages for your project's dependencies.
@@ -24,7 +28,12 @@ When the app runs Glitch builds the database:
 
 ## Next steps
 
-_tbd - add auth key and post_
+The site __Admin__ page allows the user to clear the database log of picks–but only if a valid key is provided. This is a simplified example of auth that checks if the user entered key matches the one in the `.env`.
+
+To set your app up to allow clearing the log:
+
+* In your `.env` file, find the variable named `ADMIN_KEY` and give it a text string as a value.
+* With the __Admin__ page open in the preview, enter the same value and hit the __Clear__ button
 
 ![Glitch](https://cdn.glitch.com/a9975ea6-8949-4bab-addb-8a95021dc2da%2FLogo_Color.svg?v=1602781328576)
 
