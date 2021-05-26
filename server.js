@@ -2,11 +2,11 @@
 
 */
 
+// Utilities we need
 const fs = require("fs");
-
 const path = require("path");
 
-// init sqlite db
+// Initialize the database - you can create a db with a different filename
 const dbFile = "./.data/choices.db";
 const exists = fs.existsSync(dbFile);
 const sqlite3 = require("sqlite3").verbose();
@@ -40,24 +40,29 @@ if (seo.url === "glitch-default") {
   seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
 }
 
-// if db does not exist, create it, otherwise print records to console
+// If db does not exist, create tables, otherwise print records to console
 db.serialize(() => {
   if (!exists) {
+    // Database doesn't exist yet - create Choices and Log tables
     db.run(
       "CREATE TABLE Choices (id INTEGER PRIMARY KEY AUTOINCREMENT, language TEXT, picks INTEGER)"
     );
+    // Add default choices to table
     db.run(
       "INSERT INTO Choices (language, picks) VALUES ('HTML', 0), ('JavaScript', 0), ('CSS', 0)"
     );
+    // Log can start empty - we'll insert a new record whenever the user chooses a poll option
     db.run(
       "CREATE TABLE Log (id INTEGER PRIMARY KEY AUTOINCREMENT, choice TEXT, time STRING)"
     );
   } else {
+    // We have a database already - write Choices records to log for info
     db.each("SELECT * from Choices", (err, row) => {
-      if (row) {
-        console.log(`record: ${row.language}`);
-      }
+      if (row) { console.log(`record: ${row.language}`); }
     });
+    
+    //If you need to remove a table from the database use this syntax
+    //db.run("DROP TABLE Choices"); //will fail if the table doesn't exist
   }
 });
 
@@ -92,8 +97,6 @@ fastify.post("/pick", (request, reply) => {
       err => {
         if (!err) {
           db.all("SELECT * from Choices", (err, rows) => {
-            //          console.log(JSON.stringify(rows.map(({ color, picks }) => ({color, picks}))))
-            //let result = objArray.map(a => a.foo);
             params.choices = JSON.stringify(rows.map(c => c.language));
             params.picks = JSON.stringify(rows.map(c => c.picks));
             reply.view("/src/pages/index.hbs", params);
@@ -133,7 +136,6 @@ fastify.post("/clearLogs", (request, reply) => {
     db.each(
       "SELECT * from Log",
       (err, row) => {
-        console.log("row", row);
         db.run(`DELETE FROM Log WHERE ID=?`, row.id, error => {
           if (row) {
             console.log(`deleted row ${row.id}`);
