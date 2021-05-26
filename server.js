@@ -85,8 +85,20 @@ fastify.get("/", (request, reply) => {
 
 // Route to process user poll pick
 fastify.post("/pick", (request, reply) => {
+  let params = { seo: seo };
+  // We don't have a language pick
+  if(!request.body.language){
+    db.all("SELECT * from Choices", (err, rows) => {
+      if (!err) {
+        // Pass the db rows to the page
+        params.options = rows;
+        // The page builds the choices into the poll form
+        reply.view("/src/pages/index.hbs", params);
+      } else console.log(err);
+    });
+  }
   // Flag to indicate a choice was picked - will show the poll results instead of the poll form
-  let params = { seo: seo, picked: true };
+  params.picked = true;
   // Update the database
   db.serialize(() => {
     // Insert new Log table entry indicating the user choice and timestamp

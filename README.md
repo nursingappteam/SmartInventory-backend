@@ -1,14 +1,27 @@
 # Hello SQLite!
 
-This project includes a [Node.js](https://nodejs.org/en/about/) server script that uses a persistent [SQLite](https://www.sqlite.org) database. The app also includes a front-end with two web pages that connect to the database using the API.
+This project includes a [Node.js](https://nodejs.org/en/about/) server script that uses a persistent [SQLite](https://www.sqlite.org) database. The app also includes a front-end with two web pages that connect to the database using the API. 📊
 
-The home page asks the user to choose an option and presents the results in a chart. The admin page presents the log of past choices and allows the user to clear it by supplying their admin key. 📊
+The home page asks the user to choose an option and presents the results in a chart. The admin page presents the log of past choices and allows the user to clear it by supplying their admin key (you can set this up by following the __Next steps__). 🔒
 
 ## What's in this project?
 
 ← `README.md`: That’s this file, where you can tell people what your cool website does and how you built it.
 
+### The back end
+
 ← `server.js`: The Node.js server script for your new site. The JavaScript defines the endpoints in the site back-end. This API processes requests, manipulates the data in the database, and sends info back to the client (the web page built using the Handlebars files in `src/pages`).
+
+
+When the app runs Glitch builds the database:
+
+← `themedata.db`: Your database is created by `server.js` and placed in the `.data` folder, a hidden directory whose contents aren’t copied when a project is remixed. You can see the contents of `.data` in the console by selecting __Tools__ >  __Logs__.
+
+← `package.json`: The NPM packages for your project's dependencies.
+
+← `.env`: The environment is cleared when you initially remix the project, but you will add a new env variable when you follow the __Next steps__ to `POST` some data.
+
+### The front end
 
 ← `public/style.css`: The style rules that define the site appearance. These include class rules that will be applied when the user selects a theme, with the `hbs` page writing the chosen classes into the page.
 
@@ -19,14 +32,6 @@ The home page asks the user to choose an option and presents the results in a ch
 ← `src/pages/admin.hbs`: The admin page presents a table displaying the log of most recent picks. You can clear the list by setting up your admin key in __Next steps__ below. If the user attempts to clear the list without a valid key, the page will just present the log again.
 
 ← `src/seo.json`: When you're ready to share your new site or add a custom domain, change SEO/meta settings in here.
-
-← `package.json`: The NPM packages for your project's dependencies.
-
-← `.env`: The environment is cleared when you initially remix the project, but you will add a new env variable when you follow the __Next steps__ to `POST` some data.
-
-When the app runs Glitch builds the database:
-
-← `themedata.db`: Your database is created by `server.js` and placed in the `.data` folder, a hidden directory whose contents aren’t copied when a project is remixed. You can see the contents of `.data` in the console by selecting __Tools__ >  __Logs__.
 
 ## Next steps
 
