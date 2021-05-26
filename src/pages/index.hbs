@@ -27,10 +27,15 @@
     <!-- Import the webpage's stylesheet -->
     <link rel="stylesheet" href="/style.css" />
     
-    <!-- Show choice chart -->
+    <!-- Show choice chart on poll submission -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script> 
     <script type="text/javascript">
+      /*
+      The pie chart uses chart.js - try tweaking the config!
+      https://www.chartjs.org/docs/3.0.2/charts/doughnut.html
+      */
     function showChart(choices, picks){
+      // We pass the choices and picks arrays from the page when the server script returns them
       var ctx = document.getElementById('myChart');
       var myLineChart = new Chart(ctx, {
         type: 'pie',
@@ -59,12 +64,13 @@
         <h1>Hello SQLite!</h1>
         
         <div class="poll-form">
-            <p>
-              Use an SQLite database with your Node.js app.
-            </p>
+          <p>
+            Use an SQLite database with your Node.js app.
+          </p>
           <p>
             <em>Enter a preference by sending a POST request to the API!</em>
           </p>
+          <!-- Server returns a flag when the user has submitted a choice and we show the results -->
           {{#if picked}}
           <h2>
             Votes
@@ -73,11 +79,13 @@
             Submissions so far (see the <a href="/logs">Admin</a> page for a log):
           </p>
           <p>
+            <!-- Pass choices + picks arrays from the API to the chart js script in the page head -->
             <canvas id="myChart"  height="200"></canvas>
             <script type="text/javascript">
               showChart({{{choices}}}, {{{picks}}});
             </script>
           </p>
+          <!-- If the user hasn't already made a choice we show the poll -->
           {{else}}
           <h2>
             Poll
@@ -85,13 +93,13 @@
           <p>
             What do you like coding most?
           </p>
+          <!-- Call the server pick endpoint when the user submits an option in the poll -->
           <form method="post" action="/pick">
-            
+            <!-- The server script returns the list of language options to offer in the poll -->
             {{#each options}}
-            <input type="radio" id="{{language}}" name="language" value="{{language}}"/>
+            <input type="radio" id="{{language}}" name="language" value="{{language}}" required/>
             <label for="{{language}}">{{language}}</label>
             {{/each}}
-            
             <br/><br/>
             <button type="submit">
               Submit

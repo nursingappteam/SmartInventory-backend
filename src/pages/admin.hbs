@@ -3,9 +3,9 @@
   <head>
     
     <!-- 
-      This is the main Handlebars template for the site 
-      - When the user visits the homepage or submits a choice the app calls the endpoints in server.js
-      - The server script passes data in here and the Handlebars code builds it into the HTML page
+      This is the Handlebars template for the Admin page 
+      - The page displays the current list of logs returned by server.js
+      - The user can clear the log by first setting up an admin key
     -->
     
     <meta charset="utf-8" />
@@ -25,6 +25,7 @@
         <!-- This is the start of content for our page -->
         <h1>Admin</h1>
         
+        <!-- The server script returns the logs in an array so we can write out the length -->
         <p>
           <strong>{{logs.length}} record(s)!</strong>
         </p>
@@ -35,6 +36,7 @@
         <p>
           <em>Most recent records will be shown by default (max 20).</em>
         </p>
+        <!-- Write out a table row for each entry in the log array showing choice and timestamp -->
         <table>
           <th>Choice</th><th>Time</th>
           {{#each logs}}
@@ -42,6 +44,7 @@
           {{/each}}
         </table>
         
+        <!-- The user can clear the logs if they first set up and admin key in the env -->
         <form action="/clearLogs" method="post">
           <p>
             <em>Check out the README for instructions on setting up your admin key.</em>
@@ -49,6 +52,7 @@
           <p>
             Clear the log only if you are absolutely sure!!! Enter your admin key to confirm:
           </p>
+          <!-- Server returns a failed flag if the submitted key doesn't match -->
           {{#if failed}}
           <p class="error">
           You entered invalid credentials!

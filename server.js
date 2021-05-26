@@ -132,7 +132,7 @@ fastify.get("/logs", (request, reply) => {
 fastify.post("/clearLogs", (request, reply) => {
   let params = {};
   // Authenticate the user request by checking against the env key variable
-  if (!request.body.key || request.body.key !== process.env.ADMIN_KEY) {
+  if (!request.body.key || request.body.key.length<1 || request.body.key !== process.env.ADMIN_KEY) {
     // Auth failed, return the log data plus a failed flag
     let params = {};
     params.failed = true;
