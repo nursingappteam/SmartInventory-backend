@@ -1,5 +1,7 @@
 /*
-
+This is the main server script that manages the app database and provides the API endpoints
+- The script creates the SQLite database and adds two initial tables to it
+- The endpoints connect to the db and return data to the page handlebars files
 */
 
 // Utilities we need
@@ -66,22 +68,28 @@ db.serialize(() => {
   }
 });
 
+// Home route for the app
 fastify.get("/", (request, reply) => {
-  // params is an object we'll pass to our handlebars template
-
+  // Params is the data we pass to the handlebars templates
   let params = { seo: seo };
+  // Get the available choices from the database
   db.all("SELECT * from Choices", (err, rows) => {
     if (!err) {
+      // Pass the db rows to the page
       params.options = rows;
+      // The page builds the choices into the poll form
       reply.view("/src/pages/index.hbs", params);
-    } else console.log(err)
+    } else console.log(err);
   });
 });
 
+// Route to process user poll pick
 fastify.post("/pick", (request, reply) => {
+  // Flag to indicate a choice was picked - will show the poll results instead of the poll form
   let params = { seo: seo, picked: true };
-
+  // Update the database
   db.serialize(() => {
+    // Insert new Log table entry indicating the user choice and timestamp
     db.run(
       "INSERT INTO Log (choice, time) VALUES ('" +
         request.body.language +
@@ -89,14 +97,16 @@ fastify.post("/pick", (request, reply) => {
         new Date().toLocaleString() +
         "')"
     );
-
+    // Update the number of times the choice has been picked
     db.all(
       "UPDATE Choices SET picks = picks + 1 WHERE language = '" +
         request.body.language +
         "'",
       err => {
         if (!err) {
+          // Return the choices so far - page will build these into a chart
           db.all("SELECT * from Choices", (err, rows) => {
+            // We send the choices and numbers in parallel arrays
             params.choices = JSON.stringify(rows.map(c => c.language));
             params.picks = JSON.stringify(rows.map(c => c.picks));
             reply.view("/src/pages/index.hbs", params);
@@ -107,18 +117,18 @@ fastify.post("/pick", (request, reply) => {
   });
 });
 
-// endpoint to get logs
+// Admin endpoint to get logs
 fastify.get("/logs", (request, reply) => {
   let params = {};
-  // return most recent 20
+  // Return most recent 20
   db.all("SELECT * from Log ORDER BY time DESC LIMIT 20", (err, rows) => {
-    console.log(rows);
+    // Return the array of log entries to admin page
     params.logs = rows;
     reply.view("/src/pages/admin.hbs", params);
   });
 });
 
-// endpoint to empty all logs
+// Admin endpoint to empty all logs - requires auth (instructions in README)
 fastify.post("/clearLogs", (request, reply) => {
   let params = {};
   // Authenticate the user request by checking against the env key variable
@@ -126,8 +136,8 @@ fastify.post("/clearLogs", (request, reply) => {
     // Auth failed, return the log data plus a failed flag
     let params = {};
     params.failed = true;
+    // Send the log list 
     db.all("SELECT * from Log ORDER BY time DESC LIMIT 20", (err, rows) => {
-      console.log(rows);
       params.logs = rows;
       reply.view("/src/pages/admin.hbs", params);
     });
@@ -144,9 +154,10 @@ fastify.post("/clearLogs", (request, reply) => {
       },
       err => {
         if (err) {
+          // Something went wrong - you could replace this with an error hbs template
           reply.send({ message: "error!" });
         } else {
-          // Log cleared, return an empty array
+          // Log cleared, return an empty array to admin page
           params.logs=[];
           reply.view("/src/pages/admin.hbs", params);
         }
