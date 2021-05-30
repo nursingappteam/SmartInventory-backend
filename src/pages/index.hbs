@@ -31,7 +31,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript">
       /*
-      The pie chart uses chart.js - try tweaking the config!
+      The chart chart uses chart.js - try tweaking the config!
       https://www.chartjs.org/docs/3.0.2/charts/doughnut.html
       */
     function showChart(choices, picks){
@@ -51,7 +51,15 @@
           }]
         },
         options: {
-          legend: { display: true }
+          plugins: {
+            legend: { 
+              display: true,
+              position: "bottom",
+              labels: {
+                padding: 24
+              }
+            }
+          }
         }
       });
     }
