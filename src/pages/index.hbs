@@ -83,17 +83,19 @@
             <h2>
               Results
             </h2>
-            <p>
-              Submissions so far (see the <a href="/logs">Admin</a> page for a log):
-            </p>
-            <p>
-              <!-- Pass choices + picks arrays from the API to the chart js script in the page head -->
-              <canvas id="myChart"></canvas>
-              <script type="text/javascript">
-                showChart({{{choices}}}, {{{picks}}});
-              </script>
-            </p>
-            <!-- If the user hasn't already made a choice we show the poll -->
+            <div class="poll-results">
+              <p>
+                Submissions so far (see the <a href="/logs">Admin</a> page for a log):
+              </p>
+              <p>
+                <!-- Pass choices + picks arrays from the API to the chart js script in the page head -->
+                <canvas id="myChart"></canvas>
+                <script type="text/javascript">
+                  showChart({{{choices}}}, {{{picks}}});
+                </script>
+              </p>
+              <!-- If the user hasn't already made a choice we show the poll -->
+            </div>
           {{else}}
             <h2>
               Poll
@@ -131,6 +133,7 @@
         
       </div>
     </div>
+    
     <!-- The footer holds our remix button — you can use it for structure or cut it out ✂ -->
     <footer class="footer">
       <div class="links"></div>
