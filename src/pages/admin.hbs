@@ -44,11 +44,15 @@
         
         <!-- The user can clear the logs if they first set up and admin key in the env -->
         <form action="/clearLogs" method="post">
+          <h2>
+            Clear log history
+          </h2>
           <p>
-            <em>Check out the README for instructions on setting up your admin key.</em>
+            Clear the log only if you are absolutely sure! It cannot be undone. 
+            <em>(Check the README for instructions on setting up your admin key.)</em>
           </p>
           <p>
-            Clear the log only if you are absolutely sure!!! Enter your admin key to confirm:
+            Enter your admin key to confirm:
           </p>
           <!-- Server returns a failed flag if the submitted key doesn't match -->
           {{#if failed}}
@@ -57,7 +61,7 @@
           </p>
           {{/if}}
           <input type="password" id="pass" name="key" required> 
-          <button type="submit">Delete history</button>
+          <button type="submit">Clear log history</button>
         </form>
       </div>
     </div>
