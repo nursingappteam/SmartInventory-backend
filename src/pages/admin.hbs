@@ -12,7 +12,7 @@
     <link rel="icon" href="https://glitch.com/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Admin</title>
+    <title>Hello SQLite: Logs</title>
 
     <!-- Import the webpage's stylesheet -->
     <link rel="stylesheet" href="/style.css" />
@@ -27,15 +27,13 @@
         
         <!-- The server script returns the logs in an array so we can write out the length -->
         <p>
-          <strong>{{logs.length}} record(s)!</strong>
-        </p>
-        
-        <p class="error">
-          Each time you submit an option through the poll in the <a href="/">Home</a> page, the app will add it to the log.
+          Each time you submit an option through the poll in the <a href="/">Home</a> page, the app 
+          will add it to the log. <em>Most recent records will be shown (max 20).</em>
         </p>
         <p>
-          <em>Most recent records will be shown by default (max 20).</em>
+          <strong>{{logs.length}} record(s)!</strong>
         </p>
+
         <!-- Write out a table row for each entry in the log array showing choice and timestamp -->
         <table>
           <th>Choice</th><th>Time</th>
@@ -58,11 +56,12 @@
           You entered invalid credentials!
           </p>
           {{/if}}
-          <input type="password" id="pass" name="key" required><br/><br/>
-          <button type="submit">Clear ⚠️</button>
+          <input type="password" id="pass" name="key" required> 
+          <button type="submit">Delete history</button>
         </form>
       </div>
     </div>
+    
     <!-- The footer holds our remix button — you can use it for structure or cut it out ✂ -->
     <footer class="footer">
       <div class="links"></div>

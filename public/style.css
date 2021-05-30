@@ -190,10 +190,11 @@ h2 {
 table {
   text-align: left;
   border-collapse: collapse;
+  background-color: #FFF3FC;
 }
 td,
 th {
-  border: 1px solid #000;
+  border: 2px solid #FFFFFF;
   padding: 0.5rem;
 }
 p a {
