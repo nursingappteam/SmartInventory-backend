@@ -47,7 +47,7 @@
             borderColor: "#ffffff",
             fill: true,
             hoverOffset: 12,
-            cutout: "55%"
+            cutout: "60%"
           }]
         },
         options: {
@@ -61,7 +61,7 @@
             }
           },
           layout: {
-            padding: 12
+            padding: 24
           }
         }
       });
@@ -78,15 +78,12 @@
         
         <div class="poll-form">
           <p>
-            Use an SQLite database with your Node.js app.
-          </p>
-          <p>
-            <em>Enter a preference by sending a POST request to the API!</em>
+            A simple poll built with Chart.js and powered by Node.js with a SQLite database.
           </p>
           <!-- Server returns a flag when the user has submitted a choice and we show the results -->
           {{#if picked}}
           <h2>
-            Votes
+            Results
           </h2>
           <p>
             Submissions so far (see the <a href="/logs">Admin</a> page for a log):
