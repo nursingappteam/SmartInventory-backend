@@ -149,13 +149,12 @@ h1 {
 }
 
 /* Styles for our poll form and its results */
-.poll-form a:not(.btn--remix) {
-  font-weight: bold;
-  color: var(--color-text-main);
-  margin-top: 8px;
-}
-.poll-form button {
-  margin-top: 8px;
+.poll-form {
+  width: 90%;
+  margin: 0 auto;
+  background-color: #FFF3FC;
+  padding: 16px 12px 8px 16px;
+  border-radius: 8px;
 }
 .poll-form button:hover {
   cursor: pointer;

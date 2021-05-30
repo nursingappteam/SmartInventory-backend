@@ -75,49 +75,47 @@
           
         <!-- This is the start of content for our page -->
         <h1>Hello SQLite!</h1>
-        
-        <div class="poll-form">
           <p>
             A simple poll built with Chart.js and powered by Node.js with a SQLite database.
           </p>
           <!-- Server returns a flag when the user has submitted a choice and we show the results -->
           {{#if picked}}
-          <h2>
-            Results
-          </h2>
-          <p>
-            Submissions so far (see the <a href="/logs">Admin</a> page for a log):
-          </p>
-          <p>
-            <!-- Pass choices + picks arrays from the API to the chart js script in the page head -->
-            <canvas id="myChart"  height="200"></canvas>
-            <script type="text/javascript">
-              showChart({{{choices}}}, {{{picks}}});
-            </script>
-          </p>
-          <!-- If the user hasn't already made a choice we show the poll -->
+            <h2>
+              Results
+            </h2>
+            <p>
+              Submissions so far (see the <a href="/logs">Admin</a> page for a log):
+            </p>
+            <p>
+              <!-- Pass choices + picks arrays from the API to the chart js script in the page head -->
+              <canvas id="myChart"></canvas>
+              <script type="text/javascript">
+                showChart({{{choices}}}, {{{picks}}});
+              </script>
+            </p>
+            <!-- If the user hasn't already made a choice we show the poll -->
           {{else}}
-          <h2>
-            Poll
-          </h2>
-          <p>
-            What do you like coding most?
-          </p>
-          <!-- Call the server pick endpoint when the user submits an option in the poll -->
-          <form method="post" action="/pick">
-            <!-- The server script returns the list of language options to offer in the poll -->
-            {{#each options}}
-            <input type="radio" id="{{language}}" name="language" value="{{language}}" required/>
-            <label for="{{language}}">{{language}}</label>
-            {{/each}}
-            <br/><br/>
-            <button type="submit">
-              Submit
-            </button>
-          </form>
+            <h2>
+              Poll
+            </h2>
+            <div class="poll-form">
+              <p>
+                What do you like coding most?
+              </p>
+              <!-- Call the server pick endpoint when the user submits an option in the poll -->
+              <form method="post" action="/pick">
+                <!-- The server script returns the list of language options to offer in the poll -->
+                {{#each options}}
+                <input type="radio" id="{{language}}" name="language" value="{{language}}" required/>
+                <label for="{{language}}">{{language}}</label>
+                {{/each}}
+                <br/><br/>
+                <button type="submit">
+                  Submit
+                </button>
+              </form>
+            </div>
           {{/if}}
-          
-        </div>
         
         <!-- Instructions on using this project -->
         <div class="instructions">
