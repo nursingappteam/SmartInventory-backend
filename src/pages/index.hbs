@@ -105,7 +105,7 @@
                 What do you like coding most?
               </p>
               <!-- Call the server pick endpoint when the user submits an option in the poll -->
-              <form method="post" action="/pick">
+              <form method="post" action="/">
                 <!-- The server script returns the list of language options to offer in the poll -->
                 {{#each options}}
                 <input type="radio" id="{{language}}" name="language" value="{{language}}" required/>

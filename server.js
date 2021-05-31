@@ -84,7 +84,7 @@ fastify.get("/", (request, reply) => {
 });
 
 // Route to process user poll pick
-fastify.post("/pick", (request, reply) => {
+fastify.post("/", (request, reply) => {
   let params = { seo: seo };
   // We don't have a language pick
   if(!request.body.language){
