@@ -120,7 +120,7 @@ fastify.post("/", (request, reply) => {
           db.all("SELECT * from Choices", (err, rows) => {
             // We send the choices and numbers in parallel arrays
             params.choices = JSON.stringify(rows.map(c => c.language));
-            params.picks = JSON.stringify(rows.map(c => c.picks));
+            params.picks = JSON.stringify(rows.map(p => p.picks));
             reply.view("/src/pages/index.hbs", params);
           });
         }
