@@ -8,49 +8,6 @@ This is the main server script that manages the app database and provides the AP
 const fs = require("fs");
 const path = require("path");
 
-// Initialize the database - you can create a db with a different filename
-const dbFile = "./.data/choices.db";
-const exists = fs.existsSync(dbFile);
-const sqlite3 = require("sqlite3").verbose();
-const dbWrapper = require("sqlite");
-let db;
-
-// We're using the sqlite wrapper so that we can use async / await
-//https://www.npmjs.com/package/sqlite
-dbWrapper
-  .open({
-    filename: dbFile,
-    driver: sqlite3.Database
-  })
-  .then(async dBase => {
-    db = dBase;
-    // The async / await syntax lets us write the db operations in a way that won't block the app
-    try {
-      if (!exists) {
-        // Database doesn't exist yet - create Choices and Log tables
-        await db.run(
-          "CREATE TABLE Choices (id INTEGER PRIMARY KEY AUTOINCREMENT, language TEXT, picks INTEGER)"
-        );
-        // Add default choices to table
-        await db.run(
-          "INSERT INTO Choices (language, picks) VALUES ('HTML', 0), ('JavaScript', 0), ('CSS', 0)"
-        );
-        // Log can start empty - we'll insert a new record whenever the user chooses a poll option
-        await db.run(
-          "CREATE TABLE Log (id INTEGER PRIMARY KEY AUTOINCREMENT, choice TEXT, time STRING)"
-        );
-      } else {
-        // We have a database already - write Choices records to log for info
-        console.log(await db.all("SELECT * from Choices"));
-
-        //If you need to remove a table from the database use this syntax
-        //db.run("DROP TABLE Logs"); //will fail if the table doesn't exist
-      }
-    } catch (dbError) {
-      console.error(dbError);
-    }
-  });
-
 // Require the fastify framework and instantiate it
 const fastify = require("fastify")({
   // Set this to true for detailed logging:
@@ -78,6 +35,50 @@ const seo = require("./src/seo.json");
 if (seo.url === "glitch-default") {
   seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
 }
+
+// Initialize the database - you can create a db with a different filename
+const dbFile = "./.data/choices.db";
+const exists = fs.existsSync(dbFile);
+const sqlite3 = require("sqlite3").verbose();
+const dbWrapper = require("sqlite");
+let db;
+
+// We're using the sqlite wrapper so that we can use async / await
+//https://www.npmjs.com/package/sqlite
+dbWrapper
+  .open({
+    filename: dbFile,
+    driver: sqlite3.Database
+  })
+  .then(async dBase => {
+    db = dBase;
+    // We use try and catch blocks throughout to handle any database errors
+    try {
+      // The async / await syntax lets us write the db operations in a way that won't block the app
+      if (!exists) {
+        // Database doesn't exist yet - create Choices and Log tables
+        await db.run(
+          "CREATE TABLE Choices (id INTEGER PRIMARY KEY AUTOINCREMENT, language TEXT, picks INTEGER)"
+        );
+        // Add default choices to table
+        await db.run(
+          "INSERT INTO Choices (language, picks) VALUES ('HTML', 0), ('JavaScript', 0), ('CSS', 0)"
+        );
+        // Log can start empty - we'll insert a new record whenever the user chooses a poll option
+        await db.run(
+          "CREATE TABLE Log (id INTEGER PRIMARY KEY AUTOINCREMENT, choice TEXT, time STRING)"
+        );
+      } else {
+        // We have a database already - write Choices records to log for info
+        console.log(await db.all("SELECT * from Choices"));
+
+        //If you need to remove a table from the database use this syntax
+        //db.run("DROP TABLE Logs"); //will fail if the table doesn't exist
+      }
+    } catch (dbError) {
+      console.error(dbError);
+    }
+  });
 
 // Home route for the app
 fastify.get("/", async (request, reply) => {
