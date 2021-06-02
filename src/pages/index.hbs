@@ -31,7 +31,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript">
       /*
-      The chart chart uses chart.js - try tweaking the config!
+      The chart uses chart.js - try tweaking the config!
       https://www.chartjs.org/docs/3.0.2/charts/doughnut.html
       */
     function showChart(choices, picks){
@@ -75,10 +75,15 @@
           
         <!-- This is the start of content for our page -->
         <h1>Hello SQLite!</h1>
-          <p>
-            A simple poll built with Chart.js and powered by Node.js with a SQLite database.
+        <p>
+            A poll built with Chart.js and powered by Node.js with a SQLite database.
           </p>
-          <!-- Server returns a flag when the user has submitted a choice and we show the results -->
+        {{#if error}}
+        <p class="error">
+          Whoops! Error connecting to the database–please try again!
+        </p>
+        {{else}}
+        <!-- Server returns a flag when the user has submitted a choice and we show the results -->
           {{#if picked}}
             <h2>
               Results
@@ -88,10 +93,10 @@
                 Submissions so far (see the <a href="/logs">Admin</a> page for a log):
               </p>
               <p>
-                <!-- Pass choices + picks arrays from the API to the chart js script in the page head -->
+                <!-- Pass arrays from the API to the chart script in page head -->
                 <canvas id="myChart"></canvas>
                 <script type="text/javascript">
-                  showChart({{{choices}}}, {{{picks}}});
+                  showChart({{{optionNames}}}, {{{optionCounts}}});
                 </script>
               </p>
               <!-- If the user hasn't already made a choice we show the poll -->
@@ -104,7 +109,7 @@
               <p>
                 What do you like coding most?
               </p>
-              <!-- Call the server pick endpoint when the user submits an option in the poll -->
+              <!-- Call the server post endpoint when the user submits an option in the poll -->
               <form method="post" action="/">
                 <!-- The server script returns the list of language options to offer in the poll -->
                 {{#each options}}
@@ -118,6 +123,7 @@
               </form>
             </div>
           {{/if}}
+        {{/if}}
         
         <!-- Instructions on using this project -->
         <div class="instructions">
@@ -133,7 +139,6 @@
         
       </div>
     </div>
-    
     <!-- The footer holds our remix button — you can use it for structure or cut it out ✂ -->
     <footer class="footer">
       <div class="links"></div>
