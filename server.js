@@ -120,8 +120,12 @@ fastify.post("/", async (request, reply) => {
       // Return the choices so far - page will build these into a chart
       params.options = await db.all("SELECT * from Choices");
       // We send the choices and numbers in parallel arrays
-      params.optionNames = JSON.stringify(params.options.map(choice => choice.language));
-      params.optionCounts = JSON.stringify(params.options.map(choice => choice.picks));
+      params.optionNames = JSON.stringify(
+        params.options.map(choice => choice.language)
+      );
+      params.optionCounts = JSON.stringify(
+        params.options.map(choice => choice.picks)
+      );
     } catch (dbError) {
       console.error(dbError);
       params.error = true;
@@ -153,7 +157,8 @@ fastify.post("/clearLogs", async (request, reply) => {
     if (
       !request.body.key ||
       request.body.key.length < 1 ||
-      request.body.key !== process.env.ADMIN_KEY
+      request.body.key !== process.env.ADMIN_KEY ||
+      !process.env.ADMIN_KEY
     ) {
       console.error("Auth fail");
       // Auth failed, return the log data plus a failed flag
