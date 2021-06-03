@@ -141,7 +141,7 @@ fastify.get("/logs", async (request, reply) => {
   // Return most recent 20
   try {
     // Return the array of log entries to admin page
-    params.logs = await db.all("SELECT * from Log ORDER BY time DESC LIMIT 20");
+    params.optionHistory = await db.all("SELECT * from Log ORDER BY time DESC LIMIT 20");
   } catch (dbError) {
     console.error(dbError);
     params.error = true;
@@ -164,7 +164,7 @@ fastify.post("/clearLogs", async (request, reply) => {
       // Auth failed, return the log data plus a failed flag
       params.failed = true;
       // Send the log list
-      params.logs = await db.all(
+      params.optionHistory = await db.all(
         "SELECT * from Log ORDER BY time DESC LIMIT 20"
       );
       reply.view("/src/pages/admin.hbs", params);
@@ -172,7 +172,7 @@ fastify.post("/clearLogs", async (request, reply) => {
       // We have a valid key and can clear the log
       await db.run("DELETE from Log");
       // Log cleared, return an empty array to admin page
-      params.logs = [];
+      params.optionHistory = [];
     }
   } catch (dbError) {
     console.error(dbError);

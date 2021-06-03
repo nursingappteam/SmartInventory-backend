@@ -36,21 +36,25 @@
       <p>
         Each time you submit an option through the poll in the <a href="/">Home</a> page, the app will add it to the log. <em>Most recent records will be shown (max 20).</em>
       </p>
-      <p>
-        <strong>{{logs.length}} record(s)!</strong>
-      </p>
 
       <!-- Write out a table row for each entry in the log array showing choice and timestamp -->
-      <table>
-        <th>Choice</th>
-        <th>Time</th>
-        {{#each logs}}
-        <tr>
-          <td>{{choice}}</td>
-          <td>{{time}}</td>
-        </tr>
-        {{/each}}
-      </table>
+      {{#if optionHistory}}
+          <div>
+            <h2>Poll History</h2>
+            <table>
+              <tr>
+                <th>Option Name</th>
+                <th>Timestamp</th>
+              </tr>
+              {{#each optionHistory}}
+                <tr>
+                  <td>{{choice}}</td>
+                  <td>{{time}}</td>
+                </tr>
+              {{/each}}
+            </table>
+          </div>
+      {{/if}}
 
       <!-- The user can clear the logs if they first set up and admin key in the env -->
       <form action="/clearLogs" method="post">
