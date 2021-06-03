@@ -87,7 +87,11 @@ module.exports = {
       );
       
       // Return the choices so far - page will build these into a chart
-      return await db.all("SELECT * from Choices");
+      const options = await db.all("SELECT * from Choices");
+      return {
+        names: options.map(choice => choice.language),
+        counts: options.map(choice => choice.picks)
+      }
     } catch (dbError) {
       console.error(dbError);
     }

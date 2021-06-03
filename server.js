@@ -65,18 +65,14 @@ fastify.post("/", async (request, reply) => {
     params.picked = true;
     
     // Send the user pick to the db helper to update and return votes cast
-    params.options = await data.processVote(request.body.language);
-    if (params.options) {
-      
+    const options = await data.processVote(request.body.language);
+    
+    if (options) {
       // We send the choices and numbers in parallel arrays
-      params.optionNames = JSON.stringify(
-        params.options.map(choice => choice.language)
-      );
-      params.optionCounts = JSON.stringify(
-        params.options.map(choice => choice.picks)
-      );
-      
-    } else params.error = true; // Let the user know if there's an error
+      params.optionNames = JSON.stringify(options.names);
+      params.optionCounts = JSON.stringify(options.counts);
+    } 
+    else params.error = true; // Let the user know if there's an error
     
     // Return the info to the page
     reply.view("/src/pages/index.hbs", params);
