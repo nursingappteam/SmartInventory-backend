@@ -14,7 +14,9 @@ The home page presents the user with a poll where they can choose an option, the
 
 ### The back-end
 
-← `server.js`: The Node.js server script for your new site. The JavaScript defines the endpoints in the site back-end. This API processes requests, manipulates the data in the database, and sends info back to the client (the web page built using the Handlebars templates in `src/pages`).
+← `server.js`: The Node.js server script for your new site. The JavaScript defines the endpoints in the site back-end. This API processes requests, connects to the database using the `db.js` helper, and sends info back to the client (the web page built using the Handlebars templates in `src/pages`).
+
+← `db.js`: The database script handles setting up and connecting to the SQLite database. The `server.js` API endpoints call the functions in the `db`
 
 When the app runs, the server builds the database:
 

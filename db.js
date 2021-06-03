@@ -57,6 +57,7 @@ dbWrapper
 
 // Our server script will call these methods to connect to the db
 module.exports = {
+  
   // Get the options in the database
   getOptions: async () => {
     
