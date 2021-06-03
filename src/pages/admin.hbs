@@ -40,7 +40,7 @@
         <strong>{{optionHistory.length}} record(s)!</strong>
       </p>
       <!-- Write out a table row for each entry in the log array showing choice and timestamp -->
-      {{#if optionHistory}}
+      {{#if optionHistory.length}}
           <div>
             <h2>Poll History</h2>
             <table>
@@ -56,6 +56,10 @@
               {{/each}}
             </table>
           </div>
+      {{else}}
+      <p class="error">
+        No records!
+      </p>
       {{/if}}
 
       <!-- The user can clear the logs if they first set up and admin key in the env -->
