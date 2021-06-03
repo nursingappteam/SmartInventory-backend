@@ -114,8 +114,10 @@ module.exports = {
     try {
       // Delete the logs
       await db.run("DELETE from Log");
+      
       // Reset the vote numbers
       await db.run("UPDATE Choices SET picks = 0");
+      
       // Return empty array
       return [];
     } catch (dbError) {
