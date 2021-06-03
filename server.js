@@ -1,6 +1,6 @@
 /*
 This is the main server script that manages the app database and provides the API endpoints
-- The script use the SQLite database helper db.js
+- The script use the database helper db.js
 - The endpoints connect to the db and return data to the page handlebars files
 */
 
