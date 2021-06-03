@@ -36,9 +36,6 @@
       <p>
         Each time you submit an option through the poll in the <a href="/">Home</a> page, the app will add it to the log. <em>Most recent records will be shown (max 20).</em>
       </p>
-      <p>
-        <strong>{{optionHistory.length}} record(s)!</strong>
-      </p>
       <!-- Write out a table row for each entry in the log array showing choice and timestamp -->
       {{#if optionHistory.length}}
           <div>
@@ -63,12 +60,12 @@
       {{/if}}
 
       <!-- The user can clear the logs if they first set up and admin key in the env -->
-      <form action="/clearLogs" method="post">
+      <form action="/reset" method="post">
         <h2>
-          Clear log history
+          Clear vote history
         </h2>
         <p>
-          Clear the log only if you are absolutely sure! It cannot be undone.
+          Clear the history only if you are absolutely sure! It cannot be undone.
           <em>(Check the README for instructions on setting up your admin key.)</em>
         </p>
         <p>

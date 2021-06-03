@@ -1,6 +1,6 @@
 /*
 This is the main server script that manages the app database and provides the API endpoints
-- The script creates the SQLite database and adds two initial tables to it
+- The script use the SQLite database helper db.js
 - The endpoints connect to the db and return data to the page handlebars files
 */
 
@@ -36,89 +36,38 @@ if (seo.url === "glitch-default") {
   seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
 }
 
-// Initialize the database - you can create a db with a different filename
-const dbFile = "./.data/choices.db";
-const exists = fs.existsSync(dbFile);
-const sqlite3 = require("sqlite3").verbose();
-const dbWrapper = require("sqlite");
-let db;
-
-// We're using the sqlite wrapper so that we can use async / await
-//https://www.npmjs.com/package/sqlite
-dbWrapper
-  .open({
-    filename: dbFile,
-    driver: sqlite3.Database
-  })
-  .then(async dBase => {
-    db = dBase;
-    // We use try and catch blocks throughout to handle any database errors
-    try {
-      // The async / await syntax lets us write the db operations in a way that won't block the app
-      if (!exists) {
-        // Database doesn't exist yet - create Choices and Log tables
-        await db.run(
-          "CREATE TABLE Choices (id INTEGER PRIMARY KEY AUTOINCREMENT, language TEXT, picks INTEGER)"
-        );
-        // Add default choices to table
-        await db.run(
-          "INSERT INTO Choices (language, picks) VALUES ('HTML', 0), ('JavaScript', 0), ('CSS', 0)"
-        );
-        // Log can start empty - we'll insert a new record whenever the user chooses a poll option
-        await db.run(
-          "CREATE TABLE Log (id INTEGER PRIMARY KEY AUTOINCREMENT, choice TEXT, time STRING)"
-        );
-      } else {
-        // We have a database already - write Choices records to log for info
-        console.log(await db.all("SELECT * from Choices"));
-
-        //If you need to remove a table from the database use this syntax
-        //db.run("DROP TABLE Logs"); //will fail if the table doesn't exist
-      }
-    } catch (dbError) {
-      console.error(dbError);
-    }
-  });
+// We use a module for handling database operations in db.js
+var data = require("./db.js");
 
 // Home route for the app
 fastify.get("/", async (request, reply) => {
   // Params is the data we pass to the handlebars templates
   let params = { seo: seo };
+
   // Get the available choices from the database
-  // We use a try catch block in case of db errors
-  try {
-    // Pass the rows into the page params
-    params.options = await db.all("SELECT * from Choices");
-  } catch (dbError) {
-    console.error(dbError);
-    // Let the user know there was a db error
-    params.error = true;
-  }
-  // The page builds the choices into the poll form
+  params.options = await data.getOptions();
+
+  // Let the user know if there was a db error (the options returned will evaluate to false)
+  params.error = !params.options;
+
+  // The page builds the options into the poll form
   reply.view("/src/pages/index.hbs", params);
 });
 
 // Route to process user poll pick
 fastify.post("/", async (request, reply) => {
   let params = { seo: seo };
+  
   // We have a language pick
   if (request.body.language) {
+    
     // Flag to indicate a choice was picked - will show the poll results instead of the poll form
     params.picked = true;
-    // Insert new Log table entry indicating the user choice and timestamp
-    try {
-      // Build the user data from the front-end and the current time into the sql query
-      await db.run("INSERT INTO Log (choice, time) VALUES (?, ?)", [
-        request.body.language,
-        new Date().toISOString()
-      ]);
-      // Update the number of times the choice has been picked by adding one to it
-      await db.run(
-        "UPDATE Choices SET picks = picks + 1 WHERE language = ?",
-        request.body.language
-      );
-      // Return the choices so far - page will build these into a chart
-      params.options = await db.all("SELECT * from Choices");
+    
+    // Send the user pick to the db helper to update and return votes cast
+    params.options = await data.processVote(request.body.language);
+    if (params.options) {
+      
       // We send the choices and numbers in parallel arrays
       params.optionNames = JSON.stringify(
         params.options.map(choice => choice.language)
@@ -126,10 +75,9 @@ fastify.post("/", async (request, reply) => {
       params.optionCounts = JSON.stringify(
         params.options.map(choice => choice.picks)
       );
-    } catch (dbError) {
-      console.error(dbError);
-      params.error = true;
-    }
+      
+    } else params.error = true; // Let the user know if there's an error
+    
     // Return the info to the page
     reply.view("/src/pages/index.hbs", params);
   }
@@ -138,46 +86,45 @@ fastify.post("/", async (request, reply) => {
 // Admin endpoint to get logs
 fastify.get("/logs", async (request, reply) => {
   let params = {};
-  // Return most recent 20
-  try {
-    // Return the array of log entries to admin page
-    params.optionHistory = await db.all("SELECT * from Log ORDER BY time DESC LIMIT 20");
-  } catch (dbError) {
-    console.error(dbError);
-    params.error = true;
-  }
+  
+  // Get the log history from the db
+  params.optionHistory = await data.getLogs();
+  
+  // Let the user know if there's an error
+  params.error = !params.optionHistory;
+  
+  // Return the log list to the page
   reply.view("/src/pages/admin.hbs", params);
 });
 
 // Admin endpoint to empty all logs - requires auth (instructions in README)
-fastify.post("/clearLogs", async (request, reply) => {
+fastify.post("/reset", async (request, reply) => {
   let params = {};
-  try {
-    // Authenticate the user request by checking against the env key variable
-    if (
-      !request.body.key ||
-      request.body.key.length < 1 ||
-      request.body.key !== process.env.ADMIN_KEY ||
-      !process.env.ADMIN_KEY
-    ) {
-      console.error("Auth fail");
-      // Auth failed, return the log data plus a failed flag
-      params.failed = true;
-      // Send the log list
-      params.optionHistory = await db.all(
-        "SELECT * from Log ORDER BY time DESC LIMIT 20"
-      );
-      reply.view("/src/pages/admin.hbs", params);
-    } else {
-      // We have a valid key and can clear the log
-      await db.run("DELETE from Log");
-      // Log cleared, return an empty array to admin page
-      params.optionHistory = [];
-    }
-  } catch (dbError) {
-    console.error(dbError);
-    params.error = true;
+
+  // Authenticate the user request by checking against the env key variable
+  if (
+    !request.body.key ||
+    request.body.key.length < 1 ||
+    !process.env.ADMIN_KEY ||
+    request.body.key !== process.env.ADMIN_KEY
+  ) {
+    console.error("Auth fail");
+    
+    // Auth failed, return the log data plus a failed flag
+    params.failed = true;
+    
+    // Get the log list
+    params.optionHistory = await data.getLogs();
+  } else {
+    
+    // We have a valid key and can clear the log
+    params.optionHistory = await data.clearHistory();
+    
+    // Check for errors - method would return false value
+    params.error = !params.optionHistory;
   }
+
+  // Log cleared, return an empty array to admin page
   reply.view("/src/pages/admin.hbs", params);
 });
 
