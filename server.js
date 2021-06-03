@@ -43,7 +43,7 @@ var data = require("./db.js");
 fastify.get("/", async (request, reply) => {
   // Params is the data we pass to the handlebars templates
   let params = { seo: seo };
-
+  
   // Get the available choices from the database
   params.options = await data.getOptions();
 

@@ -51,7 +51,7 @@ See the `reset` endpoint in `server.js` to learn how this works.
 
 ### Let the user view results
 
-The homepage shows votes cast so far when the user completes the poll, but you can allow them to see the chart straight away.
+The homepage shows votes cast so far when the user completes the poll, but you can allow them to see the chart straight away. _To follow.._
 
 * _Add a button in `index.hbs`_
 * _Send a query parameter_
