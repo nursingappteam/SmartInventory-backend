@@ -64,7 +64,13 @@ The homepage shows votes cast so far when the user completes the poll, but you c
 
 2. Extend the `server.js` `POST` endpoint `/` to add an `else` after the `if` checking for body data:
 
+```
+// We just want to see results
+else if (request.body.results) 
+ options = await data.getOptions();
+```
 
+Click the __Show results__ button to see the results without voting!
 
 ![Glitch](https://cdn.glitch.com/a9975ea6-8949-4bab-addb-8a95021dc2da%2FLogo_Color.svg?v=1602781328576)
 
