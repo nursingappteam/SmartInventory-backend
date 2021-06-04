@@ -45,7 +45,7 @@ fastify.get("/", async (request, reply) => {
   let params = { seo: seo };
   
   // Get the available choices from the database
-  params.options = await data.getOptions();
+  params.options = await data.getOptions(); console.log("OPT"+params.options)
 
   // Let the user know if there was a db error (the options returned will evaluate to false)
   params.error = !params.options;
