@@ -58,25 +58,23 @@ fastify.get("/", async (request, reply) => {
 fastify.post("/", async (request, reply) => {
   let params = { seo: seo };
   
-  // We have a language pick
-  if (request.body.language) {
-    
-    // Flag to indicate a choice was picked - will show the poll results instead of the poll form
-    params.picked = true;
-    
-    // Send the user pick to the db helper to update and return votes cast
-    const options = await data.processVote(request.body.language);
-    
-    if (options) {
-      // We send the choices and numbers in parallel arrays
-      params.optionNames = JSON.stringify(options.names);
-      params.optionCounts = JSON.stringify(options.counts);
-    } 
-    else params.error = true; // Let the user know if there's an error
-    
-    // Return the info to the page
-    reply.view("/src/pages/index.hbs", params);
-  }
+  // Flag to indicate we want to show the poll results instead of the poll form
+  params.results = true;
+  let options;
+  
+  // We have a vote - send to the db helper to process and return results
+  if (request.body.language) 
+    options = await data.processVote(request.body.language);
+  
+  // Make sure we have data to return
+  if (options) {
+    // We send the choices and numbers in parallel arrays
+    params.optionNames = JSON.stringify(options.map(choice => choice.language));
+    params.optionCounts = JSON.stringify(options.map(choice => choice.picks));
+  } else params.error = true; // Let the user know if there's an error
+
+  // Return the info to the page
+  reply.view("/src/pages/index.hbs", params);
 });
 
 // Admin endpoint to get logs
