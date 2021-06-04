@@ -53,10 +53,19 @@ See the `reset` endpoint in `server.js` to learn how this works.
 
 The homepage shows votes cast so far when the user completes the poll, but you can allow them to see the chart straight away. _To follow.._
 
-* _Add a button in `index.hbs`_
-* _Send a query parameter_
-* _Return the results_
-* _Allow the user to switch back to the poll_
+1. Add a new form to `src/pages/index.hbs` after the existing form:
+
+```
+<form method="post" action="/">
+ <input type="hidden" name="results" value="show"/>
+ <button type="submit">
+ Show results
+ </button>
+</form>
+```
+
+2. Extend the `server.js` `POST` endpoint `/` to add an `else` after the `if` checking for body data:
+
 
 ![Glitch](https://cdn.glitch.com/a9975ea6-8949-4bab-addb-8a95021dc2da%2FLogo_Color.svg?v=1602781328576)
 
