@@ -100,7 +100,7 @@
           <!-- Pass arrays from the API to the chart script in page head -->
           <canvas id="myChart"></canvas>
           <script type="text/javascript">
-            showChart({{{ optionNames }}}, {{{ optionCounts }}});
+            showChart("{{{ optionNames }}}".split(","), "{{{ optionCounts }}}".split(","));
           </script>
         </p>
         <!-- If the user hasn't already made a choice we show the poll -->
@@ -117,16 +117,16 @@
         <!-- Call the server post endpoint when the user submits an option in the poll -->
         <form method="post" action="/">
           <!-- The server script returns the list of language options to offer in the poll -->
-          {{#each options}}
-          <input type="radio" id="{{language}}" name="language" value="{{language}}" required />
-          <label for="{{language}}">{{language}}</label>
+          {{#each optionNames}}
+          <input type="radio" id="{{this}}" name="language" value="{{this}}" required />
+          <label for="{{this}}">{{this}}</label>
           {{/each}}
           <br /><br />
           <button type="submit">
             Submit
           </button>
         </form>
-        <!-- ADD NEW FORM FROM README NEXT STEPS HERE -->
+        <!-- ADD LINK FROM README NEXT STEPS -->
         
       </div>
       {{/if}}

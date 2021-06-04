@@ -43,13 +43,18 @@ var data = require("./db.js");
 fastify.get("/", async (request, reply) => {
   // Params is the data we pass to the handlebars templates
   let params = { seo: seo };
-  
+
   // Get the available choices from the database
-  params.options = await data.getOptions();
-
+  const options = await data.getOptions();
+  if (options) {
+    params.optionNames = options.map(choice => choice.language);
+    params.optionCounts = options.map(choice => choice.picks);
+  }
   // Let the user know if there was a db error (the options returned will evaluate to false)
-  params.error = !params.options;
-
+  else params.error = true;
+  
+  // ADD PARAMS FROM README NEXT STEPS HERE
+  
   // The page builds the options into the poll form
   reply.view("/src/pages/index.hbs", params);
 });
@@ -57,24 +62,22 @@ fastify.get("/", async (request, reply) => {
 // Route to process user poll pick
 fastify.post("/", async (request, reply) => {
   let params = { seo: seo };
-  
+
   // Flag to indicate we want to show the poll results instead of the poll form
   params.results = true;
   let options;
-  
+
   // We have a vote - send to the db helper to process and return results
-  if (request.body.language) 
+  if (request.body.language) {
     options = await data.processVote(request.body.language);
-
-  // ADD ELSE STATEMENT FROM NEXT STEPS IN README HERE
-
-  // Make sure we have data to return
-  if (options) {
-    // We send the choices and numbers in parallel arrays
-    params.optionNames = JSON.stringify(options.map(choice => choice.language));
-    params.optionCounts = JSON.stringify(options.map(choice => choice.picks));
-  } else params.error = true; // Let the user know if there's an error
-
+    if (options) {
+      // We send the choices and numbers in parallel arrays
+      params.optionNames = options.map(choice => choice.language);
+      params.optionCounts = options.map(choice => choice.picks);
+    }
+  }
+  params.error=!options;
+  
   // Return the info to the page
   reply.view("/src/pages/index.hbs", params);
 });
@@ -82,13 +85,13 @@ fastify.post("/", async (request, reply) => {
 // Admin endpoint to get logs
 fastify.get("/logs", async (request, reply) => {
   let params = {};
-  
+
   // Get the log history from the db
   params.optionHistory = await data.getLogs();
-  
+
   // Let the user know if there's an error
   params.error = !params.optionHistory;
-  
+
   // Return the log list to the page
   reply.view("/src/pages/admin.hbs", params);
 });
@@ -105,17 +108,16 @@ fastify.post("/reset", async (request, reply) => {
     request.body.key !== process.env.ADMIN_KEY
   ) {
     console.error("Auth fail");
-    
+
     // Auth failed, return the log data plus a failed flag
     params.failed = true;
-    
+
     // Get the log list
     params.optionHistory = await data.getLogs();
   } else {
-    
     // We have a valid key and can clear the log
     params.optionHistory = await data.clearHistory();
-    
+
     // Check for errors - method would return false value
     params.error = !params.optionHistory;
   }
