@@ -4,17 +4,6 @@ This project includes a [Node.js](https://nodejs.org/en/about/) server script th
 
 The home page presents the user with a poll where they can choose an option, then the page presents the results in a chart. The admin page displays the log of past choices and allows the user to clear it by supplying their admin key (you can set this up by following the __Next steps__). 🔒
 
-## Setting up your admin key
-
-The site __Admin__ page allows the user to clear the database of votes–but only if a valid key is provided. This is a simplified example of auth that checks if the user entered key matches the one in the `.env`.
-
-To set your app up to allow clearing the history:
-
-* In your `.env` file, find the variable named `ADMIN_KEY` and give it a text string as a value.
-* With the __Admin__ page open in the preview, enter the same value and hit the __Clear log history__ button–this time it should allow you to clear the history.
-
-See the `reset` endpoint in `server.js` to learn how this works.
-
 ## What's in this project?
 
 ← `README.md`: That’s this file, where you can tell people what your cool website does and how you built it.
@@ -44,6 +33,17 @@ When the app runs, the scirpts build the database:
 ← `src/pages/admin.hbs`: The admin page presents a table displaying the log of most recent picks. You can clear the list by setting up your admin key in __Next steps__ below. If the user attempts to clear the list without a valid key, the page will present the log again.
 
 ← `src/seo.json`: When you're ready to share your new site or add a custom domain, change SEO/meta settings in here.
+
+## Setting up your admin key
+
+The site __Admin__ page allows the user to clear the database of votes–but only if a valid key is provided. This is a simplified example of auth that checks if the user entered key matches the one in the `.env`.
+
+To set your app up to allow clearing the history:
+
+* In your `.env` file, find the variable named `ADMIN_KEY` and give it a text string as a value.
+* With the __Admin__ page open in the preview, enter the same value and hit the __Clear log history__ button–this time it should allow you to clear the history.
+
+See the `reset` endpoint in `server.js` to learn how this works.
 
 ## Next steps 🚀
 
