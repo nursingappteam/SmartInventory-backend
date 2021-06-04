@@ -54,6 +54,7 @@ The homepage shows votes cast so far when the user completes the poll, but you c
 1. Add a new form to `src/pages/index.hbs` after the existing form:
 
 ```
+<br/>
 <form method="post" action="/">
  <input type="hidden" name="results" value="show"/>
  <button type="submit">

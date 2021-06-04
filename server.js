@@ -64,7 +64,7 @@ fastify.post("/", async (request, reply) => {
   
   // We have a vote - send to the db helper to process and return results
   if (request.body.language) 
-    options = await data.processVote(request.body.language); console.log(options)
+    options = await data.processVote(request.body.language);
 
   // ADD ELSE STATEMENT FROM NEXT STEPS IN README HERE
 
