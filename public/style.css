@@ -209,3 +209,6 @@ p.error a:link,
 p.error a:visited {
   color: #2800FF;
 }
+.results {
+  padding-top:10px;
+}
