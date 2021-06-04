@@ -45,7 +45,7 @@ fastify.get("/", async (request, reply) => {
   let params = { seo: seo };
   
   // Get the available choices from the database
-  params.options = await data.getOptions(); console.log("OPT"+params.options)
+  params.options = await data.getOptions();
 
   // Let the user know if there was a db error (the options returned will evaluate to false)
   params.error = !params.options;
@@ -64,7 +64,7 @@ fastify.post("/", async (request, reply) => {
   
   // We have a vote - send to the db helper to process and return results
   if (request.body.language) 
-    options = await data.processVote(request.body.language);
+    options = await data.processVote(request.body.language); console.log(options)
 
   // ADD ELSE STATEMENT FROM NEXT STEPS IN README HERE
 
