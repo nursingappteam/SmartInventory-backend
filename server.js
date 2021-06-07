@@ -39,7 +39,10 @@ if (seo.url === "glitch-default") {
 // We use a module for handling database operations in /src
 const data = require("./src/data.json");
 const db = require("./src/" + data.database);
+
+// Standard messages
 const errorMessage = "Whoops! Error connecting to the database–please try again!";
+const setupMessage = "🚧 Whoops! Looks like the database isn't setup yet! 🚧";
 
 // Home route for the app
 fastify.get("/", async (request, reply) => {
@@ -52,8 +55,10 @@ fastify.get("/", async (request, reply) => {
     params.optionNames = options.map(choice => choice.language);
     params.optionCounts = options.map(choice => choice.picks);
   }
-  // Let the user know if there was a db error (the options returned will evaluate to false)
+  // Let the user know if there was a db error
   else params.error = errorMessage;
+  // Check in case the data is empty or not setup yet
+  if(options && params.optionNames.length<1) params.setup = setupMessage;
 
   // ADD PARAMS FROM README NEXT STEPS HERE
 
