@@ -39,6 +39,7 @@ if (seo.url === "glitch-default") {
 // We use a module for handling database operations in /src
 var data = require("./src/data.json");
 var db = require("./src/" + data.database);
+var dbError = "Whoops! Error connecting to the database–please try again!";
 
 // Home route for the app
 fastify.get("/", async (request, reply) => {
@@ -52,7 +53,8 @@ fastify.get("/", async (request, reply) => {
     params.optionCounts = options.map(choice => choice.picks);
   }
   // Let the user know if there was a db error (the options returned will evaluate to false)
-  else params.error = true;
+  else
+    params.error = dbError;
 
   // ADD PARAMS FROM README NEXT STEPS HERE
 
@@ -77,7 +79,9 @@ fastify.post("/", async (request, reply) => {
       params.optionCounts = options.map(choice => choice.picks);
     }
   }
-  params.error = !options;
+  params.error = options
+    ? null
+    : dbError;
 
   // Return the info to the page
   reply.view("/src/pages/index.hbs", params);
@@ -85,17 +89,20 @@ fastify.post("/", async (request, reply) => {
 
 // Admin endpoint to get logs
 fastify.get("/logs", async (request, reply) => {
-  let params = {};
+  // We only send seo if the client is requesting the front-end ui
+  let params = request.query.raw ? {} : { seo: seo };
 
   // Get the log history from the db
   params.optionHistory = await db.getLogs();
 
   // Let the user know if there's an error
-  params.error = !params.optionHistory;
+  params.error = params.optionHistory
+    ? null
+    : dbError;
 
   // Send the raw data
-  if(request.query.raw) reply.send(params);
-  
+  if (request.query.raw) reply.send(params);
+
   // Return the log list to the page
   reply.view("/src/pages/admin.hbs", params);
 });
@@ -114,7 +121,7 @@ fastify.post("/reset", async (request, reply) => {
     console.error("Auth fail");
 
     // Auth failed, return the log data plus a failed flag
-    params.failed = true;
+    params.failed = "Auth error!";
 
     // Get the log list
     params.optionHistory = await db.getLogs();
@@ -123,8 +130,16 @@ fastify.post("/reset", async (request, reply) => {
     params.optionHistory = await db.clearHistory();
 
     // Check for errors - method would return false value
-    params.error = !params.optionHistory;
+    params.error = params.optionHistory
+      ? null
+      : dbError;
   }
+
+  const status = params.failed ? 401 : 200;
+  
+  request.query.raw
+    ? reply.status(status).send(params)
+    : reply.status(status).view("/src/pages/admin.hbs", params);
 
   // Log cleared, return an empty array to admin page
   reply.view("/src/pages/admin.hbs", params);
