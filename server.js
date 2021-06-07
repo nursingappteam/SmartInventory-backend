@@ -1,7 +1,11 @@
 /*
 This is the main server script that manages the app database and provides the API endpoints
-- The script use the database helper db.js
+- The script uses the database helper in /src
 - The endpoints connect to the db and return data to the page handlebars files
+
+This API returns:
+- The front-end UI handlebars pages, or 
+- Raw json if the client requests it with a query parameter ?raw=true
 */
 
 // Utilities we need

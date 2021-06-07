@@ -6,15 +6,16 @@ Module handles database management
 // Utilities we need
 const fs = require("fs");
 
-// Initialize the database - you can create a db with a different filename
+// Initialize the database
 const dbFile = "./.data/choices.db";
 const exists = fs.existsSync(dbFile);
 const sqlite3 = require("sqlite3").verbose();
 const dbWrapper = require("sqlite");
 let db;
 
-// We're using the sqlite wrapper so that we can use async / await
-//https://www.npmjs.com/package/sqlite
+/* We're using the sqlite wrapper so that we can make async / await connections
+- https://www.npmjs.com/package/sqlite
+*/
 dbWrapper
   .open({
     filename: dbFile,
