@@ -1,11 +1,11 @@
 /**
-* This is the main server script that provides the API endpoints
-* The script uses the database helper in /src
-* The endpoints retrieve, update, and return data to the page handlebars files
-*
-* The API returns the front-end UI handlebars pages, or 
-* Raw json if the client requests it with a query parameter ?raw=true
-*/
+ * This is the main server script that provides the API endpoints
+ * The script uses the database helper in /src
+ * The endpoints retrieve, update, and return data to the page handlebars files
+ *
+ * The API returns the front-end UI handlebars pages, or
+ * Raw json if the client requests it with a query parameter ?raw=true
+ */
 
 // Utilities we need
 const fs = require("fs");
@@ -43,19 +43,18 @@ if (seo.url === "glitch-default") {
 const data = require("./src/data.json");
 const db = require("./src/" + data.database);
 
-/** 
-* Home route for the app
-* 
-* Returns the poll options
-* Uses the database helper script to query the data
-* The home route may be called on remix in which case the db needs setup
-* 
-* Query parameters allow the client to request:
-* Results of the poll without voting
-* Raw json instead of ui
-*/
+/**
+ * Home route for the app
+ *
+ * Returns the poll options
+ * Uses the database helper script to query the data
+ * The home route may be called on remix in which case the db needs setup
+ *
+ * Query parameters allow the client to request:
+ * Results of the poll without voting
+ * Raw json instead of ui
+ */
 fastify.get("/", async (request, reply) => {
-  
   // Params is the data we pass to the handlebars templates
   let params = request.query.raw ? {} : { seo: seo };
 
@@ -67,9 +66,10 @@ fastify.get("/", async (request, reply) => {
   }
   // Let the user know if there was a db error
   else params.error = data.errorMessage;
-  
+
   // Check in case the data is empty or not setup yet
-  if(options && params.optionNames.length<1) params.setup = data.setupMessage;
+  if (options && params.optionNames.length < 1)
+    params.setup = data.setupMessage;
 
   // ADD PARAMS FROM README NEXT STEPS HERE
 
@@ -80,14 +80,13 @@ fastify.get("/", async (request, reply) => {
 });
 
 /**
-* Post route to process user vote
-*
-* Retrieves vote from body data
-* Sends vote to database helper
-* Returns updated list of votes
-*/
+ * Post route to process user vote
+ *
+ * Retrieves vote from body data
+ * Sends vote to database helper
+ * Returns updated list of votes
+ */
 fastify.post("/", async (request, reply) => {
-  
   // We only send seo if the client is requesting the front-end ui
   let params = request.query.raw ? {} : { seo: seo };
 
@@ -113,10 +112,10 @@ fastify.post("/", async (request, reply) => {
 });
 
 /**
-* Admin endpoint returns log of votes
-* 
-* Send raw json or the admin handlebars page
-*/
+ * Admin endpoint returns log of votes
+ *
+ * Send raw json or the admin handlebars page
+ */
 fastify.get("/logs", async (request, reply) => {
   let params = request.query.raw ? {} : { seo: seo };
 
@@ -133,16 +132,19 @@ fastify.get("/logs", async (request, reply) => {
 });
 
 /**
-* Admin endpoint to empty all logs
-*
-* Requires authorization (see setup instructions in README)
-* If auth fails, return a 401 and the log list
-* If auth is successful, empty 
-*/
+ * Admin endpoint to empty all logs
+ *
+ * Requires authorization (see setup instructions in README)
+ * If auth fails, return a 401 and the log list
+ * If auth is successful, empty the history
+ */
 fastify.post("/reset", async (request, reply) => {
   let params = request.query.raw ? {} : { seo: seo };
 
-  // Authenticate the user request by checking against the env key variable
+  /* 
+  Authenticate the user request by checking against the env key variable
+  - make sure we have a key in the env and body, and that they match
+  */
   if (
     !request.body.key ||
     request.body.key.length < 1 ||
@@ -164,13 +166,12 @@ fastify.post("/reset", async (request, reply) => {
     params.error = params.optionHistory ? null : data.errorMessage;
   }
 
-  // Send a 401 if auth failed
+  // Send a 401 if auth failed, 200 otherwise
   const status = params.failed ? 401 : 200;
   // Send an unauthorized status code if the user credentials failed
   request.query.raw
     ? reply.status(status).send(params)
     : reply.status(status).view("/src/pages/admin.hbs", params);
-
 });
 
 // Run the server and report out to the logs
