@@ -56,8 +56,7 @@ fastify.get("/", async (request, reply) => {
   else params.error = errorMessage;
 
   // ADD PARAMS FROM README NEXT STEPS HERE
-// User requested results
-params.results = request.query.results;
+
   // Send the page options or raw data if the client requested it
   request.query.raw
     ? reply.send(params)

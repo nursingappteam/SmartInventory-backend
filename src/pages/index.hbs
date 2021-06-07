@@ -78,7 +78,7 @@
       <!-- This is the start of content for our page -->
       <h1>Hello SQLite!</h1>
       <p>
-        A poll built with Chart.js and powered by Node.js with a SQLite database.
+        A poll built with Chart.js and powered by Node.js with a {{seo.db}} database.
       </p>
       {{#if error}}
       <p class="error">
@@ -127,9 +127,7 @@
           </button>
         </form>
         <!-- ADD LINK FROM README NEXT STEPS -->
-        <p>
- <a href="/?results=true">Show results</a>
-</p>
+        
       </div>
       {{/if}}
       {{/if}}
@@ -140,7 +138,7 @@
           Using this project
         </h2>
         <p>
-          This is the Glitch <strong>Hello SQLite</strong> project. You can use it to build your own app. Check out README.md in the editor for more info and next steps you can take!
+          This is the Glitch <strong>Hello {{seo.db}}</strong> project. You can use it to build your own app. Check out README.md in the editor for more info and next steps you can take!
         </p>
       </div>
 
