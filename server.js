@@ -40,7 +40,6 @@ if (seo.url === "glitch-default") {
 const data = require("./src/data.json");
 const db = require("./src/" + data.database);
 const errorMessage = "Whoops! Error connecting to the database–please try again!";
-const setupMessage = "🚧 Whoops! Error connecting to the database–please make sure you've completed your "+seo.db+" setup using the instructions in the README and try again! 🚧";
 
 // Home route for the app
 fastify.get("/", async (request, reply) => {
@@ -54,7 +53,7 @@ fastify.get("/", async (request, reply) => {
     params.optionCounts = options.map(choice => choice.picks);
   }
   // Let the user know if there was a db error (the options returned will evaluate to false)
-  else params.error = setupMessage;
+  else params.error = errorMessage;
 
   // ADD PARAMS FROM README NEXT STEPS HERE
 
