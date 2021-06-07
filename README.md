@@ -6,6 +6,10 @@ The home page presents the user with a poll where they can choose an option, the
 
 Check out the __Next steps__ to add a link that allows the user to view the results without casting a vote.
 
+## Prerequisites
+
+To get best use out of this project you'll ideally be familiar with JavaScript and have a little Node.js experience–check out [Hello Node](https://glitch.com/~glitch-hello-node) if you haven't already!
+
 ## What's in this project?
 
 ← `README.md`: That’s this file, where you can tell people what your cool website does and how you built it.
