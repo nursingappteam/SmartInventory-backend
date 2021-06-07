@@ -36,7 +36,7 @@ if (seo.url === "glitch-default") {
   seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
 }
 
-// We use a module for handling database operations in db.js
+// We use a module for handling database operations in /src
 var data = require("./src/data-config.json");
 var db = require("./src/" + data.database);
 
