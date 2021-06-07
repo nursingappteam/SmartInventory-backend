@@ -43,7 +43,17 @@ if (seo.url === "glitch-default") {
 const data = require("./src/data.json");
 const db = require("./src/" + data.database);
 
-// Home route for the app
+/** 
+* Home route for the app
+* 
+* Returns the poll options
+* Uses the database helper script to query the data
+* The home route may be called on remix in which case the db needs setup
+* 
+* Query parameters:
+* Client can request the results of the poll without voting
+* Client can request raw json by passing a query param
+*/
 fastify.get("/", async (request, reply) => {
   // Params is the data we pass to the handlebars templates
   let params = request.query.raw ? {} : { seo: seo };
