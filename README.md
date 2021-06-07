@@ -14,17 +14,19 @@ Check out the __Next steps__ to add a link that allows the user to view the resu
 
 ← `.env`: The environment is cleared when you initially remix the project, but you will add a new env variable value when you follow the __Next steps__ to set up an admin key.
 
-### The back-end
+### Server and database
 
-← `server.js`: The Node.js server script for your new site. The JavaScript defines the endpoints in the site back-end. This API processes requests, connects to the database using the `db.js` helper, and sends info back to the client (the web page built using the Handlebars templates in `src/pages`).
+← `server.js`: The Node.js server script for your new site. The JavaScript defines the endpoints in the site back-end. This API processes requests, connects to the database using the database script in `src`, and sends info back to the client (the web page built using the Handlebars templates in `src/pages`).
 
-← `db.js`: The database script handles setting up and connecting to the SQLite database. The `server.js` API endpoints call the functions in the `db` script to manage the data.
+← `/src/sqlite.js`: The database script handles setting up and connecting to the SQLite database. The `server.js` API endpoints call the functions in the database script to manage the data.
 
-When the app runs, the scirpts build the database:
+← `/src/data-config.json`: The data config file includes the database manager script–`server.js` reads the `database` property to import the correct script.
+
+When the app runs, the scripts build the database:
 
 ← `.data/choices.db`: Your database is created and placed in the `.data` folder, a hidden directory whose contents aren’t copied when a project is remixed. You can see the contents of `.data` in the console by selecting __Tools__ >  __Logs__.
 
-### The front-end
+### User interface
 
 ← `public/style.css`: The style rules that define the site appearance.
 
