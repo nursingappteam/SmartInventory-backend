@@ -37,7 +37,8 @@ if (seo.url === "glitch-default") {
 }
 
 // We use a module for handling database operations in db.js
-var data = require("./db.js");
+var data = require("./src/data-config.json");
+var db = require("./src/" + data.database);
 
 // Home route for the app
 fastify.get("/", async (request, reply) => {
@@ -45,16 +46,16 @@ fastify.get("/", async (request, reply) => {
   let params = { seo: seo };
 
   // Get the available choices from the database
-  const options = await data.getOptions();
+  const options = await db.getOptions();
   if (options) {
     params.optionNames = options.map(choice => choice.language);
     params.optionCounts = options.map(choice => choice.picks);
   }
   // Let the user know if there was a db error (the options returned will evaluate to false)
   else params.error = true;
-  
+
   // ADD PARAMS FROM README NEXT STEPS HERE
-  
+
   // The page builds the options into the poll form
   reply.view("/src/pages/index.hbs", params);
 });
@@ -69,15 +70,15 @@ fastify.post("/", async (request, reply) => {
 
   // We have a vote - send to the db helper to process and return results
   if (request.body.language) {
-    options = await data.processVote(request.body.language);
+    options = await db.processVote(request.body.language);
     if (options) {
       // We send the choices and numbers in parallel arrays
       params.optionNames = options.map(choice => choice.language);
       params.optionCounts = options.map(choice => choice.picks);
     }
   }
-  params.error=!options;
-  
+  params.error = !options;
+
   // Return the info to the page
   reply.view("/src/pages/index.hbs", params);
 });
@@ -87,7 +88,7 @@ fastify.get("/logs", async (request, reply) => {
   let params = {};
 
   // Get the log history from the db
-  params.optionHistory = await data.getLogs();
+  params.optionHistory = await db.getLogs();
 
   // Let the user know if there's an error
   params.error = !params.optionHistory;
@@ -113,10 +114,10 @@ fastify.post("/reset", async (request, reply) => {
     params.failed = true;
 
     // Get the log list
-    params.optionHistory = await data.getLogs();
+    params.optionHistory = await db.getLogs();
   } else {
     // We have a valid key and can clear the log
-    params.optionHistory = await data.clearHistory();
+    params.optionHistory = await db.clearHistory();
 
     // Check for errors - method would return false value
     params.error = !params.optionHistory;
