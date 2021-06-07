@@ -40,10 +40,6 @@ if (seo.url === "glitch-default") {
 const data = require("./src/data.json");
 const db = require("./src/" + data.database);
 
-// Standard messages
-const errorMessage = "Whoops! Error connecting to the database–please try again!";
-const setupMessage = "🚧 Whoops! Looks like the database isn't setup yet! 🚧";
-
 // Home route for the app
 fastify.get("/", async (request, reply) => {
   // Params is the data we pass to the handlebars templates
@@ -56,9 +52,9 @@ fastify.get("/", async (request, reply) => {
     params.optionCounts = options.map(choice => choice.picks);
   }
   // Let the user know if there was a db error
-  else params.error = errorMessage;
+  else params.error = data.errorMessage;
   // Check in case the data is empty or not setup yet
-  if(options && params.optionNames.length<1) params.setup = setupMessage;
+  if(options && params.optionNames.length<1) params.setup = data.setupMessage;
 
   // ADD PARAMS FROM README NEXT STEPS HERE
 
@@ -86,7 +82,7 @@ fastify.post("/", async (request, reply) => {
       params.optionCounts = options.map(choice => choice.picks);
     }
   }
-  params.error = options ? null : errorMessage;
+  params.error = options ? null : data.errorMessage;
 
   // Return the info to the page
   request.query.raw
@@ -102,7 +98,7 @@ fastify.get("/logs", async (request, reply) => {
   params.optionHistory = await db.getLogs();
 
   // Let the user know if there's an error
-  params.error = params.optionHistory ? null : errorMessage;
+  params.error = params.optionHistory ? null : data.errorMessage;
 
   // Send the log list
   request.query.raw
@@ -133,7 +129,7 @@ fastify.post("/reset", async (request, reply) => {
     params.optionHistory = await db.clearHistory();
 
     // Check for errors - method would return false value
-    params.error = params.optionHistory ? null : errorMessage;
+    params.error = params.optionHistory ? null : data.errorMessage;
   }
 
   // Send a 401 if auth failed
