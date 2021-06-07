@@ -26,7 +26,7 @@ When the app runs, the scripts build the database:
 
 ← `.data/choices.db`: Your database is created and placed in the `.data` folder, a hidden directory whose contents aren’t copied when a project is remixed. You can see the contents of `.data` in the console by selecting __Tools__ >  __Logs__.
 
-> ___Want to use the server script as an API without using the front-end UI? No problem! Just send a query parameter `raw=true` with your requests, like this :`glitch-hello-sqlite.glitch.me?raw=true`___
+___Want to use the server script as an API without using the front-end UI? No problem! Just send a query parameter `raw=true` with your requests, like this :`glitch-hello-sqlite.glitch.me?raw=true`___
 
 ### User interface
 

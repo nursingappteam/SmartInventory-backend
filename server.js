@@ -57,7 +57,7 @@ fastify.get("/", async (request, reply) => {
 
   // ADD PARAMS FROM README NEXT STEPS HERE
 
-  // Send the page options or raw data
+  // Send the page options or raw data if the client requested it
   request.query.raw
     ? reply.send(params)
     : reply.view("/src/pages/index.hbs", params);
@@ -65,6 +65,7 @@ fastify.get("/", async (request, reply) => {
 
 // Route to process user poll pick
 fastify.post("/", async (request, reply) => {
+  // We only send seo if the client is requesting the front-end ui
   let params = request.query.raw ? {} : { seo: seo };
 
   // Flag to indicate we want to show the poll results instead of the poll form
@@ -90,7 +91,6 @@ fastify.post("/", async (request, reply) => {
 
 // Admin endpoint to get logs
 fastify.get("/logs", async (request, reply) => {
-  // We only send seo if the client is requesting the front-end ui
   let params = request.query.raw ? {} : { seo: seo };
 
   // Get the log history from the db
