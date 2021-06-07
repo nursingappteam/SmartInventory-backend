@@ -180,7 +180,12 @@ https://hanken.co/pages/web-fonts-eula
 6. SQLite
 URL: https://www.sqlite.org
 ******************************************************************************
+The author disclaims copyright to this source code.  In place of
+a legal notice, here is a blessing:
 
+  *   May you do good and not evil.
+  *   May you find forgiveness for yourself and forgive others.
+  *   May you share freely, never taking more than you give.
 ******************************************************************************
 END, HK Grotesk
 ******************************************************************************
