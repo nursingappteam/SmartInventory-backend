@@ -58,6 +58,7 @@ dbWrapper
 
 // Our server script will call these methods to connect to the db
 module.exports = {
+  
   /**
    * Get the options in the database
    *
@@ -74,7 +75,14 @@ module.exports = {
     }
   },
 
-  // Process a user vote
+  /**
+   * Process a user vote
+   *
+   * Receive the user vote string from server
+   * Add a log entry
+   * Find and update the chosen option
+   * Return the updated list of votes
+   */
   processVote: async vote => {
     // Insert new Log table entry indicating the user choice and timestamp
     try {
@@ -97,7 +105,11 @@ module.exports = {
     }
   },
 
-  // Get logs
+  /**
+   * Get logs
+   *
+   * Return choice and time fields from all records in the Log table
+   */
   getLogs: async () => {
     // Return most recent 20
     try {
@@ -108,7 +120,12 @@ module.exports = {
     }
   },
 
-  // Clear logs and reset votes
+  /**
+   * Clear logs and reset votes
+   *
+   * Destroy everything in Log table
+   * Reset votes in Choices table to zero
+   */
   clearHistory: async () => {
     try {
       // Delete the logs

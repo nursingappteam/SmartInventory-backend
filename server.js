@@ -46,7 +46,7 @@ const db = require("./src/" + data.database);
 /**
  * Home route for the app
  *
- * Returns the poll options from the database helper script
+ * Return the poll options from the database helper script
  * The home route may be called on remix in which case the db needs setup
  *
  * Client can request raw data using a query parameter
@@ -79,9 +79,9 @@ fastify.get("/", async (request, reply) => {
 /**
  * Post route to process user vote
  *
- * Retrieves vote from body data
- * Sends vote to database helper
- * Returns updated list of votes
+ * Retrieve vote from body data
+ * Send vote to database helper
+ * Return updated list of votes
  */
 fastify.post("/", async (request, reply) => {
   // We only send seo if the client is requesting the front-end ui
