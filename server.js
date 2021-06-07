@@ -4,7 +4,7 @@
  * The endpoints retrieve, update, and return data to the page handlebars files
  *
  * The API returns the front-end UI handlebars pages, or
- * Raw json if the client requests it with a query parameter ?raw=true
+ * Raw json if the client requests it with a query parameter ?raw=json
  */
 
 // Utilities we need
