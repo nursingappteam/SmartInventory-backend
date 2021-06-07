@@ -37,7 +37,7 @@ if (seo.url === "glitch-default") {
 }
 
 // We use a module for handling database operations in /src
-var data = require("./src/data-config.json");
+var data = require("./src/data.json");
 var db = require("./src/" + data.database);
 
 // Home route for the app
