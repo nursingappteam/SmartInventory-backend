@@ -177,6 +177,11 @@ license. Full license text can be found at:
 https://hanken.co/pages/web-fonts-eula
 
 ******************************************************************************
+END, HK Grotesk
+******************************************************************************
+
+
+******************************************************************************
 6. SQLite
 URL: https://www.sqlite.org
 ******************************************************************************
@@ -187,5 +192,5 @@ a legal notice, here is a blessing:
   *   May you find forgiveness for yourself and forgive others.
   *   May you share freely, never taking more than you give.
 ******************************************************************************
-END, HK Grotesk
+END, SQLite
 ******************************************************************************
