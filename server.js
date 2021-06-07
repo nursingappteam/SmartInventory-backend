@@ -52,7 +52,10 @@ const db = require("./src/" + data.database);
  * Client can request raw data using a query parameter
  */
 fastify.get("/", async (request, reply) => {
-  // Params is the data we pass to the handlebars templates
+  /* 
+  Params is the data we pass to the client
+  - SEO values for front-end UI but not for raw data
+  */
   let params = request.query.raw ? {} : { seo: seo };
 
   // Get the available choices from the database
@@ -70,7 +73,7 @@ fastify.get("/", async (request, reply) => {
 
   // ADD PARAMS FROM README NEXT STEPS HERE
 
-  // Send the page options or raw data if the client requested it
+  // Send the page options or raw JSON data if the client requested it
   request.query.raw
     ? reply.send(params)
     : reply.view("/src/pages/index.hbs", params);
