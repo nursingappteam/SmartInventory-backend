@@ -93,6 +93,9 @@ fastify.get("/logs", async (request, reply) => {
   // Let the user know if there's an error
   params.error = !params.optionHistory;
 
+  // Send the raw data
+  if(request.query.raw) reply.send(params);
+  
   // Return the log list to the page
   reply.view("/src/pages/admin.hbs", params);
 });
