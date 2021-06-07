@@ -39,12 +39,12 @@ if (seo.url === "glitch-default") {
 // We use a module for handling database operations in /src
 var data = require("./src/data.json");
 var db = require("./src/" + data.database);
-var dbError = "Whoops! Error connecting to the database–please try again!";
+var errorMessage = "Whoops! Error connecting to the database–please try again!";
 
 // Home route for the app
 fastify.get("/", async (request, reply) => {
   // Params is the data we pass to the handlebars templates
-  let params = { seo: seo };
+  let params = request.query.raw ? {} : { seo: seo };
 
   // Get the available choices from the database
   const options = await db.getOptions();
@@ -53,18 +53,19 @@ fastify.get("/", async (request, reply) => {
     params.optionCounts = options.map(choice => choice.picks);
   }
   // Let the user know if there was a db error (the options returned will evaluate to false)
-  else
-    params.error = dbError;
+  else params.error = errorMessage;
 
   // ADD PARAMS FROM README NEXT STEPS HERE
 
-  // The page builds the options into the poll form
-  reply.view("/src/pages/index.hbs", params);
+  // Send the page options or raw data
+  request.query.raw
+    ? reply.send(params)
+    : reply.view("/src/pages/index.hbs", params);
 });
 
 // Route to process user poll pick
 fastify.post("/", async (request, reply) => {
-  let params = { seo: seo };
+  let params = request.query.raw ? {} : { seo: seo };
 
   // Flag to indicate we want to show the poll results instead of the poll form
   params.results = true;
@@ -79,12 +80,12 @@ fastify.post("/", async (request, reply) => {
       params.optionCounts = options.map(choice => choice.picks);
     }
   }
-  params.error = options
-    ? null
-    : dbError;
+  params.error = options ? null : errorMessage;
 
   // Return the info to the page
-  reply.view("/src/pages/index.hbs", params);
+  request.query.raw
+    ? reply.send(params)
+    : reply.view("/src/pages/index.hbs", params);
 });
 
 // Admin endpoint to get logs
@@ -96,20 +97,17 @@ fastify.get("/logs", async (request, reply) => {
   params.optionHistory = await db.getLogs();
 
   // Let the user know if there's an error
-  params.error = params.optionHistory
-    ? null
-    : dbError;
+  params.error = params.optionHistory ? null : errorMessage;
 
-  // Send the raw data
-  if (request.query.raw) reply.send(params);
-
-  // Return the log list to the page
-  reply.view("/src/pages/admin.hbs", params);
+  // Send the log list
+  request.query.raw
+    ? reply.send(params)
+    : reply.view("/src/pages/admin.hbs", params);
 });
 
 // Admin endpoint to empty all logs - requires auth (instructions in README)
 fastify.post("/reset", async (request, reply) => {
-  let params = {};
+  let params = request.query.raw ? {} : { seo: seo };
 
   // Authenticate the user request by checking against the env key variable
   if (
@@ -121,7 +119,7 @@ fastify.post("/reset", async (request, reply) => {
     console.error("Auth fail");
 
     // Auth failed, return the log data plus a failed flag
-    params.failed = "Auth error!";
+    params.failed = "You entered invalid credentials!";
 
     // Get the log list
     params.optionHistory = await db.getLogs();
@@ -130,19 +128,16 @@ fastify.post("/reset", async (request, reply) => {
     params.optionHistory = await db.clearHistory();
 
     // Check for errors - method would return false value
-    params.error = params.optionHistory
-      ? null
-      : dbError;
+    params.error = params.optionHistory ? null : errorMessage;
   }
 
+  // Send a 401 if auth failed
   const status = params.failed ? 401 : 200;
-  
+  // Send an unauthorized status code if the user credentials failed
   request.query.raw
     ? reply.status(status).send(params)
     : reply.status(status).view("/src/pages/admin.hbs", params);
 
-  // Log cleared, return an empty array to admin page
-  reply.view("/src/pages/admin.hbs", params);
 });
 
 // Run the server and report out to the logs

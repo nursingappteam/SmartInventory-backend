@@ -75,7 +75,7 @@
         <!-- Server returns a failed flag if the submitted key doesn't match -->
         {{#if failed}}
         <p class="error">
-          You entered invalid credentials!
+          {{failed}}
         </p>
         {{/if}}
         <input type="password" id="pass" name="key" required>
