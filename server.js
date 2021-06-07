@@ -46,13 +46,10 @@ const db = require("./src/" + data.database);
 /**
  * Home route for the app
  *
- * Returns the poll options
- * Uses the database helper script to query the data
+ * Returns the poll options from the database helper script
  * The home route may be called on remix in which case the db needs setup
  *
- * Query parameters allow the client to request:
- * Results of the poll without voting
- * Raw json instead of ui
+ * Client can request raw data using a query parameter
  */
 fastify.get("/", async (request, reply) => {
   // Params is the data we pass to the handlebars templates
