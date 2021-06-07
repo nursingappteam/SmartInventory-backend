@@ -50,11 +50,12 @@ const db = require("./src/" + data.database);
 * Uses the database helper script to query the data
 * The home route may be called on remix in which case the db needs setup
 * 
-* Query parameters:
-* Client can request the results of the poll without voting
-* Client can request raw json by passing a query param
+* Query parameters allow the client to request:
+* Results of the poll without voting
+* Raw json instead of ui
 */
 fastify.get("/", async (request, reply) => {
+  
   // Params is the data we pass to the handlebars templates
   let params = request.query.raw ? {} : { seo: seo };
 
@@ -66,6 +67,7 @@ fastify.get("/", async (request, reply) => {
   }
   // Let the user know if there was a db error
   else params.error = data.errorMessage;
+  
   // Check in case the data is empty or not setup yet
   if(options && params.optionNames.length<1) params.setup = data.setupMessage;
 
@@ -77,8 +79,15 @@ fastify.get("/", async (request, reply) => {
     : reply.view("/src/pages/index.hbs", params);
 });
 
-// Route to process user poll pick
+/**
+* Post route to process user vote
+*
+* Retrieves vote from body data
+* Sends vote to database helper
+* Returns updated list of votes
+*/
 fastify.post("/", async (request, reply) => {
+  
   // We only send seo if the client is requesting the front-end ui
   let params = request.query.raw ? {} : { seo: seo };
 
@@ -97,13 +106,17 @@ fastify.post("/", async (request, reply) => {
   }
   params.error = options ? null : data.errorMessage;
 
-  // Return the info to the page
+  // Return the info to the client
   request.query.raw
     ? reply.send(params)
     : reply.view("/src/pages/index.hbs", params);
 });
 
-// Admin endpoint to get logs
+/**
+* Admin endpoint returns log of votes
+* 
+* Send raw json or the admin handlebars page
+*/
 fastify.get("/logs", async (request, reply) => {
   let params = request.query.raw ? {} : { seo: seo };
 
@@ -119,7 +132,13 @@ fastify.get("/logs", async (request, reply) => {
     : reply.view("/src/pages/admin.hbs", params);
 });
 
-// Admin endpoint to empty all logs - requires auth (instructions in README)
+/**
+* Admin endpoint to empty all logs
+*
+* Requires authorization (see setup instructions in README)
+* If auth fails, return a 401 and the log list
+* If auth is successful, empty 
+*/
 fastify.post("/reset", async (request, reply) => {
   let params = request.query.raw ? {} : { seo: seo };
 
