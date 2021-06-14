@@ -24,7 +24,7 @@ To get best use out of this project you'll ideally be familiar with JavaScript a
 
 ← `/src/sqlite.js`: The database script handles setting up and connecting to the SQLite database. The `server.js` API endpoints call the functions in the database script to manage the data.
 
-← `/src/data-config.json`: The data config file includes the database manager script–`server.js` reads the `database` property to import the correct script.
+← `/src/data.json`: The data config file includes the database manager script–`server.js` reads the `database` property to import the correct script.
 
 When the app runs, the scripts build the database:
 
