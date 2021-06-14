@@ -78,6 +78,8 @@ params.results = request.query.results;
 
 Click the __Show results__ button to see the results without voting!
 
+_Tip: If you just cleared the log, make sure you vote again so that there are some results to show._ 🙈
+
 ![Glitch](https://cdn.glitch.com/a9975ea6-8949-4bab-addb-8a95021dc2da%2FLogo_Color.svg?v=1602781328576)
 
 ## You built this with Glitch!
