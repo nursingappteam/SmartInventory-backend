@@ -38,34 +38,43 @@
     function showChart(choices, picks) {
       // We pass the choices and picks arrays from the page when the server script returns them
       var ctx = document.getElementById('myChart');
-      var myLineChart = new Chart(ctx, {
-        type: "doughnut",
-        data: {
-          labels: choices,
-          datasets: [{
-            data: picks,
-            backgroundColor: ["#05DA84", "#E6E656", "#E5AED6"],
-            borderColor: "#ffffff",
-            fill: true,
-            hoverOffset: 12,
-            cutout: "60%"
-          }]
-        },
-        options: {
-          plugins: {
-            legend: {
-              display: true,
-              position: "bottom",
-              labels: {
-                padding: 24
-              }
-            }
+      if(picks.reduce((a, b) => a + b, 0)<1) { 
+        var errText = document.createElement("p");
+        errText.classList.add("error");
+        var textContent = document.createTextNode("No votes! Reload and submit a vote!");
+        errText.appendChild(textContent);
+        ctx.parentNode.insertBefore(errText, ctx);
+      }
+      else {
+        var myLineChart = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: choices,
+            datasets: [{
+              data: picks,
+              backgroundColor: ["#05DA84", "#E6E656", "#E5AED6"],
+              borderColor: "#ffffff",
+              fill: true,
+              hoverOffset: 12,
+              cutout: "60%"
+            }]
           },
-          layout: {
-            padding: 24
+          options: {
+            plugins: {
+              legend: {
+                display: true,
+                position: "bottom",
+                labels: {
+                  padding: 24
+                }
+              }
+            },
+            layout: {
+              padding: 24
+            }
           }
-        }
-      });
+        });
+      }
     }
   </script>
 
