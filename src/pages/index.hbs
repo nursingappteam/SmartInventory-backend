@@ -38,6 +38,7 @@
     function showChart(choices, picks) {
       // We pass the choices and picks arrays from the page when the server script returns them
       var ctx = document.getElementById('myChart');
+      // Ma
       if(picks.reduce((a, b) => a + b, 0)<1) { 
         var errText = document.createElement("p");
         errText.classList.add("error");
