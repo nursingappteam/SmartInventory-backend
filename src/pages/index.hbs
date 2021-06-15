@@ -34,49 +34,55 @@
     /*
     The chart uses chart.js - try tweaking the config!
     https://www.chartjs.org/docs/3.0.2/charts/doughnut.html
+    
+    We pass the choices and picks arrays from the page when the server script returns them
     */
     function showChart(choices, picks) {
-      // We pass the choices and picks arrays from the page when the server script returns them
+      
+      // Get the page element to show the chart inside
       var ctx = document.getElementById('myChart');
       
-      // Make sure we have some votes by adding them together–show an error if none
-      if(picks.reduce((a, b) => a + b, 0)<1) { 
-        var errText = document.createElement("p");
-        errText.classList.add("error");
-        var textContent = document.createTextNode("No votes! Reload and submit a vote!");
-        errText.appendChild(textContent);
-        ctx.parentNode.insertBefore(errText, ctx);
+      // Set up the chart colors
+      var colors = ["#05DA84", "#E6E656", "#E5AED6"];
+      var border = "#ffffff";
+      
+      // Make sure we have some votes–if not show an empty chart
+      if(picks.reduce((a, b) => a + b, 0)<1) {
+        picks=["1e-10"]; // use a near zero value so that the doughnut displays
+        choices=["No votes! Reload and vote again."];
+        colors=["#00000000"]; // we'll show an empty doughnut shape
+        border=["#000000"];
       }
-      else {
-        var myLineChart = new Chart(ctx, {
-          type: "doughnut",
-          data: {
-            labels: choices,
-            datasets: [{
-              data: picks,
-              backgroundColor: ["#05DA84", "#E6E656", "#E5AED6"],
-              borderColor: "#ffffff",
-              fill: true,
-              hoverOffset: 12,
-              cutout: "60%"
-            }]
-          },
-          options: {
-            plugins: {
-              legend: {
-                display: true,
-                position: "bottom",
-                labels: {
-                  padding: 24
-                }
+      
+      // Build the chart in the page element
+      var myLineChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: choices,
+          datasets: [{
+            data: picks,
+            backgroundColor: colors,
+            borderColor: border,
+            fill: true,
+            hoverOffset: 12,
+            cutout: "60%"
+          }]
+        },
+        options: {
+          plugins: {
+            legend: {
+              display: true,
+              position: "bottom",
+              labels: {
+                padding: 24
               }
-            },
-            layout: {
-              padding: 24
             }
+          },
+          layout: {
+            padding: 24
           }
-        });
-      }
+        }
+      });
     }
   </script>
 
