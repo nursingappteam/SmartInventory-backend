@@ -86,7 +86,7 @@ fastify.get("/", async (request, reply) => {
  * Send vote to database helper
  * Return updated list of votes
  */
-fastify.post("/", async (request, reply) => {
+fastify.post("/", async (request, reply) => { 
   // We only send seo if the client is requesting the front-end ui
   let params = request.query.raw ? {} : { seo: seo };
 
