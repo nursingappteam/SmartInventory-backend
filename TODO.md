@@ -1,10 +1,8 @@
 # TODO 🚧
 
-
+The site __Admin__ page allows the user to clear the database of votes–but only if a valid key is provided. This is a simplified example of auth that checks if the user entered key matches the one in the `.env`.
 
 ## Setting up your admin key
-
-The site __Admin__ page allows the user to clear the database of votes–but only if a valid key is provided. This is a simplified example of auth that checks if the user entered key matches the one in the `.env`.
 
 To set your app up to allow clearing the history:
 

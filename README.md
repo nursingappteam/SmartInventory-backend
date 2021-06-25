@@ -2,7 +2,7 @@
 
 This project includes a [Node.js](https://nodejs.org/en/about/) server script that uses a persistent [SQLite](https://www.sqlite.org) database. The app also includes a front-end with two web pages that connect to the database using the server API. 📊
 
-The home page presents the user with a poll where they can choose an option, then the page presents the results in a chart. The admin page displays the log of past choices and allows the user to clear it by supplying their admin key (you can set this up by following the steps in `TODO.md`). 🔒
+The home page presents the user with a poll where they can choose an option, then the page presents the results in a chart. The admin page displays the log of past choices and allows the user to clear it by supplying an admin key (you can set this up by following the steps in `TODO.md`). 🔒
 
 ## Prerequisites
 
@@ -42,7 +42,7 @@ When the app runs, the scripts build the database:
 
 ## Try this next 🏗️
 
-Take a look in `TODO.md` for steps in setting up your admin key and ad
+Take a look in `TODO.md` for steps in setting up your admin key and adding to the site functionality.
 
 💡 __Want to use the server script as an API without using the front-end UI? No problem! Just send a query parameter `raw` with your requests to return JSON, like this :`glitch-hello-sqlite.glitch.me?raw=json`__
 
