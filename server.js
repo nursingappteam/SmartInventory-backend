@@ -71,7 +71,7 @@ fastify.get("/", async (request, reply) => {
   if (options && params.optionNames.length < 1)
     params.setup = data.setupMessage;
 
-  // ADD PARAMS FROM README NEXT STEPS HERE
+  // ADD PARAMS FROM TODO HERE
 
   // Send the page options or raw JSON data if the client requested it
   request.query.raw
