@@ -12,7 +12,7 @@
     "fastify-static": "^4.5.0",
     "handlebars": "^4.7.7",
     "point-of-view": "^5.1.0",
-    "sqlite": "^4.0.23",
+    "sqlite": "^4.0.25",
     "sqlite3": "^5.0.2"
   },
   "engines": {

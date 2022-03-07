@@ -4,7 +4,7 @@ dependencies:
   fastify-static: 4.5.0
   handlebars: 4.7.7
   point-of-view: 5.1.0
-  sqlite: 4.0.23
+  sqlite: 4.0.25
   sqlite3: 5.0.2
 packages:
   /@fastify/ajv-compiler/1.1.0:
@@ -1195,10 +1195,10 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
-  /sqlite/4.0.23:
+  /sqlite/4.0.25:
     dev: false
     resolution:
-      integrity: sha512-dSdmSkrdIhUL7xP/fiEMfFuAo4dxb0afag3rK8T4Y9lYxE3g3fXT0J8H9qSFvmcKxnM0zEA8yvLbpdWQ8mom3g==
+      integrity: sha512-gqCEcLF8FOTeW/na3SRYWLQkw2jZXgVj1DdgRJbm0jvrhnUgBIuNDUUm649AnBNDNHhI5XskwT8dvc8vearRLQ==
   /sqlite3/5.0.2:
     dependencies:
       node-addon-api: 3.2.0
@@ -1427,5 +1427,5 @@ specifiers:
   fastify-static: ^4.5.0
   handlebars: ^4.7.7
   point-of-view: ^5.1.0
-  sqlite: ^4.0.23
+  sqlite: ^4.0.25
   sqlite3: ^5.0.2
