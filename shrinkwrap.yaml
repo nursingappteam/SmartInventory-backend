@@ -5,7 +5,7 @@ dependencies:
   handlebars: 4.7.7
   point-of-view: 5.2.0
   sqlite: 4.0.25
-  sqlite3: 5.0.4
+  sqlite3: 5.0.5
 packages:
   /@fastify/ajv-compiler/1.1.0:
     dependencies:
@@ -826,7 +826,7 @@ packages:
       graceful-fs: 4.2.10
       make-fetch-happen: 9.1.0
       nopt: 5.0.0
-      npmlog: 6.0.1
+      npmlog: 6.0.2
       rimraf: 3.0.2
       semver: 7.3.7
       tar: 6.1.11
@@ -856,7 +856,7 @@ packages:
     dev: false
     resolution:
       integrity: sha512-AqZtDUWOMKs1G/8lwylVjrdYgqA4d9nu8hc+0gzRxlDb1I10+FHBGMXs6aiQHFdCUUlqH99MUMuLfzWDNDtfxw==
-  /npmlog/6.0.1:
+  /npmlog/6.0.2:
     dependencies:
       are-we-there-yet: 3.0.0
       console-control-strings: 1.1.0
@@ -864,10 +864,10 @@ packages:
       set-blocking: 2.0.0
     dev: false
     engines:
-      node: ^12.13.0 || ^14.15.0 || >=16
+      node: ^12.13.0 || ^14.15.0 || >=16.0.0
     optional: true
     resolution:
-      integrity: sha512-BTHDvY6nrRHuRfyjt1MAufLxYdVXZfd099H4+i1f0lPywNQyI4foeNXJRObB/uy+TYqUW0vAD9gbdSOXPst7Eg==
+      integrity: sha512-/vBvz5Jfr9dT/aFWd0FIRf+T/Q2WBsLENygUaFUqstqsycmZAP/t5BvFJTK0viFmSUxiUKTUplWy5vt+rvKIxg==
   /object-assign/4.1.1:
     dev: false
     engines:
@@ -1150,7 +1150,7 @@ packages:
     dev: false
     resolution:
       integrity: sha512-gqCEcLF8FOTeW/na3SRYWLQkw2jZXgVj1DdgRJbm0jvrhnUgBIuNDUUm649AnBNDNHhI5XskwT8dvc8vearRLQ==
-  /sqlite3/5.0.4:
+  /sqlite3/5.0.5:
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.9
       node-addon-api: 4.3.0
@@ -1160,7 +1160,7 @@ packages:
       node-gyp: 8.4.1
     requiresBuild: true
     resolution:
-      integrity: sha512-ATvAe7JutFv/d+KTbLS58KsKn/t1raL/WGn2qZfZxwsrL/oGSP+0OlbQ2tX5jISvyu6/7JuKze3WkaiP1JAH6A==
+      integrity: sha512-ZZFOMW31IOMbUeSiL23TuWSjNyS7Z83EDJ80HJxCe78OZ+5BJT6IhAwAUnQgPsUl5z+Er0DGx7VjuTP7PKPNcg==
   /ssri/8.0.1:
     dependencies:
       minipass: 3.1.6
@@ -1320,4 +1320,4 @@ specifiers:
   handlebars: ^4.7.7
   point-of-view: ^5.2.0
   sqlite: ^4.0.25
-  sqlite3: ^5.0.3
+  sqlite3: ^5.0.4
