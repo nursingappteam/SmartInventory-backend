@@ -14,23 +14,23 @@ const path = require("path");
 // Require the fastify framework and instantiate it
 const fastify = require("fastify")({
   // Set this to true for detailed logging:
-  logger: false
+  logger: false,
 });
 
 // Setup our static files
-fastify.register(require("fastify-static"), {
+fastify.register(require("@fastify/static"), {
   root: path.join(__dirname, "public"),
-  prefix: "/" // optional: default '/'
+  prefix: "/", // optional: default '/'
 });
 
-// fastify-formbody lets us parse incoming forms
-fastify.register(require("fastify-formbody"));
+// Formbody lets us parse incoming forms
+fastify.register(require("@fastify/formbody"));
 
-// point-of-view is a templating manager for fastify
-fastify.register(require("point-of-view"), {
+// View is a templating manager for fastify
+fastify.register(require("@fastify/view"), {
   engine: {
-    handlebars: require("handlebars")
-  }
+    handlebars: require("handlebars"),
+  },
 });
 
 // Load and parse SEO data
@@ -61,8 +61,8 @@ fastify.get("/", async (request, reply) => {
   // Get the available choices from the database
   const options = await db.getOptions();
   if (options) {
-    params.optionNames = options.map(choice => choice.language);
-    params.optionCounts = options.map(choice => choice.picks);
+    params.optionNames = options.map((choice) => choice.language);
+    params.optionCounts = options.map((choice) => choice.picks);
   }
   // Let the user know if there was a db error
   else params.error = data.errorMessage;
@@ -74,7 +74,7 @@ fastify.get("/", async (request, reply) => {
   // ADD PARAMS FROM TODO HERE
 
   // Send the page options or raw JSON data if the client requested it
-  request.query.raw
+  return request.query.raw
     ? reply.send(params)
     : reply.view("/src/pages/index.hbs", params);
 });
@@ -86,7 +86,7 @@ fastify.get("/", async (request, reply) => {
  * Send vote to database helper
  * Return updated list of votes
  */
-fastify.post("/", async (request, reply) => { 
+fastify.post("/", async (request, reply) => {
   // We only send seo if the client is requesting the front-end ui
   let params = request.query.raw ? {} : { seo: seo };
 
@@ -99,14 +99,14 @@ fastify.post("/", async (request, reply) => {
     options = await db.processVote(request.body.language);
     if (options) {
       // We send the choices and numbers in parallel arrays
-      params.optionNames = options.map(choice => choice.language);
-      params.optionCounts = options.map(choice => choice.picks);
+      params.optionNames = options.map((choice) => choice.language);
+      params.optionCounts = options.map((choice) => choice.picks);
     }
   }
   params.error = options ? null : data.errorMessage;
 
   // Return the info to the client
-  request.query.raw
+  return request.query.raw
     ? reply.send(params)
     : reply.view("/src/pages/index.hbs", params);
 });
@@ -126,7 +126,7 @@ fastify.get("/logs", async (request, reply) => {
   params.error = params.optionHistory ? null : data.errorMessage;
 
   // Send the log list
-  request.query.raw
+  return request.query.raw
     ? reply.send(params)
     : reply.view("/src/pages/admin.hbs", params);
 });
@@ -169,17 +169,20 @@ fastify.post("/reset", async (request, reply) => {
   // Send a 401 if auth failed, 200 otherwise
   const status = params.failed ? 401 : 200;
   // Send an unauthorized status code if the user credentials failed
-  request.query.raw
+  return request.query.raw
     ? reply.status(status).send(params)
     : reply.status(status).view("/src/pages/admin.hbs", params);
 });
 
 // Run the server and report out to the logs
-fastify.listen(process.env.PORT, '0.0.0.0', function(err, address) {
-  if (err) {
-    fastify.log.error(err);
-    process.exit(1);
+fastify.listen(
+  { port: process.env.PORT, host: "0.0.0.0" },
+  function (err, address) {
+    if (err) {
+      fastify.log.error(err);
+      process.exit(1);
+    }
+    console.log(`Your app is listening on ${address}`);
+    fastify.log.info(`server listening on ${address}`);
   }
-  console.log(`Your app is listening on ${address}`);
-  fastify.log.info(`server listening on ${address}`);
-});
+);

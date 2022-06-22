@@ -37,9 +37,9 @@ THIRD-PARTY SOFTWARE
 
 
 1. fastify: Fastify is a web framework focused on developer experience.
-2. fastify-static: Plugin for serving static files as fast as possible.
+2. fastify/static: Plugin for serving static files as fast as possible.
 3. handlebars.js: Minimal templating on steroids.
-4. point-of-view: Templates rendering plugin support for Fastify.
+4. fastify/view: Templates rendering plugin support for Fastify.
 5. HK Grotesk: The font we're using. 
 6. SQLite: The database management system.
 
@@ -79,7 +79,7 @@ END, fastify
 
 
 ******************************************************************************
-2. fastify-static
+2. fastify/static
 URL: https://github.com/fastify/fastify-static
 ******************************************************************************
 MIT License
@@ -104,7 +104,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ******************************************************************************
-END, fastify-static
+END, fastify/static
 ******************************************************************************
 
 
@@ -138,7 +138,7 @@ END, fastify-static
 
 
 ******************************************************************************
-4. point-of-view
+4. fastify/view
 URL: https://github.com/fastify/point-of-view
 ******************************************************************************
 MIT License
@@ -163,7 +163,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ******************************************************************************
-END, point-of-view
+END, fastify/view
 ******************************************************************************
 
 
