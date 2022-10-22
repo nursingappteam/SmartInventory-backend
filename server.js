@@ -186,3 +186,4 @@ fastify.listen(
     fastify.log.info(`server listening on ${address}`);
   }
 );
+
