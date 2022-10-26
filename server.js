@@ -6,7 +6,7 @@ const sqlite3 = require("sqlite3").verbose();
 app.use(cors());
 app.use(express.json());
 
-let db = new sqlite3.Database("testDB.db", (err) => {
+let db = new sqlite3.Database("./.data/test.db", (err) => {
   if(err) {
     console.log(err.message);
   }
