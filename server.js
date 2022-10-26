@@ -30,4 +30,4 @@ app.post('/validatePassword', (req, res) => {
 
 
 const port = process.env.PORT;
-app.listen(port, ()=> console.log('Listening at port ' + port));
+app.listen(3001, ()=> console.log('Listening at port 3001'));
