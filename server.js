@@ -12,12 +12,7 @@ let db = new sqlite3.Database("./.data/test.db", (err) => {
     console.log(err.message);
   }
   console.log("connected to the database.");
-  db.all('SELECT * FROM users', (err, rows) => {
-    if(err) {
-      throw err;
-    }
-    console.log(rows);
-  });
+  
 });
 
 
