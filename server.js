@@ -6,13 +6,21 @@ const sqlite3 = require("sqlite3").verbose();
 app.use(cors());
 app.use(express.json());
 
+
 let db = new sqlite3.Database("./.data/test.db", (err) => {
   if(err) {
     console.log(err.message);
   }
   console.log("connected to the database.");
+  db.all('SELECT * FROM users', (err, rows) => {
+    if(err) {
+      throw err;
+    }
+    console.log(rows);
+  });
 });
 
+  
 app.post('/validatePassword', (req, res) => {
   const {username, password} = req.body
   
@@ -29,5 +37,6 @@ app.post('/validatePassword', (req, res) => {
 });
 
 
-const port = process.env.PORT;
-app.listen(port, ()=> console.log('Listening at ' + ));
+var listener = app.listen(process.env.PORT, function() {
+  console.log('Your app is listening on port ' + listener.address().port);
+});
