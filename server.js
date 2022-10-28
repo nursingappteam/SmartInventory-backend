@@ -4,6 +4,10 @@ const fs = require('fs');
 const PORT = process.env.PORT;
 const app = express();
 
+//Get certificate and key
+const cert_path = './certs/';
+const pKey = fs.readFileSync(cert_path + 'selfsigned.key');
+const CA = fs.readFileSync(cert_path + 'selfsigned.crt');
 
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
