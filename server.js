@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 
-let db = new sqlite3.Database("./.data/test.db", (err) => {
+let db = new sqlite3.Database("./inventory_v2.db", (err) => {
   if(err) {
     console.log(err.message);
   }
@@ -19,6 +19,9 @@ app.get('/', (req, res) => {
   res.send('SmartInventory API');
 })
 
+app.get('/get_assets', (req, res) => {
+  
+})
   
 app.post('/validatePassword', (req, res) => {
   const {username, password} = req.body
@@ -34,6 +37,8 @@ app.post('/validatePassword', (req, res) => {
     }
   });
 });
+
+
 
 
 var listener = app.listen(process.env.PORT, function() {
