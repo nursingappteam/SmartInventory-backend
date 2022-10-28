@@ -2,16 +2,21 @@ const express = require("express");
 const https=require('https');
 const fs = require('fs');
 const PORT = process.env.PORT;
-const app = express();
+
 
 //Get certificate and key
-const cert_path = './certs/';
-const pKey = fs.readFileSync(cert_path + 'selfsigned.key');
-const CA = fs.readFileSync(cert_path + 'selfsigned.crt');
+var cert_path = './certs/';
+var pKey = fs.readFileSync(cert_path + 'selfsigned.key');
+var cert = fs.readFileSync(cert_path + 'selfsigned.crt');
+var options = {
+  key: pKey,
+  cert: cert
+}
 
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 
+const app = express();
 app.use(cors());
 app.use(express.json());
 app.use
@@ -59,13 +64,11 @@ app.post('/validatePassword', (req, res) => {
   });
 });
   
+var server = https.createServer(options, app);
 
+server.listen(PORT, () => {
+  console.log('Your app is listening on port ' + PORT);
+})
 
-
-
-
-var listener = app.listen(process.env.PORT, function() {
-  console.log('Your app is listening on port ' + listener.address().port);
-});
 
 
