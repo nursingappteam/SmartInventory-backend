@@ -22,6 +22,7 @@ let db = new sqlite3.Database("./inventory_v2.db", (err) => {
   }
   console.log("connected to the database.");
   
+  
 });
 
 app.get('/', (req, res) => {
@@ -32,7 +33,7 @@ app.get('/', (req, res) => {
 app.get('/get_assets', (req, res) => {
   let query = 'SELECT * FROM assets'
   
-  db.all(query, [], (err, rows) => {
+  db.get(query, [], (err, rows) => {
     if(err){
       throw err;
     }
@@ -43,10 +44,10 @@ app.get('/get_assets', (req, res) => {
   });
 })
 
-app.post('/validatePassword', (req, res) => {
-  const {username, password} = req.body
+app.get('/validatePassword', (req, res) => {
+  //const {username, password} = req.body
   
-  db.all('SELECT * FROM users WHERE username = "${username}" and password = "${password}"', (err, rows) => {
+  db.get('SELECT * FROM users WHERE username = "${username}" and password = "${password}"', (err, rows) => {
     if(err) {
       throw err;
     }
