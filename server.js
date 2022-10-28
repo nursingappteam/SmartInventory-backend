@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use
 
-let db = new sqlite3.Database("./inventory_v2.db", (err) => {
+let db = new sqlite3.Database("./inventory_v3.db", (err) => {
   if(err) {
     console.log(err.message);
   }
@@ -47,7 +47,7 @@ app.get('/get_assets', (req, res) => {
 app.get('/validatePassword', (req, res) => {
   //const {username, password} = req.body
   
-  db.get('SELECT * FROM users WHERE username = "${username}" and password = "${password}"', (err, rows) => {
+  db.get('SELECT * FROM users', (err, rows) => {
     if(err) {
       throw err;
     }
