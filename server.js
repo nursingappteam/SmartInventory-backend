@@ -15,6 +15,9 @@ let db = new sqlite3.Database("./.data/test.db", (err) => {
   
 });
 
+app.get('/', (req, res) => {
+  res.send('SmartInventory API');
+})
 
   
 app.post('/validatePassword', (req, res) => {
