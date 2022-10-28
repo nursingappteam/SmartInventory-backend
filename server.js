@@ -20,23 +20,32 @@ app.get('/', (req, res) => {
 })
 
 app.get('/get_assets', (req, res) => {
+  let query = 'SELECT * FROM assets'
   
-})
-  
-app.post('/validatePassword', (req, res) => {
-  const {username, password} = req.body
-  
-  db.all('SELECT * FROM users WHERE username = "${username}" and password = "${password}"', (err, rows) => {
-    if(err) {
+  db.all(query, [], (err, rows) => {
+    if(err){
       throw err;
     }
-    if(rows.length > 0) {
-      res.send({validation: true})
-    } else {
-      res.send({validation: false})
-    }
+    console.log(rows);
+    res.setHeader('Content-Type','application/json');
+    res.send(JSON.stringify(rows));
   });
-});
+})
+  
+// app.post('/validatePassword', (req, res) => {
+//   const {username, password} = req.body
+  
+//   db.all('SELECT * FROM users WHERE username = "${username}" and password = "${password}"', (err, rows) => {
+//     if(err) {
+//       throw err;
+//     }
+//     if(rows.length > 0) {
+//       res.send({validation: true})
+//     } else {
+//       res.send({validation: false})
+//     }
+//   });
+// });
 
 
 
