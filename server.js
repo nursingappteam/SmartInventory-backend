@@ -27,25 +27,26 @@ app.get('/get_assets', (req, res) => {
       throw err;
     }
     console.log(rows);
+    res.status(200);
     res.setHeader('Content-Type','application/json');
     res.send(JSON.stringify(rows));
   });
 })
   
-// app.post('/validatePassword', (req, res) => {
-//   const {username, password} = req.body
+app.post('/validatePassword', (req, res) => {
+  const {username, password} = req.body
   
-//   db.all('SELECT * FROM users WHERE username = "${username}" and password = "${password}"', (err, rows) => {
-//     if(err) {
-//       throw err;
-//     }
-//     if(rows.length > 0) {
-//       res.send({validation: true})
-//     } else {
-//       res.send({validation: false})
-//     }
-//   });
-// });
+  db.all('SELECT * FROM users WHERE username = "${username}" and password = "${password}"', (err, rows) => {
+    if(err) {
+      throw err;
+    }
+    if(rows.length > 0) {
+      res.send({validation: true})
+    } else {
+      res.send({validation: false})
+    }
+  });
+});
 
 
 
