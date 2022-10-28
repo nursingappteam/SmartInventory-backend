@@ -5,10 +5,10 @@ const PORT = process.env.PORT;
 
 
 //Get certificate and key
-var cert_path = './certs/';
-var pKey = fs.readFileSync(cert_path + 'selfsigned.key');
-var cert = fs.readFileSync(cert_path + 'selfsigned.crt');
-var options = {
+const cert_path = './certs/';
+const pKey = fs.readFileSync(cert_path + 'selfsigned.key');
+const cert = fs.readFileSync(cert_path + 'selfsigned.crt');
+const options = {
   key: pKey,
   cert: cert
 }
@@ -50,9 +50,12 @@ app.get('/get_assets', (req, res) => {
 })
 
 app.post('/validatePassword', (req, res) => {
-  const {username, password} = req.body
+  //const {username, password} = req.body
+  var userID = req.query.username;
+  var pass = req.query.password;
   
-  db.all('SELECT * FROM users WHERE username = "{username}" AND password = "password}"', (err, rows) => {
+  console.log(userID +'\n'+pass);
+  db.all(`SELECT * FROM users WHERE username = "${userID}" AND password = "${pass}"`, (err, rows) => {
     if(err) {
       throw err;
     }
@@ -64,11 +67,14 @@ app.post('/validatePassword', (req, res) => {
   });
 });
   
-var server = https.createServer(options, app);
+// var server = https.createServer(options, app);
 
-server.listen(PORT, () => {
+// server.listen(PORT, () => {
+//   console.log('Your app is listening on port ' + PORT);
+// })
+
+app.listen(PORT, () => {
   console.log('Your app is listening on port ' + PORT);
 })
-
 
 
