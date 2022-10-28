@@ -1,11 +1,13 @@
 const express = require("express");
-const app = express();
 const https=require('https');
-const path=require('path');
+const fs = require('fs');
+const PORT = process.env.PORT;
+const app = express();
+
+
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 
-app.enable('trust proxy');
 app.use(cors());
 app.use(express.json());
 app.use
