@@ -33,7 +33,7 @@ app.get('/', (req, res) => {
 app.get('/get_assets', (req, res) => {
   let query = 'SELECT * FROM assets'
   
-  db.get(query, [], (err, rows) => {
+  db.all(query, [], (err, rows) => {
     if(err){
       throw err;
     }
@@ -44,10 +44,10 @@ app.get('/get_assets', (req, res) => {
   });
 })
 
-app.get('/validatePassword', (req, res) => {
-  //const {username, password} = req.body
+app.post('/validatePassword', (req, res) => {
+  const {username, password} = req.body
   
-  db.get('SELECT * FROM users', (err, rows) => {
+  db.all('SELECT * FROM users WHERE username = "{username}" AND password = "password}"', (err, rows) => {
     if(err) {
       throw err;
     }
