@@ -54,9 +54,16 @@ app.get('/display_assets', (req, res) => {
 
 //get endpoint to get items with specific asset id's
 app.get('/get_assets', (req, res) => {
-  console.log(req.body);
-  res.status(200);
-  res.json(req.body)
+  if(!validateRequest(req.body)){
+    console.log("No Valid API_KEY supplied")
+    res.status(401);
+    res.send();
+  }
+  else{
+    console.log("Valid Get Request");
+    res.status(200);
+    res.send("Hello");
+  }
 });
 
 app.post('/validatePassword', (req, res) => {
@@ -83,6 +90,15 @@ app.post('/validatePassword', (req, res) => {
 // server.listen(PORT, () => {
 //   console.log('Your app is listening on port ' + PORT);
 // })
+
+let validateRequest = (body) => {
+  let result = false;
+  if(body.hasOwnProperty('API_KEY')){
+    if(body["API_KEY"] === API_KEY) 
+      result = true;
+  }
+  return result;
+}
 
 app.listen(PORT, () => {
   console.log('Your app is listening on port ' + PORT);
