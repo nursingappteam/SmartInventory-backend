@@ -34,20 +34,27 @@ app.get('/', (req, res) => {
   res.send('SmartInventory API');
 })
 
-//get endpoint that queries the database
-app.get('/get_assets', (req, res) => {
+//get endpoint that will get all assets of inventory
+app.get('/display_assets', (req, res) => {
   let query = 'SELECT * FROM assets'
   
   db.all(query, [], (err, rows) => {
     if(err){
+      res.status(500);
       throw err;
     }
-    console.log(rows);
-    res.status(200);
-    res.setHeader('Content-Type','application/json');
-    res.send(JSON.stringify(rows));
+    else{
+      console.log(rows);
+      res.status(200);
+      res.setHeader('Content-Type','application/json');
+      res.send(JSON.stringify(rows));
+    }
   });
 })
+
+app.get('/get_assets', (req, res) => {
+  
+});
 
 app.post('/validatePassword', (req, res) => {
   //const {username, password} = req.body
