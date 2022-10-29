@@ -61,7 +61,7 @@ app.get('/get_assets', (req, res) => {
   }
   else{
     console.log("Processing Request...");
-    query = 
+    var query = "SELECT * FROM assets"
     db.all(query, [], (err, rows) => {
     if(err){
       res.status(500);
@@ -83,7 +83,7 @@ app.post('/validatePassword', (req, res) => {
   var pass = req.query.password;
   //var body = req.body
   
-  //console.log("request body"+body.json());
+  console.log("username: "+ req.query.username + "password: " + req.query.password);
   db.all(`SELECT * FROM users WHERE username = "${userID}" AND password = "${pass}"`, (err, rows) => {
     if(err) {
       throw err;
@@ -112,11 +112,13 @@ let validateRequestKey = (body) => {
   return result;
 }
 
-let validateRequestParams = (body) => {
-  let result = false;
-  if(body.hasOwnProperty('API_KEY')){
-    if(body["API_KEY"] === API_KEY) 
-      result = true;
+let validateRequestParams = (body, params) => {
+  let result = true;
+  for(let i = 0; i < params.length; i++){
+    if(!body.hasOwnProperty(params[i])){
+      result = false
+      break;
+    }
   }
   return result;
 }
