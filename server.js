@@ -60,30 +60,23 @@ app.get('/get_assets', (req, res) => {
     res.send();
   }
   else{
+    if(!validateRequestParams(req.body, ["asset_id"])){
+      console.log("Invalid or incomplete request");
+      res
+    }
     console.log("Processing Request...");
     var query = "SELECT * FROM assets"
-    db.all(query, [], (err, rows) => {
-    if(err){
-      res.status(500);
-      throw err;
-    }
-    else{
-      console.log(rows);
-      res.status(200);
-      res.setHeader('Content-Type','application/json');
-      res.send(JSON.stringify(rows));
-    }
-  });
+    
   }
 });
 
 app.post('/validatePassword', (req, res) => {
-  //const {username, password} = req.body
+  //const {userID, pass} = req.body
   var userID = req.query.username;
   var pass = req.query.password;
   //var body = req.body
   
-  console.log("username: "+ req.query.username + "password: " + req.query.password);
+  console.log("username: "+ userID + " password: " + pass);
   db.all(`SELECT * FROM users WHERE username = "${userID}" AND password = "${pass}"`, (err, rows) => {
     if(err) {
       throw err;
