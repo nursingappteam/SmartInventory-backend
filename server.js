@@ -2,6 +2,7 @@ const express = require("express");
 const https=require('https');
 const fs = require('fs');
 const PORT = process.env.PORT;
+const API_KEY = process.env.API_KEY;
 
 
 //Get certificate and key
@@ -19,7 +20,6 @@ const sqlite3 = require("sqlite3").verbose();
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use
 
 let db = new sqlite3.Database("./inventory_v3.db", (err) => {
   if(err) {
@@ -53,8 +53,9 @@ app.post('/validatePassword', (req, res) => {
   //const {username, password} = req.body
   var userID = req.query.username;
   var pass = req.query.password;
+  var body = req.body
   
-  console.log(userID +'\n'+pass);
+  console.log("request body"+body.json());
   db.all(`SELECT * FROM users WHERE username = "${userID}" AND password = "${pass}"`, (err, rows) => {
     if(err) {
       throw err;
