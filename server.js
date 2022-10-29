@@ -30,6 +30,7 @@ let db = new sqlite3.Database("./inventory_v3.db", (err) => {
   
 });
 
+
 app.get('/', (req, res) => {
   res.send('SmartInventory API');
 })
@@ -58,16 +59,29 @@ app.get('/get_assets', (req, res) => {
     console.log("No Valid API_KEY supplied")
     res.status(401);
     res.send();
+    return
   }
-  else{
-    if(!validateRequestParams(req.body, ["asset_id"])){
-      console.log("Invalid or incomplete request");
-      res
+  if(!validateRequestParams(req.body, ["asset_id"])){
+    console.log("Invalid or incomplete request");
+    res.status(400)
+    res.send();
+    return
+  }
+  console.log("Processing Request...");
+  var query = `SELECT * FROM assets WHERE asset_id in(${req.body["asset_id"].toString()})`;
+  db.all(query, [], (err, rows) => {
+    if(err){
+      res.status(500);
+      throw err;
     }
-    console.log("Processing Request...");
-    var query = "SELECT * FROM assets"
+    else{
+      console.log(query);
+      res.status(200);
+      res.setHeader('Content-Type','application/json');
+      res.send(JSON.stringify(rows));
+    }
+  });
     
-  }
 });
 
 app.post('/validatePassword', (req, res) => {
