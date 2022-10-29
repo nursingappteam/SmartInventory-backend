@@ -54,15 +54,26 @@ app.get('/display_assets', (req, res) => {
 
 //get endpoint to get items with specific asset id's
 app.get('/get_assets', (req, res) => {
-  if(!validateRequest(req.body)){
+  if(!validateRequestKey(req.body)){
     console.log("No Valid API_KEY supplied")
     res.status(401);
     res.send();
   }
   else{
-    console.log("Valid Get Request");
-    res.status(200);
-    res.send("Hello");
+    console.log("Processing Request...");
+    query = 
+    db.all(query, [], (err, rows) => {
+    if(err){
+      res.status(500);
+      throw err;
+    }
+    else{
+      console.log(rows);
+      res.status(200);
+      res.setHeader('Content-Type','application/json');
+      res.send(JSON.stringify(rows));
+    }
+  });
   }
 });
 
@@ -78,6 +89,7 @@ app.post('/validatePassword', (req, res) => {
       throw err;
     }
     if(rows.length > 0) {
+      console.log(rows)
       res.send({validation: true})
     } else {
       res.send({validation: false})
@@ -91,7 +103,16 @@ app.post('/validatePassword', (req, res) => {
 //   console.log('Your app is listening on port ' + PORT);
 // })
 
-let validateRequest = (body) => {
+let validateRequestKey = (body) => {
+  let result = false;
+  if(body.hasOwnProperty('API_KEY')){
+    if(body["API_KEY"] === API_KEY) 
+      result = true;
+  }
+  return result;
+}
+
+let validateRequestParams = (body) => {
   let result = false;
   if(body.hasOwnProperty('API_KEY')){
     if(body["API_KEY"] === API_KEY) 
