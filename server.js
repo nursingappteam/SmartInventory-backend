@@ -55,7 +55,7 @@ app.post('/validatePassword', (req, res) => {
   var pass = req.query.password;
   var body = req.body
   
-  console.log("request body"+body.json());
+  //console.log("request body"+body.json());
   db.all(`SELECT * FROM users WHERE username = "${userID}" AND password = "${pass}"`, (err, rows) => {
     if(err) {
       throw err;
