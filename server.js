@@ -17,7 +17,8 @@ const options = {
 //Declare and initialize server log file
 const {Console} = require("console");
 const serverLogger = new Console({
-    stdout: fs.
+    stdout: fs.createWriteStream("./logs/app.log"),
+    stderr: fs.createWriteStream("./logs/app_errors.log")
 });
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
@@ -28,9 +29,9 @@ app.use(express.json());
 
 let db = new sqlite3.Database("./inventory_v3.db", (err) => {
   if(err) {
-    console.log(err.message);
+    serverLogger.log(err.message);
   }
-  console.log("connected to the database.");
+  serverLogger.log("connected to the database.");
   
   
 });
@@ -50,7 +51,7 @@ app.get('/display_assets', (req, res) => {
       throw err;
     }
     else{
-      console.log(rows);
+      serverLogger.log(rows);
       res.status(200);
       res.setHeader('Content-Type','application/json');
       res.send(JSON.stringify(rows));
@@ -61,7 +62,7 @@ app.get('/display_assets', (req, res) => {
 //get endpoint to get items with specific asset id's
 app.get('/get_assets', (req, res) => {
   if(!validateRequestKey(req.headers)){
-    console.log("No Valid API_KEY supplied")
+    serverLogger.log("No Valid API_KEY supplied")
     res.status(401);
     res.send({
       "Response Message" : "Invalid Authentication"
@@ -69,14 +70,14 @@ app.get('/get_assets', (req, res) => {
     return
   }
   if(!validateRequestParams(req.body, ["asset_id"])){
-    console.log("Invalid or incomplete request");
+    serverLogger.log("Invalid or incomplete request");
     res.status(400)
     res.send({
       "Response Message" : "Invalid Request Body"
     });
     return
   }
-  console.log("Processing Request...");
+  serverLogger.log("Processing Request...");
   var query = `SELECT * FROM assets WHERE asset_id in(${req.body["asset_id"].toString()})`;
   db.all(query, [], (err, rows) => {
     if(err){
@@ -85,7 +86,7 @@ app.get('/get_assets', (req, res) => {
       throw err;
     }
     else{
-      console.log(query);
+      serverLogger.log(query);
       res.status(200);
       res.setHeader('Content-Type','application/json');
       res.json(rows);
@@ -100,13 +101,13 @@ app.post('/validatePassword', (req, res) => {
   var pass = req.query.password;
   //var body = req.body
   
-  console.log("username: "+ userID + " password: " + pass);
+  serverLogger.log("username: "+ userID + " password: " + pass);
   db.all(`SELECT * FROM users WHERE username = "${userID}" AND password = "${pass}"`, (err, rows) => {
     if(err) {
       throw err;
     }
     if(rows.length > 0) {
-      console.log(rows)
+      serverLogger.log(rows)
       res.send({validation: true})
     } else {
       res.send({validation: false})
@@ -142,7 +143,7 @@ let validateRequestParams = (body, params) => {
 }
 
 app.listen(PORT, () => {
-  console.log('Your app is listening on port ' + PORT);
+  serverLogger.log('Your app is listening on port ' + PORT);
 })
 
 
