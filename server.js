@@ -55,7 +55,7 @@ app.get('/display_assets', (req, res) => {
 
 //get endpoint to get items with specific asset id's
 app.get('/get_assets', (req, res) => {
-  if(!validateRequestKey(req.body)){
+  if(!validateRequestKey(req.headers)){
     console.log("No Valid API_KEY supplied")
     res.status(401);
     res.send();
@@ -110,10 +110,11 @@ app.post('/validatePassword', (req, res) => {
 //   console.log('Your app is listening on port ' + PORT);
 // })
 
-let validateRequestKey = (body) => {
+let validateRequestKey = (headers) => {
   let result = false;
-  if(body.hasOwnProperty('API_KEY')){
-    if(body["API_KEY"] === API_KEY) 
+  console.log(headers)
+  if(headers.hasOwnProperty('api_key')){
+    if(headers["api_key"] === API_KEY) 
       result = true;
   }
   return result;
