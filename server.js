@@ -52,15 +52,18 @@ app.get('/display_assets', (req, res) => {
   });
 })
 
+//get endpoint to get items with specific asset id's
 app.get('/get_assets', (req, res) => {
-  
+  console.log(req.body);
+  res.status(200);
+  res.json(req.body)
 });
 
 app.post('/validatePassword', (req, res) => {
   //const {username, password} = req.body
   var userID = req.query.username;
   var pass = req.query.password;
-  var body = req.body
+  //var body = req.body
   
   //console.log("request body"+body.json());
   db.all(`SELECT * FROM users WHERE username = "${userID}" AND password = "${pass}"`, (err, rows) => {
