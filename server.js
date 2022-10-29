@@ -14,6 +14,11 @@ const options = {
   cert: cert
 }
 
+//Declare and initialize server log file
+const {Console} = require("console");
+const serverLogger = new Console({
+    stdout: fs.
+});
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 
@@ -58,13 +63,17 @@ app.get('/get_assets', (req, res) => {
   if(!validateRequestKey(req.headers)){
     console.log("No Valid API_KEY supplied")
     res.status(401);
-    res.send();
+    res.send({
+      "Response Message" : "Invalid Authentication"
+    });
     return
   }
   if(!validateRequestParams(req.body, ["asset_id"])){
     console.log("Invalid or incomplete request");
     res.status(400)
-    res.send();
+    res.send({
+      "Response Message" : "Invalid Request Body"
+    });
     return
   }
   console.log("Processing Request...");
@@ -72,13 +81,14 @@ app.get('/get_assets', (req, res) => {
   db.all(query, [], (err, rows) => {
     if(err){
       res.status(500);
+      res.send([])
       throw err;
     }
     else{
       console.log(query);
       res.status(200);
       res.setHeader('Content-Type','application/json');
-      res.send(JSON.stringify(rows));
+      res.json(rows);
     }
   });
     
@@ -112,7 +122,7 @@ app.post('/validatePassword', (req, res) => {
 
 let validateRequestKey = (headers) => {
   let result = false;
-  console.log(headers)
+  //console.log(headers)
   if(headers.hasOwnProperty('api_key')){
     if(headers["api_key"] === API_KEY) 
       result = true;
