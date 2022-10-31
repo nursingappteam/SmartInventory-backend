@@ -27,7 +27,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-let db = new sqlite3.Database("./inventory_v3.db", (err) => {
+let db = new sqlite3.Database("./inventory/inventory_v4.db", (err) => {
   if(err) {
     console.log(err.message);
   }
@@ -102,15 +102,19 @@ app.post('/validatePassword', (req, res) => {
   //var body = req.body
   
   console.log("username: "+ userID + " password: " + pass);
-  db.all(`SELECT * FROM users WHERE username = "${userID}" AND password = "${pass}"`, (err, rows) => {
+  db.all(`SELECT * FROM users WHERE user_name = "${userID}" AND user_pass_secure = "${pass}"`, (err, rows) => {
     if(err) {
-      throw err;
+      res.status(500)
+      return res.json({
+        status: 500,
+        message: 'couldn't process
+      })
     }
     if(rows.length > 0) {
       console.log(rows)
-      res.send({validation: true})
+      return res.send({validation: true})
     } else {
-      res.send({validation: false})
+      return res.send({validation: false})
     }
   });
 });
