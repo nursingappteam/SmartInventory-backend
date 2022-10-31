@@ -107,7 +107,7 @@ app.post('/validatePassword', (req, res) => {
       res.status(500)
       return res.json({
         status: 500,
-        message: 'couldn't process
+        message: "Couldn't process your request. Server Error."
       })
     }
     if(rows.length > 0) {
