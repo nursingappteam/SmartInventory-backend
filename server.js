@@ -144,7 +144,7 @@ app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
       return res.send({validation: true})
     } else {
       console.log("rows: "+rows)
-      return res.send({validation: false})
+      return res.send({rows})
     }
   });
 });
@@ -175,7 +175,7 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
       })
     }
     res.status(200)
-    let new_record = dbQuery(`SELECT * FROM users WHERE user_name '${user_name}'`);
+    let new_record = dbQuery(`SELECT * FROM users WHERE user_name = '${user_name}'`);
     return res.json(rows);
   });
 });
@@ -237,30 +237,7 @@ const dbQuery_user = (user_name) => {
   return result;
 }
 
-// var dbQuery_user = function(callback){
 
-//     var db = new sqlite3.Database(file, sqlite3.OPEN_READONLY);
-
-//     db.serialize(function() {
-
-//         db.all("SELECT * FROM MediaTable", function(err, allRows) {
-
-//             if(err != null){
-//                 console.log(err);
-//                 callback(err);
-//             }
-
-//             console.log(util.inspect(allRows));
-
-//             callback(allRows);
-//             db.close();
-
-//         });
-
-
-//     });
-
-// }
 
 
 app.listen(PORT, () => {
