@@ -26,7 +26,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-let db = new sqlite3.Database("./inventory/inventory_v4.db", (err) => {
+let db = new sqlite3.Database("./inventory/inventory_v5.db", (err) => {
   if(err) {
     console.log(err.message);
   }
@@ -158,28 +158,29 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
     });
     return
   }
-  var userID = req.body["username"];
+  var user_name = req.body["username"];
   var pass = req.body["password"];
-  console.log(dbQuery(`SELECT * FROM users`))
-  if(dbQuery(`SELECT * FROM users WHERE user_name = '${userID}'`) > 0){
+ let check_exists = dbQuery(`SELECT * FROM users WHERE user_name '${user_name}'`);
+  if(check_exists.length > 0){
     res.status(403)
     res.send({
       "status": 403,
       "message": "User already exists"
     })
   }
-  let InsertQuery = createUserQuery(userID, pass, 1);
+  let InsertQuery = createUserQuery(user_name, pass, 1);
   console.log("InsertQuery: "+InsertQuery);
-  console.log("username: "+ userID + " password: " + pass);
+  //console.log("username: "+ user_name + " password: " + pass);
   db.all(InsertQuery, (err, rows) => {
     if(err) {
       res.status(500)
       return res.json({
         status: 500,
-        message: "Couldn't Insert New User Record. Server Error."
+        message: err
       })
     }
     res.status(200)
+    let new_record = dbQuery(`SELECT * FROM users WHERE user_name '${user_name}'`);
     return res.json(rows);
   });
 });
