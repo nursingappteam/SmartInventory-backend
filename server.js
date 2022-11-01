@@ -47,7 +47,11 @@ app.get('/assets/display_assets', authorize(API_KEY), (req, res) => {
   db.all(query, [], (err, rows) => {
     if(err){
       res.status(500);
-      throw err;
+      res.send({
+        "status" : 500,
+        "message": "Server error"
+      });
+      return
     }
     else{
       console.log(query);
@@ -64,7 +68,8 @@ app.get('/assets/get_assets', authorize(API_KEY), (req, res) => {
     console.log("Invalid or incomplete request");
     res.status(400)
     res.send({
-      "Response Message" : "Invalid Request Body"
+      "status" : 400,
+      "message": "Invalid Request Body"
     });
     return
   }
@@ -73,8 +78,11 @@ app.get('/assets/get_assets', authorize(API_KEY), (req, res) => {
   db.all(query, [], (err, rows) => {
     if(err){
       res.status(500);
-      res.send([])
-      throw err;
+      res.send({
+        "status" : 500,
+        "message": "Server error"
+      });
+      return
     }
     else{
       console.log(query);
@@ -112,7 +120,8 @@ app.post('/users/validatePassword', authorize(API_KEY), (req, res) => {
     console.log("Invalid or incomplete request");
     res.status(400)
     res.send({
-      "Response Message" : "Invalid Request Body"
+      "status" : 400,
+      "message": "Invalid Request Body"
     });
     return
   }
@@ -144,7 +153,8 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
     console.log("Invalid or incomplete request");
     res.status(400)
     res.send({
-      "Response Message" : "Invalid Request Body"
+      "status" : 400,
+      "message": "Invalid Request Body"
     });
     return
   }
@@ -153,7 +163,8 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
   if(dbQuery("SELECT * FROM users WHERE user_name = ${userID}") > 0){
     res.status(403)
     res.send({
-      "status": 403
+      "status": 403,
+      "message": "User already exists"
     })
   }
   let InsertQuery = createUserQuery(userID, pass, 1);

@@ -11,12 +11,22 @@ let createUserQuery = (username, password, user_type) => {
       VALUES(NULL,'${username}','${hash}',1,1,'${salt}',datetime('now','localtime'))`
     
   } catch(err) {
-    
+    console.log();
+    return ``
   }
 }
 
-let verifyUserQuery = () => {
-  
+let verifyUserQuery = (username, password, salt) => {
+  try{
+    let hash = md5(password+salt);
+    console.log("HASH: ", hash);
+    return `
+    SELECT * FROM users WHERE user_pass_secure = '${hash}'
+    `
+  } catch(err){
+    console.log();
+    return ``
+  }
 }
 
 module.exports = {createUserQuery, verifyUserQuery};
