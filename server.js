@@ -6,7 +6,7 @@ const fs = require('fs');
 const PORT = process.env.PORT;
 const API_KEY = process.env.API_KEY;
 const authorize = require("./authorize.js");
-const {createUserQuery, verifyUser} = require("./user_authentication.js");
+const {createUserQuery, verifyUserQuery} = require("./user_authentication.js");
 
 
 //Get certificate and key
@@ -125,13 +125,21 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
     });
     return
   }
-  var userID = req.query.username;
-  var pass = req.query.password;
-  //var body = req.body
-  let InsertQuery = createUserQuery(userID, pass, 1);
-  console.log("InsertQuery: "+InsertQuery);
-  console.log("username: "+ userID + " password: " + pass);
-  db.all(`SELECT * FROM users WHERE user_name = "${userID}" AND user_pass_secure = "${pass}"`, (err, rows) => {
+  var user_name = req.body["username"];
+  var pass = req.body["password"];
+  let check_exists = dbQuery(`SELECT * FROM users WHERE user_name = '${user_name}'`);
+  //console.log(check_exists)
+  if(check_exists == null){
+    res.status(403)
+    return res.json({
+      "status": 403,
+      "message": "User already exists"
+    })
+  }
+  let validateQuery = verifyUserQuery(user_name, pass, 1);
+  console.log("InsertQuery: "+validateQuery);
+  console.log("username: "+ user_name + " password: " + pass);
+  db.all(`SELECT * FROM users WHERE user_name = "${user_name}" AND user_pass_secure = "${pass}"`, (err, rows) => {
     if(err) {
       res.status(500)
       return res.json({
@@ -160,10 +168,11 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
   }
   var user_name = req.body["username"];
   var pass = req.body["password"];
- let check_exists = dbQuery(`SELECT * FROM users WHERE user_name '${user_name}'`);
-  if(check_exists.length > 0){
+  var check_exists = dbQuery(`SELECT * FROM users WHERE user_name = '${user_name}'`);
+  console.log(check_exists)
+  if(check_exists > 0){
     res.status(403)
-    res.send({
+    return res.json({
       "status": 403,
       "message": "User already exists"
     })
@@ -176,7 +185,7 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
       res.status(500)
       return res.json({
         status: 500,
-        message: err
+        message: "Couldn't insert new user record. Server Error."
       })
     }
     res.status(200)
@@ -214,6 +223,7 @@ let dbQuery = (query_string, res, req) => {
       return null;
     }
     else{
+      //console.log(rows.length)
       return rows;
     }
   });
