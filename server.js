@@ -169,7 +169,11 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
   var user_name = req.body["username"];
   var pass = req.body["password"];
   let validate_string = `SELECT * FROM users WHERE user_name = '${user_name}'`
-  var check_exists = dbQuery_user(user_name)
+  try{
+    var check_exists = dbQuery_user(user_name)
+  } catch{
+    
+  }
 
   console.log(check_exists)
   if(0){
@@ -187,7 +191,8 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
       res.status(500)
       return res.json({
         status: 500,
-        message: "Couldn't insert new user record. Server Error."
+        message: "Couldn't insert new user record. Server Error.",
+        err: err
       })
     }
     res.status(200)
@@ -234,26 +239,49 @@ const dbQuery = (query_string) => {
 }
 
 //Query function that gets user using user_name
-const dbQuery_user = (user_name) => {
-  var result = [];
-  let query_string = `SELECT * FROM users WHERE user_name = '${user_name}'`
-  console.log(query_string);
-    db.all(query_string, [], (err, rows) => {
-      if(err){
-        return err
-      }
-      else{
-        return rows
-      } 
-  })
+// const dbQuery_user = (user_name) => {
+//   var result = [];
+//   let query_string = `SELECT * FROM users`
+//   console.log(query_string);
+//     db.all(query_string, [], (err, rows) => {
+//       if(err){
+//         console.log(err)
+//         return err
+//       }
+//       else{
+//         console.log(rows.length)
+//         return rows
+//       } 
+//   })
   
-  return result;
+//   return result;
+// }
+
+var dbQuery_user = function(callback){
+
+    var db = new sqlite3.Database(file, sqlite3.OPEN_READONLY);
+
+    db.serialize(function() {
+
+        db.all("SELECT * FROM MediaTable", function(err, allRows) {
+
+            if(err != null){
+                console.log(err);
+                callback(err);
+            }
+
+            console.log(util.inspect(allRows));
+
+            callback(allRows);
+            db.close();
+
+        });
+
+
+    });
+
 }
 
-const get_users = async (user_name) => {
-  var check_exists = await dbQuery_user(user_name);
-  return check_exists
-}
 
 app.listen(PORT, () => {
   console.log('Your app is listening on port ' + PORT);
