@@ -233,8 +233,30 @@ app.delete('/users/deleteUser',authorize(API_KEY), (req, res) => {
   }
   
   let user_id = user_result["user_id"]
-  let delete_query = 
-  return res.json(user_result["user_id"])
+  let delete_query = `DELETE FROM users WHERE user_id = '${user_id}'`;
+  let delete_result = generalQuery(db, delete_query, "run");
+  console.log(delete_query)
+  if(delete_result["code"] === "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: delete_result
+    });
+  }
+  else if(delete_result["code"] === "SQLITE_CONSTRAINT_UNIQUE"){
+    res.status(409)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 409,
+      message: "Server error",
+      error: delete_result
+    });
+  }
+  res.status(201);
+  res.setHeader('Content-Type','application/json');
+  res.json(delete_result);
 })
 
 
