@@ -26,14 +26,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-let db = new sqlite3.Database("./inventory/inventory_v5.db", (err) => {
-  if(err) {
-    console.log(err.message);
-  }
-  console.log("connected to the database.");
-  
-  
-});
+const Database = require('better-sqlite3');
+const db = new Database("./inventory/inventory_v5.db", { verbose: console.log });
+
 
 
 app.get('/', (req, res) => {
@@ -42,24 +37,32 @@ app.get('/', (req, res) => {
 
 //get endpoint that will get all assets of inventory
 app.get('/assets/display_assets', authorize(API_KEY), (req, res) => {
-  let query = 'SELECT * FROM assets'
+  let query = 'SELECT * FROM asses'
   
-  db.all(query, [], (err, rows) => {
-    if(err){
-      res.status(500);
-      res.send({
-        "status" : 500,
-        "message": "Server error"
-      });
-      return
-    }
-    else{
-      console.log(query);
-      res.status(200);
-      res.setHeader('Content-Type','application/json');
-      res.send(JSON.stringify(rows));
-    }
-  });
+  try{
+    const stmt = db.prepare(query)
+    const results = stmt.all()
+    return res.send(results)
+  } catch (err){
+    console.log(err)
+    return res.send("error")
+  }
+  // db.all(query, [], (err, rows) => {
+  //   if(err){
+  //     res.status(500);
+  //     res.send({
+  //       "status" : 500,
+  //       "message": "Server error"
+  //     });
+  //     return
+  //   }
+  //   else{
+  //     console.log(query);
+  //     res.status(200);
+  //     res.setHeader('Content-Type','application/json');
+  //     res.send(JSON.stringify(rows));
+  //   }
+  // });
 })
 
 //get endpoint to get items with specific asset id's
