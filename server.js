@@ -37,19 +37,62 @@ app.get('/', (req, res) => {
 
 //get endpoint that will get all assets of inventory
 app.get('/assets/display_assets', authorize(API_KEY), (req, res) => {
-  let query = 'SELECT * FROM asses'
+  let query = 'SELECT * FROM assets'
   
   try{
     const stmt = db.prepare(query)
     const results = stmt.all()
-    return res.send(results)
-  } catch (err){
+    //console.log(query);
+    res.status(200);
+    res.setHeader('Content-Type','application/json');
+    res.json(results);
+  } 
+  catch (err){
     console.log(err)
     return res.send("error")
+    res.status(500);
+    res.send({
+      "status" : 500,
+      "message": "Server error"
+    });
+  }
+})
+
+//get endpoint to get items with specific asset id's
+app.get('/assets/get_assets', authorize(API_KEY), (req, res) => {
+  if(!validateRequestParams(req.body, ["asset_id"])){
+    console.log("Invalid or incomplete request");
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "Invalid Request Body"
+    });
+    
+  }
+  console.log("Processing Request...");
+  var query = `SELECT * FROM assets WHERE asset_id in(${req.body["asset_id"].toString()})`;
+  try{
+    const stmt = db.prepare(query)
+    const results = stmt.all()
+    //console.log(query);
+    res.status(200);
+    res.setHeader('Content-Type','application/json');
+    res.json(results);
+  } 
+  catch (err){
+    console.log(err)
+    return res.send("error")
+    res.status(500);
+    res.send({
+      "status" : 500,
+      "message": "Server error"
+    });
   }
   // db.all(query, [], (err, rows) => {
   //   if(err){
   //     res.status(500);
+  //     res.setHeader('Content-Type','application/json');
   //     res.send({
   //       "status" : 500,
   //       "message": "Server error"
@@ -60,40 +103,9 @@ app.get('/assets/display_assets', authorize(API_KEY), (req, res) => {
   //     console.log(query);
   //     res.status(200);
   //     res.setHeader('Content-Type','application/json');
-  //     res.send(JSON.stringify(rows));
+  //     res.json(rows);
   //   }
   // });
-})
-
-//get endpoint to get items with specific asset id's
-app.get('/assets/get_assets', authorize(API_KEY), (req, res) => {
-  if(!validateRequestParams(req.body, ["asset_id"])){
-    console.log("Invalid or incomplete request");
-    res.status(400)
-    res.send({
-      "status" : 400,
-      "message": "Invalid Request Body"
-    });
-    return
-  }
-  console.log("Processing Request...");
-  var query = `SELECT * FROM assets WHERE asset_id in(${req.body["asset_id"].toString()})`;
-  db.all(query, [], (err, rows) => {
-    if(err){
-      res.status(500);
-      res.send({
-        "status" : 500,
-        "message": "Server error"
-      });
-      return
-    }
-    else{
-      console.log(query);
-      res.status(200);
-      res.setHeader('Content-Type','application/json');
-      res.json(rows);
-    }
-  });
     
 });
 
@@ -104,17 +116,22 @@ app.get('/assets/get_assets', authorize(API_KEY), (req, res) => {
 app.get('/checkout/getCheckouts', authorize(API_KEY), (req, res) => {
   let query = "SELECT * FROM checkout";
   
-  let results = dbQuery(query);
-  if(results != null){
-    res.status(500)
-    return res.json({
-      status: 500,
-      message: "Couldn't process your request. Server Error."
-    })
-  } else{
+  try{
+    const stmt = db.prepare(query)
+    const results = stmt.all()
+    //console.log(query);
     res.status(200);
     res.setHeader('Content-Type','application/json');
     res.json(results);
+  } 
+  catch (err){
+    console.log(err)
+    return res.send("error")
+    res.status(500);
+    res.send({
+      "status" : 500,
+      "message": "Server error"
+    });
   }
 })
 
@@ -132,23 +149,41 @@ app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
   var pass = req.body["password"];
   //console.log(check_exists)
   let validateQuery = verifyUserQuery(user_name, pass);
+  console.log(validateQuery)
+  try{
+    const validate_stmt = db.prepare(validateQuery)
+    const results = validate_stmt.get()
+    //console.log(query);
+    res.status(200);
+    res.setHeader('Content-Type','application/json');
+    res.json(results);
+  } 
+  catch (err){
+    console.log(err)
+    return res.send("error")
+    res.status(500);
+    res.json({
+      "status" : 500,
+      "message": "Server error"
+    });
+  }
   console.log("validateQuery: "+validateQuery);
   console.log("username: "+ user_name + " password: " + pass);
-  db.all(validateQuery, (err, rows) => {
-    if(err) {
-      res.status(500)
-      return res.json({
-        status: 500,
-        message: "Couldn't process your request. Server Error."
-      })
-    }
-    if(rows.length > 0) {
-      console.log("rows: "+rows)
-      return res.send({validation: true})
-    } else {
-      console.log("rows: "+rows)
-      return res.send({rows})
-    }
+  // db.all(validateQuery, (err, rows) => {
+  //   if(err) {
+  //     res.status(500)
+  //     return res.json({
+  //       status: 500,
+  //       message: "Couldn't process your request. Server Error."
+  //     })
+  //   }
+  //   if(rows.length > 0) {
+  //     console.log("rows: "+rows)
+  //     return res.send({validation: true})
+  //   } else {
+  //     console.log("rows: "+rows)
+  //     return res.send({rows})
+  //   }
   });
 });
 
