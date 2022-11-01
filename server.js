@@ -124,8 +124,8 @@ app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
   //console.log(check_exists)
   let grab_hash_query = `SELECT salt FROM users WHERE user_name = '${user_name}'`
   let user_salt;
-  let salt_result = generalQuery(db, grab_hash_query)
-  console.log(salt_result[0]["salt"])
+  let salt_result = generalQuery(db, grab_hash_query, "get")
+  console.log(salt_result)
   if(salt_result["code"] == "SQLITE_ERROR" ){
     console.log(salt_result)
     res.status(500);
@@ -136,7 +136,7 @@ app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
     });
   }
   else{
-    user_salt = salt_result[0]["salt"]
+    user_salt = salt_result["salt"]
     //console.log(user_salt)
   }
   //********************************************
@@ -155,21 +155,6 @@ app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
   res.status(200);
   res.setHeader('Content-Type','application/json');
   res.json(results);
-  // try{
-  //   const validate_stmt = db.prepare(validate_query)
-  //   const results = validate_stmt.all()
-  //   res.status(200);
-  //   res.setHeader('Content-Type','application/json');
-  //   res.json(results);
-  // } 
-  // catch (err){
-  //   console.log(err)
-  //   return res.send("error")
-  //   res.status(500);
-  //   res.json({
-  //     "status" : 500,
-  //     "message": "Server error"
-  //   });
 });
 
 app.post('/users/newUser', authorize(API_KEY), (req, res) => {
@@ -188,24 +173,38 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
   var user_type = req.body["user_type"]
   
   //Query
-  let InsertQuery = createUserQuery(user_name, pass, user_type);
-  console.log("InsertQuery: "+InsertQuery);
-  try{
-    const InsertQuery_stmt = db.prepare(InsertQuery)
-    const results_info = InsertQuery_stmt.run()
-    res.status(200);
+  let insert_query = createUserQuery(user_name, pass, user_type);
+  console.log("InsertQuery: "+insert_query);
+  let results = generalQuery(db, insert_query, "run");
+  console.log(insert_query)
+  if(results["code"] === "SQLITE_ERROR" | results["code"] === "SQLITE_CONSTRAINT_UNIQUE"){
+    res.status(500)
     res.setHeader('Content-Type','application/json');
-    res.json(results_info);
-  } 
-  catch (err){
-    console.log(err)
-    return res.send("error")
-    res.status(500);
-    res.json({
-      "status" : 500,
-      "message": "Server error"
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: results
     });
   }
+  res.status(200);
+  res.setHeader('Content-Type','application/json');
+  res.json(results);
+  // try{
+  //   const InsertQuery_stmt = db.prepare(InsertQuery)
+  //   const results_info = InsertQuery_stmt.run()
+  //   res.status(200);
+  //   res.setHeader('Content-Type','application/json');
+  //   res.json(results_info);
+  // } 
+  // catch (err){
+  //   console.log(err)
+  //   return res.send("error")
+  //   res.status(500);
+  //   res.json({
+  //     "status" : 500,
+  //     "message": "Server error"
+  //   });
+  // }
 });
 
 
