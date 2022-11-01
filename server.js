@@ -6,6 +6,7 @@ const PORT = process.env.PORT;
 
 const jwt = require("jsonwebtoken");
 const API_KEY = process.env.API_KEY;
+const authorize = require("./authorize.js");
 
 
 //Get certificate and key
@@ -45,7 +46,7 @@ app.get('/', (req, res) => {
 })
 
 //get endpoint that will get all assets of inventory
-app.get('/display_assets', (req, res) => {
+app.get('/display_assets', authorize(API_KEY), (req, res) => {
   let query = 'SELECT * FROM assets'
   
   db.all(query, [], (err, rows) => {
@@ -54,7 +55,7 @@ app.get('/display_assets', (req, res) => {
       throw err;
     }
     else{
-      console.log(rows);
+      console.log(query);
       res.status(200);
       res.setHeader('Content-Type','application/json');
       res.send(JSON.stringify(rows));
