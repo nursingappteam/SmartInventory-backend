@@ -98,18 +98,8 @@ app.get('/get_assets', authorize(API_KEY), (req, res) => {
 app.post('/getCheckouts', authorize(API_KEY), (req, res) => {
   let query = "SELECT * FROM checkout";
   
-  db.all(query, [], (err, rows) => {
-    if(err){
-      res.status(500);
-      throw err;
-    }
-    else{
-      console.log(query);
-      res.status(200);
-      res.setHeader('Content-Type','application/json');
-      res.send(JSON.stringify(rows));
-    }
-  });
+  let results = dbQuery(query);
+  if(results)
 })
 
 app.post('/validatePassword', authorize(API_KEY), (req, res) => {
@@ -154,15 +144,16 @@ let validateRequestParams = (body, params) => {
   return result;
 }
 
-let dbQuery = (query_string) => {
+//Query function that returns are rows from result
+let dbQuery = (query_string, res, req) => {
   console.log(query_string);
   db.all(query_string, [], (err, rows) => {
     if(err){
       console.log(err);
-      return []
+      return null;
     }
     else{
-      return rows
+      return rows;
     }
   });
 }
