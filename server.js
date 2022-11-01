@@ -64,15 +64,7 @@ app.get('/display_assets', authorize(API_KEY), (req, res) => {
 })
 
 //get endpoint to get items with specific asset id's
-app.get('/get_assets', (req, res) => {
-  if(!validateRequestKey(req.headers)){
-    console.log("No Valid API_KEY supplied")
-    res.status(401);
-    res.send({
-      "Response Message" : "Invalid Authentication"
-    });
-    return
-  }
+app.get('/get_assets', authorize(API_KEY), (req, res) => {
   if(!validateRequestParams(req.body, ["asset_id"])){
     console.log("Invalid or incomplete request");
     res.status(400)
@@ -99,7 +91,28 @@ app.get('/get_assets', (req, res) => {
     
 });
 
-app.post('/validatePassword', (req, res) => {
+/*
+  END POINT THAT HANDLES GETTING THE INFORMATION FROM THE CHECKOUT TABLE
+
+*/
+app.post('/getCheckouts', authorize(API_KEY), (req, res) => {
+  let query = "SELECT * FROM checkout";
+  
+  db.all(query, [], (err, rows) => {
+    if(err){
+      res.status(500);
+      throw err;
+    }
+    else{
+      console.log(query);
+      res.status(200);
+      res.setHeader('Content-Type','application/json');
+      res.send(JSON.stringify(rows));
+    }
+  });
+})
+
+app.post('/validatePassword', authorize(API_KEY), (req, res) => {
   //const {userID, pass} = req.body
   var userID = req.query.username;
   var pass = req.query.password;
@@ -129,15 +142,6 @@ app.post('/validatePassword', (req, res) => {
 //   console.log('Your app is listening on port ' + PORT);
 // })
 
-let validateRequestKey = (headers) => {
-  let result = false;
-  //console.log(headers)
-  if(headers.hasOwnProperty('api_key')){
-    if(headers["api_key"] === API_KEY) 
-      result = true;
-  }
-  return result;
-}
 
 let validateRequestParams = (body, params) => {
   let result = true;
@@ -148,6 +152,19 @@ let validateRequestParams = (body, params) => {
     }
   }
   return result;
+}
+
+let dbQuery = (query_string) => {
+  console.log(query_string);
+  db.all(query_string, [], (err, rows) => {
+    if(err){
+      console.log(err);
+      return []
+    }
+    else{
+      return rows
+    }
+  });
 }
 
 app.listen(PORT, () => {

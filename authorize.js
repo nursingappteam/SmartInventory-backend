@@ -12,8 +12,14 @@ module.exports = (API_KEY) => {
       })
     }
     else {
-      console.log(API_KEY);
-      next();
+      if(API_KEY != token){
+        return res.status(401).json({
+          status: 401,
+          message: "Invalid API Key"
+        })
+      } else{
+        next();
+      }
     }
   }
 }
