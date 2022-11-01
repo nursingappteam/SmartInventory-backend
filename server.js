@@ -195,7 +195,7 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
       error: results
     });
   }
-  res.status(200);
+  res.status(201);
   res.setHeader('Content-Type','application/json');
   res.json(results);
 });
