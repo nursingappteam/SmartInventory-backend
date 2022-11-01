@@ -177,7 +177,7 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
   console.log("InsertQuery: "+insert_query);
   let results = generalQuery(db, insert_query, "run");
   console.log(insert_query)
-  if(results["code"] === "SQLITE_ERROR" | results["code"] === "SQLITE_CONSTRAINT_UNIQUE"){
+  if(results["code"] === "SQLITE_ERROR"){
     res.status(500)
     res.setHeader('Content-Type','application/json');
     return res.json({
@@ -186,25 +186,18 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
       error: results
     });
   }
+  else if(results["code"] === "SQLITE_CONSTRAINT_UNIQUE"){
+    res.status(409)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 409,
+      message: "Server error",
+      error: results
+    });
+  }
   res.status(200);
   res.setHeader('Content-Type','application/json');
   res.json(results);
-  // try{
-  //   const InsertQuery_stmt = db.prepare(InsertQuery)
-  //   const results_info = InsertQuery_stmt.run()
-  //   res.status(200);
-  //   res.setHeader('Content-Type','application/json');
-  //   res.json(results_info);
-  // } 
-  // catch (err){
-  //   console.log(err)
-  //   return res.send("error")
-  //   res.status(500);
-  //   res.json({
-  //     "status" : 500,
-  //     "message": "Server error"
-  //   });
-  // }
 });
 
 
