@@ -169,8 +169,11 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
   var user_name = req.body["username"];
   var pass = req.body["password"];
   let validate_string = `SELECT * FROM users WHERE user_name = '${user_name}'`
-  var check_exists = dbQuery(validate_string);
-  console.log(check_exists)
+  var check_exists = dbQuery_user(user_name);
+  check_exists.then((result) => {
+    console.log(data)
+  })
+  //console.log(check_exists)
   if(0){
     res.status(403)
     return res.json({
@@ -204,7 +207,7 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
 // })
 
 
-let validateRequestParams = (body, params) => {
+const validateRequestParams = (body, params) => {
   let result = true;
   for(let i = 0; i < params.length; i++){
     if(!body.hasOwnProperty(params[i])){
@@ -216,7 +219,7 @@ let validateRequestParams = (body, params) => {
 }
 
 //Query function that returns are rows from result
-let dbQuery = (query_string, res, req) => {
+const dbQuery = (query_string, res, req) => {
   var result;
   console.log(query_string);
   db.all(query_string, [], (err, rows) => {
@@ -233,11 +236,30 @@ let dbQuery = (query_string, res, req) => {
 }
 
 //Query function that gets user using user_name
-let dbQuery_user = (user_name, res, req) => {
-  var result;
+const dbQuery_user = async (user_name, res, req) => {
+  var result = [];
   let query_string = `SELECT * FROM users WHERE user_name = '${user_name}'`
   console.log(query_string);
-  db.all(query_string, [], (err, rows) => {
+  return new Promise((resolve, reject) =>{
+    db.all(query_string, [], (err, rows) => {
+      if(err){
+        reject(err)
+      }
+      else{
+        r
+      }
+    });  
+  })
+  
+  return result;
+}
+
+app.listen(PORT, () => {
+  console.log('Your app is listening on port ' + PORT);
+})
+
+/*
+db.all(query_string, [], (err, rows) => {
     if(err){
       console.log(err);
       return null;
@@ -247,11 +269,6 @@ let dbQuery_user = (user_name, res, req) => {
       result = rows;
     }
   });
-  return result;
-}
 
-app.listen(PORT, () => {
-  console.log('Your app is listening on port ' + PORT);
-})
-
+*/
 
