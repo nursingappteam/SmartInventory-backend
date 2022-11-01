@@ -7,6 +7,7 @@ const PORT = process.env.PORT;
 const jwt = require("jsonwebtoken");
 const API_KEY = process.env.API_KEY;
 const authorize = require("./authorize.js");
+import createUserQuery from "./userAuthentication.js";
 
 
 //Get certificate and key
@@ -117,7 +118,7 @@ app.post('/validatePassword', authorize(API_KEY), (req, res) => {
   var userID = req.query.username;
   var pass = req.query.password;
   //var body = req.body
-  
+  let InsertQuery = createUserQuery(userID, pass, 1);
   console.log("username: "+ userID + " password: " + pass);
   db.all(`SELECT * FROM users WHERE user_name = "${userID}" AND user_pass_secure = "${pass}"`, (err, rows) => {
     if(err) {
