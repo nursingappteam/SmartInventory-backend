@@ -148,12 +148,10 @@ app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
   var user_name = req.body["username"];
   var pass = req.body["password"];
   //console.log(check_exists)
-  let validateQuery = verifyUserQuery(user_name, pass);
-  console.log(validateQuery)
+  let grab_hash_query = `SELECT salt FROM users WHERE user_name = ${`
   try{
     const validate_stmt = db.prepare(validateQuery)
-    const results = validate_stmt.get()
-    //console.log(query);
+    const results = validate_stmt.all()
     res.status(200);
     res.setHeader('Content-Type','application/json');
     res.json(results);
@@ -167,8 +165,28 @@ app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
       "message": "Server error"
     });
   }
-  console.log("validateQuery: "+validateQuery);
-  console.log("username: "+ user_name + " password: " + pass);
+  
+  //********************************************
+  let validate_query = verifyUserQuery(user_name, pass);
+  console.log(validateQuery)
+  try{
+    const validate_stmt = db.prepare(validateQuery)
+    const results = validate_stmt.all()
+    res.status(200);
+    res.setHeader('Content-Type','application/json');
+    res.json(results);
+  } 
+  catch (err){
+    console.log(err)
+    return res.send("error")
+    res.status(500);
+    res.json({
+      "status" : 500,
+      "message": "Server error"
+    });
+  }
+  // console.log("validateQuery: "+validateQuery);
+  // console.log("username: "+ user_name + " password: " + pass);
   // db.all(validateQuery, (err, rows) => {
   //   if(err) {
   //     res.status(500)
@@ -184,7 +202,6 @@ app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
   //     console.log("rows: "+rows)
   //     return res.send({rows})
   //   }
-  });
 });
 
 app.post('/users/newUser', authorize(API_KEY), (req, res) => {
@@ -197,25 +214,44 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
     });
     return
   }
+  //Get variables from body payload
   var user_name = req.body["username"];
   var pass = req.body["password"];
   var user_type = req.body["user_type"]
+  
+  //Query
   let InsertQuery = createUserQuery(user_name, pass, user_type);
   console.log("InsertQuery: "+InsertQuery);
+  try{
+    const InsertQuery_stmt = db.prepare(InsertQuery)
+    const results_info = InsertQuery_stmt.run()
+    res.status(200);
+    res.setHeader('Content-Type','application/json');
+    res.json(results_info);
+  } 
+  catch (err){
+    console.log(err)
+    return res.send("error")
+    res.status(500);
+    res.json({
+      "status" : 500,
+      "message": "Server error"
+    });
+  }
   //console.log("username: "+ user_name + " password: " + pass);
-  db.all(InsertQuery, (err, rows) => {
-    if(err) {
-      res.status(500)
-      return res.json({
-        status: 500,
-        message: "Couldn't insert new user record. Server Error.",
-        err: err
-      })
-    }
-    res.status(200)
-    let new_record = dbQuery(`SELECT * FROM users WHERE user_name = '${user_name}'`);
-    return res.json(rows);
-  });
+  // db.all(InsertQuery, (err, rows) => {
+  //   if(err) {
+  //     res.status(500)
+  //     return res.json({
+  //       status: 500,
+  //       message: "Couldn't insert new user record. Server Error.",
+  //       err: err
+  //     })
+  //   }
+  //   res.status(200)
+  //   let new_record = dbQuery(`SELECT * FROM users WHERE user_name = '${user_name}'`);
+  //   return res.json(rows);
+  // });
 });
 
 
