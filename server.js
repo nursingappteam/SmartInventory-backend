@@ -4,8 +4,6 @@ const http=require('http');
 const fs = require('fs');
 
 const PORT = process.env.PORT;
-
-const jwt = require("jsonwebtoken");
 const API_KEY = process.env.API_KEY;
 const authorize = require("./authorize.js");
 const {createUserQuery, verifyUser} = require("./user_authentication.js");
@@ -21,11 +19,6 @@ const options = {
 }
 
 //Declare and initialize server log file
-const {Console} = require("console");
-const serverLogger = new Console({
-    stdout: fs.createWriteStream("./logs/app.log"),
-    stderr: fs.createWriteStream("./logs/app_errors.log")
-});
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 
@@ -115,7 +108,14 @@ app.get('/checkout/getCheckouts', authorize(API_KEY), (req, res) => {
 })
 
 app.post('/users/validatePassword', authorize(API_KEY), (req, res) => {
-  //const {userID, pass} = req.body
+  if(!validateRequestParams(req.body, ["username","password"])){
+    console.log("Invalid or incomplete request");
+    res.status(400)
+    res.send({
+      "Response Message" : "Invalid Request Body"
+    });
+    return
+  }
   var userID = req.query.username;
   var pass = req.query.password;
   //var body = req.body
@@ -140,11 +140,22 @@ app.post('/users/validatePassword', authorize(API_KEY), (req, res) => {
 });
 
 app.post('/users/newUser', authorize(API_KEY), (req, res) => {
-  //const {userID, pass} = req.body
-  var userID = req.query.username;
-  var pass = req.query.password;
-  var body = req.body
-  console.log("body:"+body.toString())
+  if(!validateRequestParams(req.body, ["username","password"])){
+    console.log("Invalid or incomplete request");
+    res.status(400)
+    res.send({
+      "Response Message" : "Invalid Request Body"
+    });
+    return
+  }
+  var userID = req.body["username"];
+  var pass = req.body["password"];
+  if(dbQuery("SELECT * FROM users WHERE user_name = ${userID}") > 0){
+    res.status(403)
+    res.send({
+      "status": 403
+    })
+  }
   let InsertQuery = createUserQuery(userID, pass, 1);
   console.log("InsertQuery: "+InsertQuery);
   console.log("username: "+ userID + " password: " + pass);
