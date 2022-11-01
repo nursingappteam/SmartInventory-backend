@@ -38,27 +38,18 @@ app.get('/', (req, res) => {
 //get endpoint that will get all assets of inventory
 app.get('/assets/display_assets', authorize(API_KEY), (req, res) => {
   let query = 'SELECT * FROM assets'
-  
-//   try{
-//     const stmt = db.prepare(query)
-//     const results = stmt.all()
-//     //console.log(query);
-//     res.status(200);
-//     res.setHeader('Content-Type','application/json');
-//     res.json(results);
-//   } 
-//   catch (err){
-//     console.log(err)
-//     res.status(500);
-//     return
-   
-//     res.send({
-//       "status" : 500,
-//       "message": "Server error"
-//     });
-//   }
+
   let results = generalQuery(db, query)
-  if(results = [])
+  console.log(results)
+  if(results["code"] == "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: results
+    });
+  }
   res.status(200);
   res.setHeader('Content-Type','application/json');
   res.json(results);
