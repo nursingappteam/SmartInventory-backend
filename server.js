@@ -2,12 +2,13 @@ const express = require("express");
 const https=require('https');
 const http=require('http');
 const fs = require('fs');
+const argon2 = require("argon2");
 const PORT = process.env.PORT;
 
 const jwt = require("jsonwebtoken");
 const API_KEY = process.env.API_KEY;
 const authorize = require("./authorize.js");
-import {createUserQuery, } from "./userAuthentication.js";
+import {createUserQuery } from "./userAuthentication.js";
 
 
 //Get certificate and key
