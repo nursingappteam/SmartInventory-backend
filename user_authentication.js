@@ -21,7 +21,8 @@ let verifyUserQuery = (username, password, salt) => {
     let hash = md5(password+salt);
     //console.log("HASH: ", hash);
     return `
-    SELECT * FROM users WHERE user_pass_secure = '${hash}'
+    SELECT * FROM users WHERE user_name = '${username}'
+    AND user_pass_secure = '${hash}'
     `
   } catch(err){
     console.log();
