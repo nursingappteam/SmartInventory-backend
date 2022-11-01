@@ -205,6 +205,18 @@ app.delete('/users/deleteUser',authorize(API_KEY), (req, res) => {
   var username = req.body["username"];
   let user_query = getUserQuery(username)
   let user_result = generalQuery(db, user_query)
+  if(user_result["code"] === "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: user_result
+    });
+  }
+  else if (user_result = []){
+    
+  }
   return res.json(user_result)
 })
 
