@@ -95,11 +95,21 @@ app.get('/get_assets', authorize(API_KEY), (req, res) => {
   END POINT THAT HANDLES GETTING THE INFORMATION FROM THE CHECKOUT TABLE
 
 */
-app.post('/getCheckouts', authorize(API_KEY), (req, res) => {
+app.get('/getCheckouts', authorize(API_KEY), (req, res) => {
   let query = "SELECT * FROM checkout";
   
   let results = dbQuery(query);
-  if(results)
+  if(results != null){
+    res.status(500)
+    return res.json({
+      status: 500,
+      message: "Couldn't process your request. Server Error."
+    })
+  } else{
+    res.status(200);
+    res.setHeader('Content-Type','application/json');
+    res.json(results);
+  }
 })
 
 app.post('/validatePassword', authorize(API_KEY), (req, res) => {
@@ -125,6 +135,8 @@ app.post('/validatePassword', authorize(API_KEY), (req, res) => {
     }
   });
 });
+
+
   
 // var server = https.createServer(options, app);
 
@@ -153,6 +165,7 @@ let dbQuery = (query_string, res, req) => {
       return null;
     }
     else{
+      if()
       return rows;
     }
   });
