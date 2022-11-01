@@ -204,9 +204,9 @@ app.delete('/users/deleteUser',authorize(API_KEY), (req, res) => {
   //Check if user exists before deleting
   var username = req.body["username"];
   let user_query = getUserQuery(username)
-  console.log(user_query)
-  
-} )
+  let user_result = generalQuery(db, user_query)
+  return res.json(user_result)
+})
 
 
 
