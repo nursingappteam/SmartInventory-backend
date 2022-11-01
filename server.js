@@ -1,6 +1,6 @@
 const express = require("express");
-const https=require('https');
-const http=require('http');
+// const https=require('https');
+// const http=require('http');
 const fs = require('fs');
 
 const PORT = process.env.PORT;
@@ -20,7 +20,6 @@ const options = {
 
 //Declare and initialize server log file
 const cors = require("cors");
-const sqlite3 = require("sqlite3").verbose();
 
 const app = express();
 app.use(cors());
@@ -28,6 +27,7 @@ app.use(express.json());
 
 const Database = require('better-sqlite3');
 const db = new Database("./inventory/inventory_v5.db", { verbose: console.log });
+const {generalQuery} = require("./inventory/database_manager.js");
 
 
 
@@ -39,23 +39,30 @@ app.get('/', (req, res) => {
 app.get('/assets/display_assets', authorize(API_KEY), (req, res) => {
   let query = 'SELECT * FROM assets'
   
-  try{
-    const stmt = db.prepare(query)
-    const results = stmt.all()
-    //console.log(query);
-    res.status(200);
-    res.setHeader('Content-Type','application/json');
-    res.json(results);
-  } 
-  catch (err){
-    console.log(err)
-    return res.send("error")
-    res.status(500);
-    res.send({
-      "status" : 500,
-      "message": "Server error"
-    });
-  }
+//   try{
+//     const stmt = db.prepare(query)
+//     const results = stmt.all()
+//     //console.log(query);
+//     res.status(200);
+//     res.setHeader('Content-Type','application/json');
+//     res.json(results);
+//   } 
+//   catch (err){
+//     console.log(err)
+//     res.status(500);
+//     return
+   
+//     res.send({
+//       "status" : 500,
+//       "message": "Server error"
+//     });
+//   }
+  let results = generalQuery(db, query)
+  if(results = [])
+  res.status(200);
+  res.setHeader('Content-Type','application/json');
+  res.json(results);
+  
 })
 
 //get endpoint to get items with specific asset id's
