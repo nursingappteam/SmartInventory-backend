@@ -204,7 +204,8 @@ app.delete('/users/deleteUser',authorize(API_KEY), (req, res) => {
   //Check if user exists before deleting
   var username = req.body["username"];
   let user_query = getUserQuery(username)
-  let user_result = generalQuery(db, user_query)
+  let user_result = generalQuery(db, user_query, "get")
+  console.log(user_result)
   if(user_result["code"] === "SQLITE_ERROR"){
     res.status(500)
     res.setHeader('Content-Type','application/json');
@@ -215,7 +216,12 @@ app.delete('/users/deleteUser',authorize(API_KEY), (req, res) => {
     });
   }
   else if (user_result = []){
-    
+    res.status(404)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 404,
+      message: "User Not Found"
+    })
   }
   return res.json(user_result)
 })
