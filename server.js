@@ -68,42 +68,21 @@ app.get('/assets/get_assets', authorize(API_KEY), (req, res) => {
     });
     
   }
-  console.log("Processing Request...");
   var query = `SELECT * FROM assets WHERE asset_id in(${req.body["asset_id"].toString()})`;
-  try{
-    const stmt = db.prepare(query)
-    const results = stmt.all()
-    //console.log(query);
-    res.status(200);
+  let results = generalQuery(db, query)
+  //console.log(results)
+  if(results["code"] == "SQLITE_ERROR"){
+    res.status(500)
     res.setHeader('Content-Type','application/json');
-    res.json(results);
-  } 
-  catch (err){
-    console.log(err)
-    return res.send("error")
-    res.status(500);
-    res.send({
-      "status" : 500,
-      "message": "Server error"
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: results
     });
   }
-  // db.all(query, [], (err, rows) => {
-  //   if(err){
-  //     res.status(500);
-  //     res.setHeader('Content-Type','application/json');
-  //     res.send({
-  //       "status" : 500,
-  //       "message": "Server error"
-  //     });
-  //     return
-  //   }
-  //   else{
-  //     console.log(query);
-  //     res.status(200);
-  //     res.setHeader('Content-Type','application/json');
-  //     res.json(rows);
-  //   }
-  // });
+  res.status(200);
+  res.setHeader('Content-Type','application/json');
+  res.json(results);
     
 });
 
@@ -114,23 +93,20 @@ app.get('/assets/get_assets', authorize(API_KEY), (req, res) => {
 app.get('/checkout/getCheckouts', authorize(API_KEY), (req, res) => {
   let query = "SELECT * FROM checkout";
   
-  try{
-    const stmt = db.prepare(query)
-    const results = stmt.all()
-    //console.log(query);
-    res.status(200);
+  let results = generalQuery(db, query)
+  console.log(results)
+  if(results["code"] == "SQLITE_ERROR"){
+    res.status(500)
     res.setHeader('Content-Type','application/json');
-    res.json(results);
-  } 
-  catch (err){
-    console.log(err)
-    return res.send("error")
-    res.status(500);
-    res.send({
-      "status" : 500,
-      "message": "Server error"
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: results
     });
   }
+  res.status(200);
+  res.setHeader('Content-Type','application/json');
+  res.json(results);
 })
 
 app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
@@ -148,20 +124,35 @@ app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
   //console.log(check_exists)
   let grab_hash_query = `SELECT salt FROM users WHERE user_name = '${user_name}'`
   let user_salt;
-  try{
-    const validate_stmt = db.prepare(grab_hash_query)
-    const results = validate_stmt.get()
-    user_salt = results["salt"];
-  } 
-  catch (err){
-    console.log(err)
-    return res.send("error")
+  let salt_result = generalQuery(db, grab_hash_query)
+  console.log(salt_result[0]["salt"])
+  if(salt_result["code"] == "SQLITE_ERROR" ){
+    console.log(salt_result)
     res.status(500);
-    res.json({
-      "status" : 500,
-      "message": "Server error"
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: salt_result
     });
   }
+  else{
+    user_salt = salt_result["salt"]
+    console.log(user_salt)
+  }
+  // try{
+  //   const validate_stmt = db.prepare(grab_hash_query)
+  //   const results = validate_stmt.get()
+  //   user_salt = results["salt"];
+  // } 
+  // catch (err){
+  //   console.log(err)
+  //   return res.send("error")
+  //   res.status(500);
+  //   res.json({
+  //     "status" : 500,
+  //     "message": "Server error"
+  //   });
+  // }
   
   //********************************************
   let validate_query = verifyUserQuery(user_name, pass, user_salt);
