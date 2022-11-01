@@ -2,7 +2,7 @@ const express = require("express");
 const https=require('https');
 const http=require('http');
 const fs = require('fs');
-const argon2 = require("argon2");
+
 const PORT = process.env.PORT;
 
 const jwt = require("jsonwebtoken");
@@ -120,6 +120,7 @@ app.post('/validatePassword', authorize(API_KEY), (req, res) => {
   var pass = req.query.password;
   //var body = req.body
   let InsertQuery = createUserQuery(userID, pass, 1);
+  console.log("InsertQuery: "+InsertQuery);
   console.log("username: "+ userID + " password: " + pass);
   db.all(`SELECT * FROM users WHERE user_name = "${userID}" AND user_pass_secure = "${pass}"`, (err, rows) => {
     if(err) {
