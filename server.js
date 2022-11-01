@@ -5,8 +5,8 @@ const fs = require('fs');
 
 const PORT = process.env.PORT;
 const API_KEY = process.env.API_KEY;
-const authorize = require("./authorize.js");
-const {createUserQuery, verifyUserQuery} = require("./user_authentication.js");
+const authorize = require("./authentication/authorize.js");
+const {createUserQuery, verifyUserQuery} = require("./authentication/user_authentication.js");
 
 
 //Get certificate and key
@@ -184,23 +184,6 @@ app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
       "message": "Server error"
     });
   }
-  // console.log("validateQuery: "+validateQuery);
-  // console.log("username: "+ user_name + " password: " + pass);
-  // db.all(validateQuery, (err, rows) => {
-  //   if(err) {
-  //     res.status(500)
-  //     return res.json({
-  //       status: 500,
-  //       message: "Couldn't process your request. Server Error."
-  //     })
-  //   }
-  //   if(rows.length > 0) {
-  //     console.log("rows: "+rows)
-  //     return res.send({validation: true})
-  //   } else {
-  //     console.log("rows: "+rows)
-  //     return res.send({rows})
-  //   }
 });
 
 app.post('/users/newUser', authorize(API_KEY), (req, res) => {
@@ -237,29 +220,9 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
       "message": "Server error"
     });
   }
-  //console.log("username: "+ user_name + " password: " + pass);
-  // db.all(InsertQuery, (err, rows) => {
-  //   if(err) {
-  //     res.status(500)
-  //     return res.json({
-  //       status: 500,
-  //       message: "Couldn't insert new user record. Server Error.",
-  //       err: err
-  //     })
-  //   }
-  //   res.status(200)
-  //   let new_record = dbQuery(`SELECT * FROM users WHERE user_name = '${user_name}'`);
-  //   return res.json(rows);
-  // });
 });
 
 
-  
-// var server = https.createServer(options, app);
-
-// server.listen(PORT, () => {
-//   console.log('Your app is listening on port ' + PORT);
-// })
 
 
 const validateRequestParams = (body, params) => {
@@ -273,61 +236,8 @@ const validateRequestParams = (body, params) => {
   return result;
 }
 
-//Query function that returns are rows from result
-const dbQuery = (query_string) => {
-  var result;
-  console.log(query_string);
-  db.all(query_string, [], (err, rows) => {
-    if(err){
-      console.log(err);
-      return null;
-    }
-    else{
-      console.log(rows)
-      result = rows;
-    }
-  });
-  return result;
-}
-
-//Query function that gets user using user_name
-const dbQuery_user = (user_name) => {
-  var result = [];
-  let query_string = `SELECT * FROM users`
-  console.log(query_string);
-  db.serialize(function(){
-    db.all(query_string, [], (err, rows) => {
-      if(err){
-        console.log(err)
-        return err
-      }
-      else{
-        console.log(rows.length)
-        return rows
-      } 
-    })
-  })
-  return result;
-}
-
-
-
-
 app.listen(PORT, () => {
   console.log('Your app is listening on port ' + PORT);
 })
 
-/*
-db.all(query_string, [], (err, rows) => {
-    if(err){
-      console.log(err);
-      return null;
-    }
-    else{
-      console.log(rows)
-      result = rows;
-    }
-  });
-
-*/
 
