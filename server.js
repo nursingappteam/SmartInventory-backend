@@ -169,11 +169,9 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
   var user_name = req.body["username"];
   var pass = req.body["password"];
   let validate_string = `SELECT * FROM users WHERE user_name = '${user_name}'`
-  var check_exists = dbQuery_user(user_name);
-  check_exists.then((result) => {
-    console.log(data)
-  })
-  //console.log(check_exists)
+  var check_exists = dbQuery_user(user_name)
+
+  console.log(check_exists)
   if(0){
     res.status(403)
     return res.json({
@@ -182,7 +180,7 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
     })
   }
   let InsertQuery = createUserQuery(user_name, pass, 1);
-  //console.log("InsertQuery: "+InsertQuery);
+  console.log("InsertQuery: "+InsertQuery);
   //console.log("username: "+ user_name + " password: " + pass);
   db.all(InsertQuery, (err, rows) => {
     if(err) {
@@ -219,7 +217,7 @@ const validateRequestParams = (body, params) => {
 }
 
 //Query function that returns are rows from result
-const dbQuery = (query_string, res, req) => {
+const dbQuery = (query_string) => {
   var result;
   console.log(query_string);
   db.all(query_string, [], (err, rows) => {
@@ -236,22 +234,25 @@ const dbQuery = (query_string, res, req) => {
 }
 
 //Query function that gets user using user_name
-const dbQuery_user = async (user_name, res, req) => {
+const dbQuery_user = (user_name) => {
   var result = [];
   let query_string = `SELECT * FROM users WHERE user_name = '${user_name}'`
   console.log(query_string);
-  return new Promise((resolve, reject) =>{
     db.all(query_string, [], (err, rows) => {
       if(err){
-        reject(err)
+        return err
       }
       else{
-        r
-      }
-    });  
+        return rows
+      } 
   })
   
   return result;
+}
+
+const get_users = async (user_name) => {
+  var check_exists = await dbQuery_user(user_name);
+  return check_exists
 }
 
 app.listen(PORT, () => {
