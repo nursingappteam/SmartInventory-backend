@@ -148,13 +148,12 @@ app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
   var user_name = req.body["username"];
   var pass = req.body["password"];
   //console.log(check_exists)
-  let grab_hash_query = `SELECT salt FROM users WHERE user_name = ${`
+  let grab_hash_query = `SELECT salt FROM users WHERE user_name = '${user_name}'`
+  let user_salt;
   try{
-    const validate_stmt = db.prepare(validateQuery)
-    const results = validate_stmt.all()
-    res.status(200);
-    res.setHeader('Content-Type','application/json');
-    res.json(results);
+    const validate_stmt = db.prepare(grab_hash_query)
+    const results = validate_stmt.get()
+    user_salt = results["salt"];
   } 
   catch (err){
     console.log(err)
@@ -167,10 +166,10 @@ app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
   }
   
   //********************************************
-  let validate_query = verifyUserQuery(user_name, pass);
-  console.log(validateQuery)
+  let validate_query = verifyUserQuery(user_name, pass, user_salt);
+  console.log(validate_query)
   try{
-    const validate_stmt = db.prepare(validateQuery)
+    const validate_stmt = db.prepare(validate_query)
     const results = validate_stmt.all()
     res.status(200);
     res.setHeader('Content-Type','application/json');
