@@ -136,13 +136,31 @@ app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
     });
   }
   else{
-    user_salt = salt_result["salt"]
-    console.log(user_salt)
+    user_salt = salt_result[0]["salt"]
+    //console.log(user_salt)
   }
+  //********************************************
+  let validate_query = verifyUserQuery(user_name, pass, user_salt);
+  let results = generalQuery(db, validate_query)
+  console.log(validate_query)
+  if(results["code"] == "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: results
+    });
+  }
+  res.status(200);
+  res.setHeader('Content-Type','application/json');
+  res.json(results);
   // try{
-  //   const validate_stmt = db.prepare(grab_hash_query)
-  //   const results = validate_stmt.get()
-  //   user_salt = results["salt"];
+  //   const validate_stmt = db.prepare(validate_query)
+  //   const results = validate_stmt.all()
+  //   res.status(200);
+  //   res.setHeader('Content-Type','application/json');
+  //   res.json(results);
   // } 
   // catch (err){
   //   console.log(err)
@@ -152,27 +170,6 @@ app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
   //     "status" : 500,
   //     "message": "Server error"
   //   });
-  // }
-  
-  //********************************************
-  let validate_query = verifyUserQuery(user_name, pass, user_salt);
-  console.log(validate_query)
-  try{
-    const validate_stmt = db.prepare(validate_query)
-    const results = validate_stmt.all()
-    res.status(200);
-    res.setHeader('Content-Type','application/json');
-    res.json(results);
-  } 
-  catch (err){
-    console.log(err)
-    return res.send("error")
-    res.status(500);
-    res.json({
-      "status" : 500,
-      "message": "Server error"
-    });
-  }
 });
 
 app.post('/users/newUser', authorize(API_KEY), (req, res) => {
