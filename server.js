@@ -48,7 +48,7 @@ app.get('/', (req, res) => {
 })
 
 //get endpoint that will get all assets of inventory
-app.get('/display_assets', authorize(API_KEY), (req, res) => {
+app.get('/assets/display_assets', authorize(API_KEY), (req, res) => {
   let query = 'SELECT * FROM assets'
   
   db.all(query, [], (err, rows) => {
@@ -66,7 +66,7 @@ app.get('/display_assets', authorize(API_KEY), (req, res) => {
 })
 
 //get endpoint to get items with specific asset id's
-app.get('/get_assets', authorize(API_KEY), (req, res) => {
+app.get('/assets/get_assets', authorize(API_KEY), (req, res) => {
   if(!validateRequestParams(req.body, ["asset_id"])){
     console.log("Invalid or incomplete request");
     res.status(400)
@@ -97,7 +97,7 @@ app.get('/get_assets', authorize(API_KEY), (req, res) => {
   END POINT THAT HANDLES GETTING THE INFORMATION FROM THE CHECKOUT TABLE
 
 */
-app.get('/getCheckouts', authorize(API_KEY), (req, res) => {
+app.get('/checkout/getCheckouts', authorize(API_KEY), (req, res) => {
   let query = "SELECT * FROM checkout";
   
   let results = dbQuery(query);
@@ -114,11 +114,37 @@ app.get('/getCheckouts', authorize(API_KEY), (req, res) => {
   }
 })
 
-app.post('/validatePassword', authorize(API_KEY), (req, res) => {
+app.post('/users/validatePassword', authorize(API_KEY), (req, res) => {
   //const {userID, pass} = req.body
   var userID = req.query.username;
   var pass = req.query.password;
   //var body = req.body
+  let InsertQuery = createUserQuery(userID, pass, 1);
+  console.log("InsertQuery: "+InsertQuery);
+  console.log("username: "+ userID + " password: " + pass);
+  db.all(`SELECT * FROM users WHERE user_name = "${userID}" AND user_pass_secure = "${pass}"`, (err, rows) => {
+    if(err) {
+      res.status(500)
+      return res.json({
+        status: 500,
+        message: "Couldn't process your request. Server Error."
+      })
+    }
+    if(rows.length > 0) {
+      console.log(rows)
+      return res.send({validation: true})
+    } else {
+      return res.send({validation: false})
+    }
+  });
+});
+
+app.post('/users/newUser', authorize(API_KEY), (req, res) => {
+  //const {userID, pass} = req.body
+  var userID = req.query.username;
+  var pass = req.query.password;
+  var body = req.body
+  console.log("body:"+body.toString())
   let InsertQuery = createUserQuery(userID, pass, 1);
   console.log("InsertQuery: "+InsertQuery);
   console.log("username: "+ userID + " password: " + pass);
