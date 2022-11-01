@@ -115,7 +115,7 @@ app.get('/checkout/getCheckouts', authorize(API_KEY), (req, res) => {
   }
 })
 
-app.post('/users/validatePassword', authorize(API_KEY), (req, res) => {
+app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
   if(!validateRequestParams(req.body, ["username","password"])){
     console.log("Invalid or incomplete request");
     res.status(400)
@@ -170,7 +170,7 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
   let InsertQuery = createUserQuery(userID, pass, 1);
   console.log("InsertQuery: "+InsertQuery);
   console.log("username: "+ userID + " password: " + pass);
-  db.all(`SELECT * FROM users WHERE user_name = "${userID}" AND user_pass_secure = "${pass}"`, (err, rows) => {
+  db.post(InsertQuery, (err, rows) => {
     if(err) {
       res.status(500)
       return res.json({
