@@ -27,4 +27,4 @@ let verifyUserQuery = () => {
   
 }
 
-export {createUserQuery, verifyUserQuery};
+module.exports = {createUserQuery, verifyUserQuery};

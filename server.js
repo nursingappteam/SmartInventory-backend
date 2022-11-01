@@ -8,7 +8,7 @@ const PORT = process.env.PORT;
 const jwt = require("jsonwebtoken");
 const API_KEY = process.env.API_KEY;
 const authorize = require("./authorize.js");
-import {createUserQuery } from "./userAuthentication.js";
+const {createUserQuery, verifyUser} = require("./user_authentication.js");
 
 
 //Get certificate and key
