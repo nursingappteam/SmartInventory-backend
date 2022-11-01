@@ -6,7 +6,7 @@ const fs = require('fs');
 const PORT = process.env.PORT;
 const API_KEY = process.env.API_KEY;
 const authorize = require("./authentication/authorize.js");
-const {createUserQuery, verifyUserQuery} = require("./authentication/user_authentication.js");
+const {createUserQuery, verifyUserQuery, getUserQuery} = require("./authentication/user_authentication.js");
 
 
 //Get certificate and key
@@ -200,6 +200,13 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
   res.json(results);
 });
 
+app.delete('/users/deleteUser',authorize(API_KEY), (req, res) => {
+  //Check if user exists before deleting
+  var username = req.body["username"];
+  let user_query = getUserQuery(username)
+  console.log(user_query)
+  
+} )
 
 
 

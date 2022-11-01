@@ -30,4 +30,7 @@ let verifyUserQuery = (username, password, salt) => {
   }
 }
 
-module.exports = {createUserQuery, verifyUserQuery};
+let getUserQuery = (username) => {
+  return `SELECT user_id FROM users WHERE user_name = '${username}'`
+}
+module.exports = {createUserQuery, verifyUserQuery, getUserQuery};
