@@ -165,7 +165,7 @@ let dbQuery = (query_string, res, req) => {
       return null;
     }
     else{
-      if()
+      //if()
       return rows;
     }
   });
