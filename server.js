@@ -160,7 +160,8 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
   }
   var userID = req.body["username"];
   var pass = req.body["password"];
-  if(dbQuery("SELECT * FROM users WHERE user_name = ${userID}") > 0){
+  console.log(dbQuery(`SELECT * FROM users`))
+  if(dbQuery(`SELECT * FROM users WHERE user_name = '${userID}'`) > 0){
     res.status(403)
     res.send({
       "status": 403,
@@ -170,20 +171,16 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
   let InsertQuery = createUserQuery(userID, pass, 1);
   console.log("InsertQuery: "+InsertQuery);
   console.log("username: "+ userID + " password: " + pass);
-  db.post(InsertQuery, (err, rows) => {
+  db.all(InsertQuery, (err, rows) => {
     if(err) {
       res.status(500)
       return res.json({
         status: 500,
-        message: "Couldn't process your request. Server Error."
+        message: "Couldn't Insert New User Record. Server Error."
       })
     }
-    if(rows.length > 0) {
-      console.log(rows)
-      return res.send({validation: true})
-    } else {
-      return res.send({validation: false})
-    }
+    res.status(200)
+    return res.json(rows);
   });
 });
 
@@ -216,7 +213,6 @@ let dbQuery = (query_string, res, req) => {
       return null;
     }
     else{
-      //if()
       return rows;
     }
   });
