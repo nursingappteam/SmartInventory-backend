@@ -206,7 +206,15 @@ app.delete('/users/deleteUser',authorize(API_KEY), (req, res) => {
   let user_query = getUserQuery(username)
   let user_result = generalQuery(db, user_query, "get")
   console.log(user_result)
-  if(user_result["code"] === "SQLITE_ERROR"){
+  if(user_result == null){
+    res.status(404)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 404,
+      message: "User Not Found"
+    })
+  }
+  else if(user_result["code"] === "SQLITE_ERROR"){
     res.status(500)
     res.setHeader('Content-Type','application/json');
     return res.json({
@@ -215,7 +223,7 @@ app.delete('/users/deleteUser',authorize(API_KEY), (req, res) => {
       error: user_result
     });
   }
-  else if (user_result = []){
+  else if (user_result == []){
     res.status(404)
     res.setHeader('Content-Type','application/json');
     return res.json({
@@ -223,7 +231,10 @@ app.delete('/users/deleteUser',authorize(API_KEY), (req, res) => {
       message: "User Not Found"
     })
   }
-  return res.json(user_result)
+  
+  let user_id = user_result["user_id"]
+  let delete_query = 
+  return res.json(user_result["user_id"])
 })
 
 

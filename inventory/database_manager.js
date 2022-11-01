@@ -36,4 +36,5 @@ let generalQuery = (db, query, query_type) => {
   }
 }
 
+
 module.exports = {generalQuery}
