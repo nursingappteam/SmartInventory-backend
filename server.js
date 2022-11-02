@@ -109,6 +109,36 @@ app.get('/checkout/getCheckouts', authorize(API_KEY), (req, res) => {
   res.json(results);
 })
 
+app.post('/checkout/newCheckkout', authorize(API_KEY), (req, res) => {
+  if(!validateRequestParams(req.body, ["asset_id","start_date","end_date","user_id"])){
+    console.log("Invalid or incomplete request");
+    res.status(400)
+    res.send({
+      "status" : 400,
+      "message": "Invalid Request Body"
+    });
+    return
+  }
+})
+
+//User endpoints
+app.get('/users/getUsers', authorize(API_KEY), (req, res) => {
+  let query = "SELECT user_id, user_name, user_type_id, user_enabled, register_date FROM users"
+  let results = generalQuery(db, query)
+  console.log(results)
+  if(results["code"] == "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: results
+    });
+  }
+  res.status(200);
+  res.setHeader('Content-Type','application/json');
+  res.json(results);
+})
 app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
   if(!validateRequestParams(req.body, ["username","password"])){
     console.log("Invalid or incomplete request");
