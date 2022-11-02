@@ -113,12 +113,16 @@ app.post('/checkout/newCheckkout', authorize(API_KEY), (req, res) => {
   if(!validateRequestParams(req.body, ["asset_id","start_date","end_date","user_id"])){
     console.log("Invalid or incomplete request");
     res.status(400)
-    res.send({
+    return res.send({
       "status" : 400,
       "message": "Invalid Request Body"
     });
-    return
   }
+  let asset_id = req.body["asset_id"];
+  let start_date = req.body["start_date"];
+  let end_date = req.body["end_date"];
+  let user_id = req.body["user_id"];
+  
 })
 
 //User endpoints
