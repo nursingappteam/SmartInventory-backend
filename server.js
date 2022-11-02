@@ -169,7 +169,7 @@ app.get('/users/getUsers', authorize(API_KEY), (req, res) => {
   res.setHeader('Content-Type','application/json');
   res.json(results);
 })
-app.get('/users/validateUser', authorize(API_KEY), (req, res) => {
+app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
   if(!validateRequestParams(req.body, ["username","password"])){
     console.log("Invalid or incomplete request");
     res.status(400)
