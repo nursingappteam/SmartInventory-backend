@@ -27,7 +27,7 @@ app.use(express.json());
 
 const Database = require('better-sqlite3');
 const db = new Database("./inventory/inventory_v5.db", { verbose: console.log });
-const {generalQuery} = require("./inventory/database_manager.js");
+const {generalQuery, createInsertCheckoutsQuery} = require("./inventory/database_manager.js");
 
 
 
@@ -122,6 +122,32 @@ app.post('/checkout/newCheckkout', authorize(API_KEY), (req, res) => {
   let start_date = req.body["start_date"];
   let end_date = req.body["end_date"];
   let user_id = req.body["user_id"];
+  
+  let checkout_insert = createInsertCheckoutsQuery(asset_id, start_date, end_date, user_id)
+  console.log(checkout_insert)
+  let results = generalQuery(db, checkout_insert, "run");
+  console.log(checkout_insert)
+  if(results["code"] === "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: results
+    });
+  }
+  else if(results["code"] === "SQLITE_CONSTRAINT_UNIQUE"){
+    res.status(409)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 409,
+      message: "Server error",
+      error: results
+    });
+  }
+  res.status(201);
+  res.setHeader('Content-Type','application/json');
+  res.json(results);
   
 })
 
