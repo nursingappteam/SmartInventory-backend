@@ -186,7 +186,7 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
   let grab_hash_query = `SELECT salt FROM users WHERE user_name = '${user_name}'`
   let user_salt;
   let salt_result = generalQuery(db, grab_hash_query, "get")
-  console.log(salt_result)
+  console.log("Salt results:"+salt_result)
   if(salt_result == null){
     res.status(404)
     res.setHeader('Content-Type','application/json');
@@ -203,6 +203,14 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
       message: "Server error",
       error: salt_result
     });
+  }
+  if(salt_result.length == 0){
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 404,
+      message: "Invalid Credentials"
+    })
   }
   else{
     user_salt = salt_result["salt"]
