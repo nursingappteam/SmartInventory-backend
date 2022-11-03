@@ -219,6 +219,7 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
   //********************************************
   let validate_query = verifyUserQuery(user_name, pass, user_salt);
   let results = generalQuery(db, validate_query)
+  console.log(results)
   console.log(validate_query)
   if(results["code"] == "SQLITE_ERROR"){
     res.status(500)
@@ -228,6 +229,14 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
       message: "Server error",
       error: results
     });
+  }
+  else if(results.length == 0){
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 400,
+      message: "Invalid Credentials"
+    })
   }
   res.status(200);
   res.setHeader('Content-Type','application/json');
