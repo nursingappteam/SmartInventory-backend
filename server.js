@@ -172,6 +172,7 @@ app.get('/users/getUsers', authorize(API_KEY), (req, res) => {
 app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
   if(!validateRequestParams(req.body, ["username","password"])){
     console.log("Invalid or incomplete request");
+    console.log(req.body)
     res.status(400)
     res.send({
       "status" : 400,
