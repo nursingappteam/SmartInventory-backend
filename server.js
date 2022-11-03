@@ -188,7 +188,12 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
   let salt_result = generalQuery(db, grab_hash_query, "get")
   console.log(salt_result)
   if(salt_result == null){
-    
+    res.status(404)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 404,
+      message: "User Not Found"
+    })
   }
   if(salt_result["code"] == "SQLITE_ERROR" ){
     console.log(salt_result)
