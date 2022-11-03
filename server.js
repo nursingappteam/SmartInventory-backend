@@ -187,6 +187,9 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
   let user_salt;
   let salt_result = generalQuery(db, grab_hash_query, "get")
   console.log(salt_result)
+  if(salt_result == null){
+    
+  }
   if(salt_result["code"] == "SQLITE_ERROR" ){
     console.log(salt_result)
     res.status(500);
