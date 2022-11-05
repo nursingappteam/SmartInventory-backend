@@ -8,7 +8,7 @@ const PORT = process.env.PORT;
 const API_KEY = process.env.API_KEY;
 const authorize = require("./authentication/authorize.js");
 const {createUserQuery, verifyUserQuery, getUserQuery} = require("./authentication/user_authentication.js");
-const {checkoutManager} = require("./inventory/checkout_manager.js");
+//const {checkoutManager} = require("./inventory/checkout_manager.js");
 
 
 //Get certificate and key
@@ -29,7 +29,7 @@ app.use(express.json());
 
 const Database = require('better-sqlite3');
 const db = new Database("./inventory/inventory_v5.db", { verbose: console.log });
-const {generalQuery, createInsertCheckoutsQuery} = require("./inventory/database_manager.js");
+const {generalQuery, checkoutManager} = require("./inventory/database_manager.js");
 
 
 
@@ -113,8 +113,9 @@ app.get('/checkout/getCheckouts', authorize(API_KEY), (req, res) => {
 
 
 //create new checkout entry
+//TODO: Handle conflicting checkout entries
 app.post('/checkout/newCheckout', authorize(API_KEY), (req, res) => {
-  if(!validateRequestParams(req.body, ["asset_id","start_date","end_date","user_id"])){
+  if(!validateRequestParams(req.body, ["asset_id","start_date","due_date","user_id"])){
     console.log("Invalid or incomplete request");
     res.status(400)
     res.setHeader('Content-Type','application/json');
@@ -124,7 +125,7 @@ app.post('/checkout/newCheckout', authorize(API_KEY), (req, res) => {
     });
   }
 
-  if(!validateDate(req.body["start_date"]) || !validateDate(req.body["end_date"])){
+  if(!validateDate(req.body["start_date"]) || !validateDate(req.body["due_date"])){
     console.log("Invalid date format");
     res.status(400)
     res.setHeader('Content-Type','application/json');
@@ -138,13 +139,23 @@ app.post('/checkout/newCheckout', authorize(API_KEY), (req, res) => {
   let checkout = {
     asset_id: req.body["asset_id"],
     start_date: req.body["start_date"],
-    end_date: req.body["end_date"],
+    due_date: req.body["due_date"],
     user_id: req.body["user_id"]
   }
   //create insert and get results
   let checkout_result = checkoutManager.createCheckout(db, checkout);
-  console.log(checkout_result)
-  if(checkout_result["code"] === "SQLITE_ERROR"){
+  //console.log(checkout_result)
+  //check if result is null
+  if(checkout_result == null){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 400,
+      message: "Checkout items not found",
+      error: checkout_result
+    })
+  }
+  else if(checkout_result["code"] === "SQLITE_ERROR"){
     res.status(500)
     res.setHeader('Content-Type','application/json');
     return res.json({
@@ -171,7 +182,7 @@ app.post('/checkout/newCheckout', authorize(API_KEY), (req, res) => {
   // {
   //   "asset_id": 1,
   //   "start_date": "2020-10-10",
-  //   "end_date": "2020-10-10",
+  //   "due_date": "2020-10-10",
   //   "user_id": 1
   // }
 })
@@ -180,7 +191,7 @@ app.post('/checkout/newCheckout', authorize(API_KEY), (req, res) => {
 //TODO: add validation for request body
 app.put('/checkout/updateCheckout', authorize(API_KEY), (req, res) => {
   //check if request body is valid
-  if(!validateRequestParams(req.body, ["checkout_id","asset_id","start_date","end_date","user_id"])){
+  if(!validateRequestParams(req.body, ["checkout_id","asset_id","start_date","due_date","user_id"])){
     console.log("Invalid or incomplete request");
     res.status(400)
     res.setHeader('Content-Type','application/json');
@@ -190,7 +201,7 @@ app.put('/checkout/updateCheckout', authorize(API_KEY), (req, res) => {
     });
   }
   //validate the date
-  if(!validateDate(req.body["start_date"]) || !validateDate(req.body["end_date"])){
+  if(!validateDate(req.body["start_date"]) || !validateDate(req.body["due_date"])){
     console.log("Invalid Date Format");
     res.status(400)
     res.setHeader('Content-Type','application/json');
@@ -205,7 +216,7 @@ app.put('/checkout/updateCheckout', authorize(API_KEY), (req, res) => {
     checkout_id: req.body["checkout_id"],
     asset_id: req.body["asset_id"],
     start_date: req.body["start_date"],
-    end_date: req.body["end_date"],
+    due_date: req.body["due_date"],
     user_id: req.body["user_id"]
   }
   //create update and get results
@@ -234,6 +245,51 @@ app.put('/checkout/updateCheckout', authorize(API_KEY), (req, res) => {
   //return the checkout object
   res.json(checkout_result);
 })
+
+//approve checkout entry
+app.put('/checkout/approveCheckout', authorize(API_KEY), (req, res) => {
+  //check if request body is valid
+  if(!validateRequestParams(req.body, ["checkout_id", "asset_id"])){
+    console.log("Invalid or incomplete request");
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "Invalid Request Body"
+    });
+  }
+  //create checkout json object
+  let checkout = {
+    checkout_id: req.body["checkout_id"],
+    asset_id: req.body["asset_id"]
+  }
+  //create update and get results
+  let checkout_result = checkoutManager.approveCheckout(db, checkout);
+  console.log(checkout_result)
+  if(checkout_result["code"] === "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: checkout_result
+    });
+  }
+  else if(checkout_result["code"] === "SQLITE_CONSTRAINT_UNIQUE"){
+    res.status(409)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 409,
+      message: "Server error",
+      error: checkout_result
+    });
+  }
+  res.status(201);
+  res.setHeader('Content-Type','application/json');
+  //return the checkout object
+  res.json(checkout_result);
+})
+
 
 //get checkout entry by asset_id or user_id or date
 app.get('/checkout/getCheckout', authorize(API_KEY), (req, res) => {
