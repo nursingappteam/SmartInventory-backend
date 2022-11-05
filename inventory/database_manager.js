@@ -36,10 +36,4 @@ let generalQuery = (db, query, query_type) => {
   }
 }
 
-let createInsertCheckoutsQuery = (asset_id,start_date,end_date,user_id) =>{
-  return `
-  INSERT INTO checkout (checkout_id, asset_id, start_date, end_date, user_id, approval_status, return_status)
-  VALUES (NULL, '${asset_id}', '${start_date}', '${end_date}', '${user_id}', 0, 1)` 
-}
-
-module.exports = {generalQuery, createInsertCheckoutsQuery}
+module.exports = {generalQuery}
