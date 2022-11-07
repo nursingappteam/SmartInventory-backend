@@ -4,3 +4,5 @@ node_modules
 logs
 certs
 .env
+.db
+.glitch-assets
