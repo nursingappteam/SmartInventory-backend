@@ -7,7 +7,7 @@ const fs = require('fs');
 const PORT = process.env.PORT;
 const API_KEY = process.env.API_KEY;
 const authorize = require("./authentication/authorize.js");
-const {createUserQuery, verifyUserQuery, getUserQuery} = require("./authentication/user_authentication.js");
+const {createUserQuery, validate_password, getUserQuery} = require("./authentication/user_authentication.js");
 //const {checkoutManager} = require("./inventory/checkout_manager.js");
 
 
@@ -344,11 +344,11 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
   var user_name = req.body["username"];
   var pass = req.body["password"];
   //console.log(check_exists)
-  let grab_hash_query = `SELECT salt FROM users WHERE user_name = '${user_name}'`
-  let user_salt;
-  let salt_result = generalQuery(db, grab_hash_query, "get")
-  console.log("Salt results:"+salt_result)
-  if(salt_result == null){
+  let grab_hash_query = `SELECT user_pass_secure FROM users WHERE user_name = '${user_name}'`
+  let user_hash;
+  let hash_result = generalQuery(db, grab_hash_query, "get")
+  //console.log("hash results:"+JSON.stringify(hash_result))
+  if(hash_result == null){
     res.status(404)
     res.setHeader('Content-Type','application/json');
     return res.json({
@@ -356,16 +356,16 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
       message: "User Not Found"
     })
   }
-  if(salt_result["code"] == "SQLITE_ERROR" ){
-    console.log(salt_result)
+  if(hash_result["code"] == "SQLITE_ERROR" ){
+    console.log(hash_result)
     res.status(500);
     return res.json({
       status : 500,
       message: "Server error",
-      error: salt_result
+      error: hash_result
     });
   }
-  if(salt_result.length == 0){
+  if(hash_result.length == 0){
     res.status(400)
     res.setHeader('Content-Type','application/json');
     return res.json({
@@ -374,35 +374,50 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
     })
   }
   else{
-    user_salt = salt_result["salt"]
-    //console.log(user_salt)
+    user_hash = hash_result["user_pass_secure"]
+    console.log(user_hash)
   }
   //********************************************
-  let validate_query = verifyUserQuery(user_name, pass, user_salt);
-  let results = generalQuery(db, validate_query)
-  console.log(results)
-  console.log(validate_query)
-  if(results["code"] == "SQLITE_ERROR"){
-    res.status(500)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status : 500,
-      message: "Server error",
-      error: results
-    });
+  let validate_password_result = validate_password(pass, user_hash);
+  //if validate_password_result is true, then the password is valid
+  if(validate_password_result){
+    let grab_user_query = `SELECT user_id, user_email, user_name, user_type_id, user_enabled, register_date FROM users WHERE user_name = '${user_name}'`
+    let user_result = generalQuery(db, grab_user_query, "get")
+    console.log(user_result)
+    if(user_result["code"] == "SQLITE_ERROR" ){
+      console
+      res.status(500);
+      return res.json({
+        status : 500,
+        message: "Server error",
+        error: user_result
+      });
+    }
+    if(user_result.length == 0){
+      res.status(400)
+      res.setHeader('Content-Type','application/json');
+      return res.json({
+        status: 404,
+        message: "Invalid Credentials"
+      })
+    }
+    else{
+      res.status(200);
+      res.setHeader('Content-Type','application/json');
+      return res.json(user_result)
+    }
   }
-  else if(results.length == 0){
+  else{
     res.status(400)
     res.setHeader('Content-Type','application/json');
     return res.json({
-      status: 400,
+      status: 404,
       message: "Invalid Credentials"
     })
   }
-  res.status(200);
-  res.setHeader('Content-Type','application/json');
-  res.json(results);
-});
+})
+
+
 
 app.post('/users/newUser', authorize(API_KEY), (req, res) => {
   if(!validateRequestParams(req.body, ["username","password","user_type", "user_email"])){
@@ -419,9 +434,26 @@ app.post('/users/newUser', authorize(API_KEY), (req, res) => {
   var user_email = req.body["user_email"];
   var pass = req.body["password"];
   var user_type = req.body["user_type"]
-  
-  //Query
-  let insert_query = createUserQuery(user_name, pass, user_type);
+  //log the request
+  console.log("New User Request: "+user_name+" "+user_email+" "+pass+" "+user_type)
+  let check_exists = `SELECT user_id FROM users WHERE user_name = '${user_name}'`
+  let check_exists_result = generalQuery(db, check_exists, "get")
+  console.log("check: "+check_exists_result)
+  //check if user already exists
+  if(check_exists_result == null){
+    
+  }
+  else if(check_exists_result.length > 0){
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 400,
+      message: "User already exists"
+    })
+  }
+  //********************************************
+  //Get insert query using createUserQuery function
+  let insert_query = createUserQuery(user_name, pass, user_email, user_type)
   console.log("InsertQuery: "+insert_query);
   let results = generalQuery(db, insert_query, "run");
   console.log(insert_query)
