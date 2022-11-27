@@ -19,13 +19,21 @@ let validate_password = (password,user_pass_secure) => {
   return bcrypt.compareSync(password, user_pass_secure);
 }
 
-    
-
-
+//reset password
+let resetPasswordQuery = (user_id, password) => {
+  //Use bcrypt syncronously salt and hash password
+  let salt = bcrypt.genSaltSync(10);
+  let hash = bcrypt.hashSync(password, salt);
+  return `
+    UPDATE users
+    SET user_pass_secure = '${hash}', salt = '${salt}'
+    WHERE user_id = '${user_id}';
+  `
+}
 
 
 
 let getUserQuery = (username) => {
   return `SELECT user_id FROM users WHERE user_name = '${username}'`
 }
-module.exports = {createUserQuery, validate_password, getUserQuery};
+module.exports = {createUserQuery, validate_password, getUserQuery, resetPasswordQuery};

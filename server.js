@@ -7,7 +7,7 @@ const fs = require('fs');
 const PORT = process.env.PORT;
 const API_KEY = process.env.API_KEY;
 const authorize = require("./authentication/authorize.js");
-const {createUserQuery, validate_password, getUserQuery} = require("./authentication/user_authentication.js");
+const {createUserQuery, validate_password, getUserQuery, resetPasswordQuery} = require("./authentication/user_authentication.js");
 //const {checkoutManager} = require("./inventory/checkout_manager.js");
 
 
@@ -328,7 +328,7 @@ app.get('/users/getUsers', authorize(API_KEY), (req, res) => {
   res.json(results);
 })
 app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
-  if(!validateRequestParams(req.body, ["username","password"])){
+  if(!validateRequestParams(req.body, ["user_email","password"])){
     console.log("\n******************\nInvalid or incomplete request");
     console.log(req.body)
     res.status(400)
@@ -338,10 +338,10 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
     });
     return
   }
-  var user_name = req.body["username"];
+  var user_email = req.body["user_email"];
   var pass = req.body["password"];
   //console.log(check_exists)
-  let grab_hash_query = `SELECT user_pass_secure FROM users WHERE user_name = '${user_name}'`
+  let grab_hash_query = `SELECT user_pass_secure FROM users WHERE user_email = '${user_email}'`
   let user_hash;
   let hash_result = generalQuery(db, grab_hash_query, "get")
   //console.log("hash results:"+JSON.stringify(hash_result))
@@ -378,7 +378,7 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
   let validate_password_result = validate_password(pass, user_hash);
   //if validate_password_result is true, then the password is valid
   if(validate_password_result){
-    let grab_user_query = `SELECT user_id, user_email, user_name, user_type_id, user_enabled, register_date FROM users WHERE user_name = '${user_name}'`
+    let grab_user_query = `SELECT user_id, user_email, user_name, user_type_id, user_enabled, register_date FROM users WHERE user_email = '${user_email}'`
     let user_result = generalQuery(db, grab_user_query, "get")
     console.log(user_result)
     if(user_result["code"] == "SQLITE_ERROR" ){
@@ -535,6 +535,73 @@ app.delete('/users/deleteUser',authorize(API_KEY), (req, res) => {
   res.setHeader('Content-Type','application/json');
   res.json(delete_result);
 })
+
+//reset password
+app.post('/users/resetPassword', authorize(API_KEY), (req, res) => {
+  if(!validateRequestParams(req.body, ["username","password"])){
+    console.log("Invalid or incomplete request");
+    res.status(400)
+    res.send({
+      "status" : 400,
+      "message": "Invalid Request Body"
+    });
+    return
+  }
+  //Get variables from body payload
+  var user_name = req.body["username"];
+  var pass = req.body["password"];
+  //log the request
+  console.log("Reset Password Request: "+user_name+" "+pass)
+  let check_exists = `SELECT user_id FROM users WHERE user_name = '${user_name}'`
+  let check_exists_result = generalQuery(db, check_exists, "get")
+  console.log("check: "+JSON.stringify(check_exists_result).length)
+  //check if user already exists
+  if(check_exists_result == null){
+    res.status(404)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 404,
+      message: "User Not Found"
+    })
+  }
+  //Check if check_exists_result is empty
+  else if(!check_exists_result == []){
+    let user_id = check_exists_result["user_id"]
+    let update_query = resetPasswordQuery(user_id, pass);
+    let update_result = generalQuery(db, update_query, "run");
+    console.log(update_query)
+    if(update_result["code"] === "SQLITE_ERROR"){
+      res.status(500)
+      res.setHeader('Content-Type','application/json');
+      return res.json({
+        status : 500,
+        message: "Server error",
+        error: update_result
+      });
+    }
+    else if(update_result["code"] === "SQLITE_CONSTRAINT_UNIQUE"){
+      res.status(409)
+      res.setHeader('Content-Type','application/json');
+      return res.json({
+        status : 409,
+        message: "Server error",
+        error: update_result
+      });
+    }
+    res.status(201);
+    res.setHeader('Content-Type','application/json');
+    res.json(update_result);
+  }
+  else{
+    res.status(404)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 404,
+      message: "User Not Found"
+    })
+  }
+});
+
 
 
 
