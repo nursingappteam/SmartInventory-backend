@@ -178,21 +178,73 @@ app.post('/checkout/createCheckout', authorize(API_KEY), (req, res) => {
       "message": "Invalid asset_id format"
     }); 
   }
-
-  //Create checkout record using checkoutManager
-  let results = checkoutManager.insertCheckout(db, req.body["asset_id"], req.body["start_date"], req.body["end_date"], req.body["user_id"]);
-  if(results["code"] == "SQLITE_ERROR"){
-    res.status(500)
+  //get unavailable assets
+  let unAvailableAssets = checkoutManager.getUnavailableAssets(db, req.body["asset_id"]);
+  console.log("unavailable assets: "+unAvailableAssets)
+  console.log("unavailable assets length: "+unAvailableAssets.length)
+  //If available there are available assets then create checkout and return success with unavailable assets in response
+  if(unAvailableAssets.length < req.body["asset_id"].length){
+    //Subtract unavailable assets from asset_id array
+    let availableAssets = req.body["asset_id"].filter(x => !unAvailableAssets.includes(x));
+    console.log("available assets: "+availableAssets)
+    //insert available checkouts
+    let results = checkoutManager.insertCheckout(db, availableAssets, req.body["start_date"], req.body["end_date"], req.body["user_id"]);
+    if(results["code"] == "DUPLICATE_CHECKOUT"){
+      res.status(400)
+      res.setHeader('Content-Type','application/json');
+      return res.json({
+        status : 400,
+        message: "Request error",
+        error: results
+      });
+    }
+    if(results["code"] == "SQLITE_ERROR"){
+      res.status(500)
+      res.setHeader('Content-Type','application/json');
+      return res.json({
+        status : 500,
+        message: "Server error",
+        error: results
+      });
+    }
+    else if(results["code"] == "SQLITE_CONSTRAINT"){
+      res.status(400)
+      res.setHeader('Content-Type','application/json');
+      return res.json({
+        status : 400,
+        message: "Invalid request",
+        error: results
+      });
+    }
+    res.status(200);
     res.setHeader('Content-Type','application/json');
     return res.json({
-      status : 500,
-      message: "Server error",
-      error: results
+      "status" : 200,
+      "message": "Checkout created",
+      "assets_checked_out": availableAssets,
+      "unavailable_assets": unAvailableAssets
     });
   }
-  res.status(200);
-  res.setHeader('Content-Type','application/json');
-  res.json(results);
+  //If there are no available assets then return error
+  else{
+    res.status(400);
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "No available assets",
+      "unavailable_assets": unAvailableAssets
+    });
+  }
+  
+
+
+
+  // return res.json({
+  //   "status" : 400,
+  //   "message": "Invalid asset_id format",
+  //   "unavailable_assets": unAvailableAssets
+  // });
+ 
 
 })
 

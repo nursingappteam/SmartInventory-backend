@@ -145,10 +145,22 @@ let checkoutManager = {
   },
   //insert a checkout
   insertCheckout: (db, asset_id, start_date, end_date, user_id) => {
-    let query = checkoutQueries.createInsertCheckoutsQuery(asset_id, start_date, end_date, user_id)
-    console.log(query)
-    let results = generalQuery(db, query, "run")
-    return results
+    //Prevent duplicate checkouts where asset_id is an array of asset ids and user_id is the user id
+    //Query to check if any of the assets are already checked out
+    let dupe_check = `SELECT * FROM checkouts WHERE asset_id IN (${asset_id}) AND user_id = ${user_id}`
+    //console.log("dupe_check: " + dupe_check)
+    let dupe_results = generalQuery(db, dupe_check, "all")
+    console.log("dupe_results: " + dupe_results)
+    if(dupe_results.length > 0){
+      return {"code" : "DUPLICATE_CHECKOUT"}
+    }
+    else{
+      let query = checkoutQueries.createInsertCheckoutsQuery(asset_id, start_date, end_date, user_id)
+      console.log(query)
+      let results = generalQuery(db, query, "run")
+      return results
+    }
+
   },
   //update a checkout
   updateCheckout: (db, checkout_id, asset_id, start_date, end_date, user_id, approval_status, checkout_notes, return_date, available) => {
@@ -203,6 +215,17 @@ let checkoutManager = {
     let query = checkoutQueries.createApproveCheckoutQuery()
     let results = generalQuery(db, query, "all")
     return results
+  },
+  //Get assets that are available for checkout given an array of asset ids and return list of asset ids that are available
+  getUnavailableAssets: (db, asset_id_array) => {
+    let query = checkoutQueries.createGetUnavailableCheckoutsQuery(asset_id_array)
+    let results = generalQuery(db, query, "all")
+
+    let available_assets = []
+    for (let i = 0; i < results.length; i++) {
+      available_assets.push(results[i].asset_id)
+    }
+    return available_assets
   }
 
 }
@@ -296,7 +319,7 @@ let checkoutQueries = {
       return "Error: checkout_id is null"
     }
     //create query where checkout_id is in the array
-    let query = `UPDATE checkouts SET approval_status = 1 WHERE checkout_id IN (`
+    let query = `UPDATE checkouts SET approval_status = 0, available = 0 WHERE checkout_id IN (`
     for (let i = 0; i < checkout_id.length; i++){
       query += checkout_id[i]
       if (i < checkout_id.length - 1){
@@ -389,8 +412,23 @@ let checkoutQueries = {
     return `
     SELECT * FROM checkouts WHERE return_date IS NOT NULL AND available = 1`
   },
-
-
+  //Function to create a query to get all checkouts that are available given an array of asset_ids
+  createGetUnavailableCheckoutsQuery: (asset_id) =>{  
+    //validate input
+    if (asset_id == null){
+      return "Error: asset_id is null"
+    }
+    //create a query where asset_id is in the array
+    let query = `SELECT * FROM checkouts WHERE asset_id IN (`
+    for (let i = 0; i < asset_id.length; i++){
+      query += asset_id[i]
+      if (i < asset_id.length - 1){
+        query += ","
+      }
+    }
+    query += ") AND available = 0"
+    return query
+  }
     
 }
 
