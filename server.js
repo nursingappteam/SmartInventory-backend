@@ -89,14 +89,263 @@ app.get('/assets/get_assets', authorize(API_KEY), (req, res) => {
 });
 
 /*
-  END POINT THAT HANDLES GETTING THE INFORMATION FROM THE CHECKOUT TABLE
+  END POINTS THAT HANDLES GETTING THE INFORMATION FROM THE CHECKOUT TABLE
+  Checkout table has the following columns: checkout_id, asset_id, start_date, due_date, user_id, approval_status, checkout_notes, return_date, available
+
+  approval_status: 0 = pending, 1 = approved, 2 = denied
+  return_status: 0 = pending, 1 = returned
+  available: 0 = assets are locked, 1 = assets are available
 
 */
 app.get('/checkout/getCheckouts', authorize(API_KEY), (req, res) => {
-  let query = "SELECT * FROM checkout";
+  //Validate request body: must have asset_id, start_date, end_date where asset_id is an array of asset_id's
+  if(!validateRequestParams(req.body, ["asset_id", "start_date", "end_date"])){
+    console.log("Invalid or incomplete request");
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "Invalid Request Body"
+    }); 
+  }
+  //Validate date format
+  if(!validateDate(req.body["start_date"]) || !validateDate(req.body["end_date"])){
+    console.log("Invalid date format");
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "Invalid date format"
+    }); 
+  }
+  //Validate asset_id array
+  if(!Array.isArray(req.body["asset_id"])){
+    console.log("Invalid asset_id format");
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "Invalid asset_id format"
+    }); 
+  }
   
-  let results = generalQuery(db, query)
-  console.log(results)
+  //Get checkout information using checkoutManager
+  let results = checkoutManager.getCheckoutByAssetId(db, req.body["asset_id"], req.body["start_date"], req.body["end_date"]);
+  if(results["code"] == "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: results
+    });
+  }
+  res.status(200);
+  res.setHeader('Content-Type','application/json');
+  res.json(results);
+  
+})
+
+//endpoint to create new checkout record
+app.post('/checkout/createCheckout', authorize(API_KEY), (req, res) => {
+  //Validate request body: must have asset_id, start_date, end_date where asset_id is an array of asset_id's
+  if(!validateRequestParams(req.body, ["asset_id", "start_date", "end_date", "user_id"])){
+    console.log("Invalid or incomplete request");
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "Invalid Request Body"
+    }); 
+  }
+  //Validate date format
+  if(!validateDate(req.body["start_date"]) || !validateDate(req.body["end_date"])){
+    console.log("Invalid date format");
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "Invalid date format"
+    }); 
+  }
+  //Validate asset_id array
+  if(!Array.isArray(req.body["asset_id"])){
+    console.log("Invalid asset_id format");
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "Invalid asset_id format"
+    }); 
+  }
+  //get unavailable assets
+  let unAvailableAssets = checkoutManager.getUnavailableAssets(db, req.body["asset_id"]);
+  console.log("unavailable assets: "+unAvailableAssets)
+  console.log("unavailable assets length: "+unAvailableAssets.length)
+  //If available there are available assets then create checkout and return success with unavailable assets in response
+  if(unAvailableAssets.length < req.body["asset_id"].length){
+    //Subtract unavailable assets from asset_id array
+    let availableAssets = req.body["asset_id"].filter(x => !unAvailableAssets.includes(x));
+    console.log("available assets: "+availableAssets)
+    //insert available checkouts
+    let results = checkoutManager.insertCheckout(db, availableAssets, req.body["start_date"], req.body["end_date"], req.body["user_id"]);
+    if(results["code"] == "DUPLICATE_CHECKOUT"){
+      res.status(400)
+      res.setHeader('Content-Type','application/json');
+      return res.json({
+        status : 400,
+        message: "Request error",
+        error: results
+      });
+    }
+    if(results["code"] == "SQLITE_ERROR"){
+      res.status(500)
+      res.setHeader('Content-Type','application/json');
+      return res.json({
+        status : 500,
+        message: "Server error",
+        error: results
+      });
+    }
+    else if(results["code"] == "SQLITE_CONSTRAINT"){
+      res.status(400)
+      res.setHeader('Content-Type','application/json');
+      return res.json({
+        status : 400,
+        message: "Invalid request",
+        error: results
+      });
+    }
+    res.status(200);
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 200,
+      "message": "Checkout created",
+      "assets_checked_out": availableAssets,
+      "unavailable_assets": unAvailableAssets
+    });
+  }
+  //If there are no available assets then return error
+  else{
+    res.status(400);
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "No available assets",
+      "unavailable_assets": unAvailableAssets
+    });
+  }
+  
+
+
+
+  // return res.json({
+  //   "status" : 400,
+  //   "message": "Invalid asset_id format",
+  //   "unavailable_assets": unAvailableAssets
+  // });
+ 
+
+})
+
+//update checkout entry
+app.put('/checkout/updateCheckout', authorize(API_KEY), (req, res) => {
+  //Validate request body: must have asset_id, start_date, end_date where asset_id is an array of asset_id's
+  if(!validateRequestParams(req.body, ["asset_id", "start_date", "end_date", "user_id"])){
+    console.log("Invalid or incomplete request");
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "Invalid Request Body"
+    }); 
+  }
+  //Validate date format
+  if(!validateDate(req.body["start_date"]) || !validateDate(req.body["end_date"])){
+    console.log("Invalid date format");
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "Invalid date format"
+    }); 
+  }
+  //Validate asset_id array
+  if(!Array.isArray(req.body["asset_id"])){
+    console.log("Invalid asset_id format");
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "Invalid asset_id format"
+    }); 
+  }
+
+  //Update checkout record using checkoutManager
+  //Default values to fill by 0 for approval status null for checkout_notes, null for return date, and 1 for available
+  let results = checkoutManager.updateCheckout(db, req.body["asset_id"], req.body["start_date"], req.body["end_date"], req.body["user_id"], 0, null, null, 1);
+  if(results["code"] == "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: results
+    });
+  }
+  res.status(200);
+  res.setHeader('Content-Type','application/json');
+  res.json(results);
+
+
+})
+
+//approve checkout entry
+app.put('/checkout/approveCheckout', authorize(API_KEY), (req, res) => {
+  //Validate request body: must have an array of checkout_id's to approve
+  if(!validateRequestParams(req.body, ["checkout_id"])){
+    console.log("Invalid or incomplete request");
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "Invalid Request Body"
+    }); 
+  }
+  //Validate checkout_id array
+  if(!Array.isArray(req.body["checkout_id"])){
+    console.log("Invalid checkout_id format");
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      "status" : 400,
+      "message": "Invalid checkout_id format"
+    }); 
+  }
+
+  //Approve checkout record using checkoutManager
+  let results = checkoutManager.approveCheckout(db, req.body["checkout_id"]);
+  if(results["code"] == "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: results
+    });
+  }
+  res.status(200);
+  res.setHeader('Content-Type','application/json');
+  res.json(results);
+
+
+  
+})
+
+//get all checkout entries
+app.get('/checkout/getAllCheckouts', authorize(API_KEY), (req, res) => {
+  //Get all checkout records using checkoutManager
+  let results = checkoutManager.getAllCheckouts(db);
   if(results["code"] == "SQLITE_ERROR"){
     res.status(500)
     res.setHeader('Content-Type','application/json');
@@ -112,206 +361,6 @@ app.get('/checkout/getCheckouts', authorize(API_KEY), (req, res) => {
 })
 
 
-//create new checkout entry
-//TODO: Handle conflicting checkout entries
-app.post('/checkout/newCheckout', authorize(API_KEY), (req, res) => {
-  if(!validateRequestParams(req.body, ["asset_id","start_date","due_date","user_id"])){
-    console.log("Invalid or incomplete request");
-    res.status(400)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      "status" : 400,
-      "message": "Invalid Request Body"
-    });
-  }
-
-  if(!validateDate(req.body["start_date"]) || !validateDate(req.body["due_date"])){
-    console.log("Invalid date format");
-    res.status(400)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      "status" : 400,
-      "message": "Invalid date format"
-    });
-  }
-
-  //create checkout json object
-  let checkout = {
-    asset_id: req.body["asset_id"],
-    start_date: req.body["start_date"],
-    due_date: req.body["due_date"],
-    user_id: req.body["user_id"]
-  }
-  //create insert and get results
-  let checkout_result = checkoutManager.createCheckout(db, checkout);
-  //console.log(checkout_result)
-  //check if result is null
-  if(checkout_result == null){
-    res.status(500)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status : 400,
-      message: "Checkout items not found",
-      error: checkout_result
-    })
-  }
-  else if(checkout_result["code"] === "SQLITE_ERROR"){
-    res.status(500)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status : 500,
-      message: "Server error",
-      error: checkout_result
-    });
-  }
-  else if(checkout_result["code"] === "SQLITE_CONSTRAINT_UNIQUE"){
-    res.status(409)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status : 409,
-      message: "Server error",
-      error: checkout_result
-    });
-  }
-  res.status(201);
-  res.setHeader('Content-Type','application/json');
-  //return the checkout object
-
-  res.json(checkout_result);
-  //example of what resquest body should look like
-  // {
-  //   "asset_id": 1,
-  //   "start_date": "2020-10-10",
-  //   "due_date": "2020-10-10",
-  //   "user_id": 1
-  // }
-})
-
-//update checkout entry
-//TODO: add validation for request body
-app.put('/checkout/updateCheckout', authorize(API_KEY), (req, res) => {
-  //check if request body is valid
-  if(!validateRequestParams(req.body, ["checkout_id","asset_id","start_date","due_date","user_id"])){
-    console.log("Invalid or incomplete request");
-    res.status(400)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      "status" : 400,
-      "message": "Invalid Request Body"
-    });
-  }
-  //validate the date
-  if(!validateDate(req.body["start_date"]) || !validateDate(req.body["due_date"])){
-    console.log("Invalid Date Format");
-    res.status(400)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      "status" : 400,
-      "message": "Invalid Request Body, Invalid Date Format"
-    });
-  }
-
-  //create checkout json object
-  let checkout = {
-    checkout_id: req.body["checkout_id"],
-    asset_id: req.body["asset_id"],
-    start_date: req.body["start_date"],
-    due_date: req.body["due_date"],
-    user_id: req.body["user_id"]
-  }
-  //create update and get results
-  let checkout_result = checkoutManager.updateCheckout(db, checkout);
-  console.log(checkout_result)
-  if(checkout_result["code"] === "SQLITE_ERROR"){
-    res.status(500)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status : 500,
-      message: "Server error",
-      error: checkout_result
-    });
-  }
-  else if(checkout_result["code"] === "SQLITE_CONSTRAINT_UNIQUE"){
-    res.status(409)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status : 409,
-      message: "Server error",
-      error: checkout_result
-    });
-  }
-  res.status(201);
-  res.setHeader('Content-Type','application/json');
-  //return the checkout object
-  res.json(checkout_result);
-})
-
-//approve checkout entry
-app.put('/checkout/approveCheckout', authorize(API_KEY), (req, res) => {
-  //check if request body is valid
-  if(!validateRequestParams(req.body, ["checkout_id", "asset_id"])){
-    console.log("Invalid or incomplete request");
-    res.status(400)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      "status" : 400,
-      "message": "Invalid Request Body"
-    });
-  }
-  //create checkout json object
-  let checkout = {
-    checkout_id: req.body["checkout_id"],
-    asset_id: req.body["asset_id"]
-  }
-  //create update and get results
-  let checkout_result = checkoutManager.approveCheckout(db, checkout);
-  console.log(checkout_result)
-  if(checkout_result["code"] === "SQLITE_ERROR"){
-    res.status(500)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status : 500,
-      message: "Server error",
-      error: checkout_result
-    });
-  }
-  else if(checkout_result["code"] === "SQLITE_CONSTRAINT_UNIQUE"){
-    res.status(409)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status : 409,
-      message: "Server error",
-      error: checkout_result
-    });
-  }
-  res.status(201);
-  res.setHeader('Content-Type','application/json');
-  //return the checkout object
-  res.json(checkout_result);
-})
-
-
-//get checkout entry by asset_id or user_id or date
-app.get('/checkout/getCheckout', authorize(API_KEY), (req, res) => {
-  //check for either asset_id or user_id or date
-  if(!validateRequestParams(req.body, ["asset_id"]) && !validateRequestParams(req.body, ["user_id"]) && !validateRequestParams(req.body, ["date"])){
-    console.log("Invalid or incomplete request");
-    res.status(400)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      "status" : 400,
-      "message": "Invalid Request Body"
-    });
-  }
-
-
-
-
-  res.status(200);
-  res.setHeader('Content-Type','application/json');
-  res.json(req.body);
-
-})
 //User endpoints
 app.get('/users/getUsers', authorize(API_KEY), (req, res) => {
   let query = "SELECT user_id, user_email, user_name, user_type_id, user_enabled, register_date FROM users"
