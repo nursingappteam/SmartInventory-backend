@@ -607,6 +607,13 @@ app.put("/checkout/approveCheckout", authorize(API_KEY), (req, res) => {
   res.json(results);
 });
 
+//TODO: deny checkout entry
+
+//TODO: get pending checkouts
+
+//[1507...1601]
+//
+
 //get all checkout entries
 app.get("/checkout/getAllCheckouts", authorize(API_KEY), (req, res) => {
   //Get all checkout records using checkoutManager
