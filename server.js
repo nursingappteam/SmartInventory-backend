@@ -1,11 +1,16 @@
 require('dotenv').config({ path: "./.env" });
 const express = require("express");
+const session = require('express-session');
+
 // const https=require('https');
 // const http=require('http');
 const fs = require('fs');
 
+//Get environment variables
 const PORT = process.env.PORT;
 const API_KEY = process.env.API_KEY;
+const SESSION_SECRET = process.env.SESSION_SECRET;
+
 const authorize = require("./authentication/authorize.js");
 const {createUserQuery, validate_password, getUserQuery, resetPasswordQuery} = require("./authentication/user_authentication.js");
 //const {checkoutManager} = require("./inventory/checkout_manager.js");
@@ -29,13 +34,52 @@ app.use(express.json());
 
 const Database = require('better-sqlite3');
 const db = new Database("./inventory/inventory_v5.db", { verbose: console.log });
-const {generalQuery, checkoutManager} = require("./inventory/database_manager.js");
+const {generalQuery, checkoutManager, sessionManager} = require("./inventory/database_manager.js");
+
+//Store session data in database
+const SqliteStore = require("better-sqlite3-session-store")(session)
+
+//Session management functions with cookies
+app.use(
+  session({
+    secret: SESSION_SECRET,
+    resave: false,
+    store: new SqliteStore({
+      client: db,
+      table: "sessions",
+      sidfieldname: "sid",
+      createtable: true,
+      clearInterval: 60000 * 60 * 24
+    }),
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+      sameSite: true,
+      secure: false
+    },
+  })
+)
+
+/*
+Session manager class functions
+
+getSessionData - returns session data
+deleteSession - deletes session data
+createSession - creates session data
+--> sessionManager.createSession(user_id, user_type_id, user_name, user_email, user_session_data);
+updateSession - updates session data
+checkSession - checks if session exists
+
+*/
 
 
 
-app.get('/', (req, res) => {
-  res.send('SmartInventory API');
-})
+//default route
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
+
 
 //get endpoint that will get all assets of inventory
 app.get('/assets/display_assets', authorize(API_KEY), (req, res) => {
@@ -383,7 +427,7 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
   if(validate_password_result){
     let grab_user_query = `SELECT user_id, user_email, user_name, user_type_id, user_enabled, register_date FROM users WHERE user_email = '${user_email}'`
     let user_result = generalQuery(db, grab_user_query, "get")
-    console.log(user_result)
+    //console.log(user_result)
     if(user_result["code"] == "SQLITE_ERROR" ){
       console
       res.status(500);
@@ -402,9 +446,23 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
       })
     }
     else{
+      console.log("user_result data for session: "+JSON.stringify(user_result))
+      //create session and set cookie by passing user infor to createSession
+      //params: db, user_id, user_type_id, user_name, user_email, user_session_data
+      user_session_data = {
+        checkout_cart: [],
+        checkout_cart_total: 0
+      }
+
+      let session_id = sessionManager.createSession(db, user_result["user_id"], user_result["user_type_id"], user_result["user_name"], user_result["user_email"], user_session_data)
+      console.log("Endpoint session_id:"+session_id)
+      //add session id and session data to user object
+      user_result["session"] = "sid="+session_id+"; SameSite=Strict; Path=/; Max-Age=3600";
+      
+      //res.headers['set-cookie'] = "sid="+session_id+"; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600";
+      //console.log("cookie set: " + res.get('Set-Cookie'))
       res.status(200);
-      res.setHeader('Content-Type','application/json');
-      return res.json(user_result)
+      return res.json(user_result);
     }
   }
   else{

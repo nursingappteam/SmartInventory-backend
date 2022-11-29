@@ -31,9 +31,19 @@ let resetPasswordQuery = (user_id, password) => {
   `
 }
 
+//Middleware to check if user is logged in
+const isLoggedIn = (req, res, next) => {
+  if (req.session.user) {
+    next();
+  } else {
+    res.status(401).send("You are not logged in");
+  }
+}
+
+
 
 
 let getUserQuery = (username) => {
   return `SELECT user_id FROM users WHERE user_name = '${username}'`
 }
-module.exports = {createUserQuery, validate_password, getUserQuery, resetPasswordQuery};
+module.exports = {createUserQuery, validate_password, getUserQuery, resetPasswordQuery, isLoggedIn};

@@ -1,4 +1,4 @@
-
+const { v4: uuid } = require('uuid')
 /*
 Existing tables
 1) assets
@@ -42,6 +42,99 @@ let generalQuery = (db, query, query_type) => {
     }
   }
 }
+
+//Define session manager
+/*
+Session table has the following columns:
+1) sid - session id
+2) sess - session data
+3) expire - session expiration
+
+
+*/
+let sessionManager = {
+  //Get session data
+  getSessionData: (db, session_id) => {
+    let sessionData = generalQuery(db, `SELECT sess FROM sessions WHERE sid = '${session_id}'`, "get")
+    console.log("*SessionManager*: sessionData: ", sessionData)
+    //Check if session data is null
+    if(sessionData === undefined){
+      return null
+    }
+    else{
+      return sessionData
+    }
+  },
+  //delete session when user logs out or session expires
+  deleteSession: (db, session_id) => {
+    let deleteSessionQuery = `DELETE FROM sessions WHERE sid = '${session_id}'`
+    let deleteSession = generalQuery(db, deleteSessionQuery, "run")
+    console.log("*SessionManager*: deleteSession: ", deleteSession)
+    return deleteSession
+  },
+  //Create session with user information and expiration date as well as user_session_data if provided which is used to store user specific data such as cart
+  createSession: (db, user_id, user_type_id, user_name, user_email, user_session_data) => {
+    //Create session id
+    let session_id = uuid()
+    //Create expire date
+    let expire = Date.now() + 3600000
+    //Create session where user data is part of cookie
+    let sessionData = {
+     cookie: {
+        originalMaxAge: null,
+        expires: expire,
+        httpOnly: true,
+        path: '/'
+      },
+      user_data: {
+        user_id: user_id,
+        user_type_id: user_type_id,
+        user_name: user_name,
+        user_email: user_email,
+        user_session_data: user_session_data
+      }
+    }
+    //Create session query
+    
+    let createSessionQuery = `INSERT INTO sessions (sid, sess, expire) VALUES ('${session_id}', '${JSON.stringify(sessionData)}', '${expire}')`
+    let createSession = generalQuery(db, createSessionQuery, "run")
+    console.log("*SessionManager*: createSession: ", createSession)
+
+    //Return session id
+    return session_id
+  },
+  //Update session with user information and expiration date as well as user_session_data if provided which is used to store user specific data such as cart
+  updateSession: (db, session_id, user_id, user_type_id, user_name, user_email, user_session_data) => {
+    //Create expire date
+    let expire = Date.now() + 3600000
+    //Create session
+    let updateSessionQuery = `
+    UPDATE sessions
+    SET sess
+    = '{"cookie":{"originalMaxAge":3600000,"expires":"${expire}","httpOnly":true,"path":"/"},"user_id":"${user_id}","user_type_id":"${user_type_id}","user_name":"${user_name}","user_email":"${user_email}","user_session_data":"${user_session_data}" }',
+    expire = '${expire}'
+    WHERE sid = '${session_id}'
+    `
+    let updateSession = generalQuery(db, updateSessionQuery, "run")
+    console.log("*SessionManager*: updateSession: ", updateSession)
+    return updateSession
+  },
+  //Check if session exists
+  checkSession: (db, session_id) => {
+    let checkSessionQuery = `SELECT * FROM sessions WHERE sid = '${session_id}'`
+    let checkSession = generalQuery(db, checkSessionQuery, "get")
+    console.log("*SessionManager*: checkSession: ", checkSession)
+    return checkSession
+  }
+}
+
+
+    
+
+
+
+
+
 //Define asset manager
 let assetManager = {
   //get all assets
@@ -330,4 +423,4 @@ let createDeleteCheckoutsQuery = (checkout_id) =>{
 }
 
 
-module.exports = {generalQuery, checkoutManager}
+module.exports = {generalQuery, checkoutManager, sessionManager}
