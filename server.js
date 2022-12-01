@@ -12,7 +12,7 @@ const API_KEY = process.env.API_KEY;
 const SESSION_SECRET = process.env.SESSION_SECRET;
 
 const authorize = require("./authentication/authorize.js");
-const {createUserQuery, validate_password, getUserQuery, resetPasswordQuery} = require("./authentication/user_authentication.js");
+const {createUserQuery, validate_password, getUserQuery, resetPasswordQuery, createUserSession} = require("./authentication/user_authentication.js");
 //const {checkoutManager} = require("./inventory/checkout_manager.js");
 
 
@@ -40,39 +40,28 @@ const {generalQuery, checkoutManager, sessionManager} = require("./inventory/dat
 const SqliteStore = require("better-sqlite3-session-store")(session)
 
 //Session management functions with cookies
-app.use(
-  session({
-    secret: SESSION_SECRET,
-    resave: false,
-    store: new SqliteStore({
-      client: db,
-      table: "sessions",
-      sidfieldname: "sid",
-      createtable: true,
-      clearInterval: 60000 * 60 * 24
-    }),
-    saveUninitialized: false,
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-      sameSite: true,
-      secure: false
-    },
-  })
-)
-
-/*
-Session manager class functions
-
-getSessionData - returns session data
-deleteSession - deletes session data
-createSession - creates session data
---> sessionManager.createSession(user_id, user_type_id, user_name, user_email, user_session_data);
-updateSession - updates session data
-checkSession - checks if session exists
-
-*/
-
-
+//Idk if this is the best way to do this but it works
+//It creates a session table in the database and stores the session data there
+// app.use(
+//   session({
+//     secret: SESSION_SECRET,
+//     resave: false,
+//     store: new SqliteStore({
+//       client: db,
+//       table: "sessions",
+//       sidfieldname: "sid",
+//       user_id: "user_id",
+//       createtable: true,
+//       clearInterval: 60000 * 60 * 24
+//     }),
+//     saveUninitialized: false,
+//     cookie: {
+//       maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+//       sameSite: true,
+//       secure: false
+//     },
+//   })
+// )
 
 //default route
 app.get("/", (req, res) => {
@@ -446,23 +435,39 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
       })
     }
     else{
-      console.log("user_result data for session: "+JSON.stringify(user_result))
-      //create session and set cookie by passing user infor to createSession
-      //params: db, user_id, user_type_id, user_name, user_email, user_session_data
-      user_session_data = {
-        checkout_cart: [],
-        checkout_cart_total: 0
+      //TODO: add token generation and session management
+      newSessionInsertQuery = createUserSession(user_result)
+      //Insert new session into database
+      let session_result = sessionManager.createSession(db, newSessionInsertQuery, user_result["user_id"])
+      if(session_result == null){
+        res.status(500)
+        res.setHeader('Content-Type','application/json');
+        return res.json({
+          status : 500,
+          message: "Server error",
+          error: session_result
+        });
       }
-
-      let session_id = sessionManager.createSession(db, user_result["user_id"], user_result["user_type_id"], user_result["user_name"], user_result["user_email"], user_session_data)
-      console.log("Endpoint session_id:"+session_id)
-      //add session id and session data to user object
-      user_result["session"] = "sid="+session_id+"; SameSite=Strict; Path=/; Max-Age=3600";
-      
-      //res.headers['set-cookie'] = "sid="+session_id+"; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600";
-      //console.log("cookie set: " + res.get('Set-Cookie'))
+      if(session_result["code"] == "SQLITE_ERROR" ){
+        console.log(session_result)
+        res.status(500);
+        return res.json({
+          status : 500,
+          message: "Server error",
+          error: session_result
+        });
+      }
+      //login verification successful
+      response_body = {
+        "status": 200,
+        "message": "Login Successful",
+        "user": user_result,
+        "session_id": session_result
+      }
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      //console.log("Session created: "+newSession)
       res.status(200);
-      return res.json(user_result);
+      return res.json(response_body);
     }
   }
   else{
@@ -475,6 +480,95 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
   }
 })
 
+//Validate user has logged in by checking session_id
+app.post('/users/session/validateSession', authorize(API_KEY), (req, res) => {
+  if(!validateRequestParams(req.body, ["session_id"])){
+    console.log("\n******************\nInvalid or incomplete request");
+    console.log(req.body)
+    res.status(400)
+    res.send({
+      "status" : 400,
+      "message": "Invalid Request Body"
+    });
+    return
+  }
+  var session_id = req.body["session_id"];
+  sessionData = sessionManager.validateSession(db, session_id)
+  //let results = generalQuery(db, query, "get")
+  if(sessionData["code"] == "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: sessionData
+    });
+  }
+  if(sessionData.length == 0){
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 404,
+      message: "Invalid Credentials"
+    })
+  }
+  else{
+    //sessionData = sessionManager.validateSession(db, session_id)
+    res.status(200)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 200,
+      message: "Session Valid"
+    })
+  }
+})
+
+//update checkout cart in session
+app.post('/users/session/updateCart', authorize(API_KEY), (req, res) => {
+  !validateRequestParams(req.body, ["session_id", "cart_items"]) ? res.status(400).send({
+    "status" : 400,
+    "message": "Invalid Request Body"
+  }) : null;
+  var session_id = req.body["session_id"];
+  var cart_items = req.body["cart_items"];
+  //updateSessionCheckoutCart: (db, session_id, checkout_cart)
+  sessionData = sessionManager.updateSessionCheckoutCart(db, session_id, cart_items)
+  //let results = generalQuery(db, query, "get")
+  if(null == sessionData){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 404,
+      message: "Session Not Found"
+    });
+  }
+  if(sessionData["code"] == "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: sessionData
+    });
+  }
+  if(sessionData.length == 0){
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 404,
+      message: "Invalid Credentials"
+    })
+  }
+  else{
+    //let updatedcart = sessionManager.getSessionCheckoutCart(db, session_id)
+    res.status(200)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 200,
+      message: "Session Valid"
+    })
+  }
+})
 
 
 app.post('/users/newUser', authorize(API_KEY), (req, res) => {

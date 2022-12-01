@@ -47,7 +47,25 @@ let generalQuery = (db, query, query_type) => {
 /*
 Session table has the following columns:
 1) sid - session id
-2) sess - session data
+2) user_id - user id
+2) sess - session data (JSON) as string:
+    cookie: {
+          originalMaxAge: null,
+          expires: expire,
+          httpOnly: false,
+          path: '/'
+        },
+        user_data: {
+          user_id: user_object["user_id"],
+          user_name: user_object["user_name"],
+          user_type_id: user_object["user_type_id"],
+          user_email: user_object["user_email"],
+          user_enabled: user_object["user_enabled"],
+          user_session_data: {
+            checkout_cart: [],
+            checkout_count: 0,
+          }
+        }
 3) expire - session expiration
 
 
@@ -56,13 +74,25 @@ let sessionManager = {
   //Get session data
   getSessionData: (db, session_id) => {
     let sessionData = generalQuery(db, `SELECT sess FROM sessions WHERE sid = '${session_id}'`, "get")
-    console.log("*SessionManager*: sessionData: ", sessionData)
+    //console.log("*SessionManager*: sessionData: ", sessionData)
     //Check if session data is null
     if(sessionData === undefined){
       return null
     }
     else{
-      return sessionData
+      return sessionData["sess"]
+    }
+  },
+  //Get session id
+  getSessionId: (db, user_id) => {
+    let sessionId = generalQuery(db, `SELECT sid FROM sessions WHERE user_id = '${user_id}'`, "get")
+    console.log("*SessionManager*: sessionId: ", sessionId)
+    //Check if session id is null
+    if(sessionId === undefined){
+      return null
+    }
+    else{
+      return sessionId
     }
   },
   //delete session when user logs out or session expires
@@ -73,45 +103,36 @@ let sessionManager = {
     return deleteSession
   },
   //Create session with user information and expiration date as well as user_session_data if provided which is used to store user specific data such as cart
-  createSession: (db, user_id, user_type_id, user_name, user_email, user_session_data) => {
-    //Create session id
-    let session_id = uuid()
-    //Create expire date
-    let expire = Date.now() + 3600000
-    //Create session where user data is part of cookie
-    let sessionData = {
-     cookie: {
-        originalMaxAge: null,
-        expires: expire,
-        httpOnly: true,
-        path: '/'
-      },
-      user_data: {
-        user_id: user_id,
-        user_type_id: user_type_id,
-        user_name: user_name,
-        user_email: user_email,
-        user_session_data: user_session_data
-      }
+  createSession: (db, newSessionInsertQuery, user_id) => {
+    //Check user_id has existing session
+    // let existingSession = generalQuery(db, `SELECT * FROM sessions WHERE user_id = '${user_id}'`, "get")
+    let existingSession = sessionManager.checkSession(db, user_id)
+    console.log("\n*SessionManager*: existingSession: ", existingSession)
+    //Check if existing session is null
+    if(existingSession === undefined || existingSession === null){
+      //Create new session
+      let newSession = generalQuery(db, newSessionInsertQuery, "run")
+      console.log("/n*SessionManager*: newSession: ", newSession)
+      let session_id = sessionManager.getSessionId(db, user_id)
+      console.log("*SessionManager*: newSession: ", session_id)
+      return session_id
     }
-    //Create session query
+    else{
+      //Return existing session
+      return existingSession
+    }
     
-    let createSessionQuery = `INSERT INTO sessions (sid, sess, expire) VALUES ('${session_id}', '${JSON.stringify(sessionData)}', '${expire}')`
-    let createSession = generalQuery(db, createSessionQuery, "run")
-    console.log("*SessionManager*: createSession: ", createSession)
-
-    //Return session id
-    return session_id
   },
   //Update session with user information and expiration date as well as user_session_data if provided which is used to store user specific data such as cart
   updateSession: (db, session_id, user_id, user_type_id, user_name, user_email, user_session_data) => {
     //Create expire date
     let expire = Date.now() + 3600000
+    console.log(expire)
     //Create session
     let updateSessionQuery = `
     UPDATE sessions
     SET sess
-    = '{"cookie":{"originalMaxAge":3600000,"expires":"${expire}","httpOnly":true,"path":"/"},"user_id":"${user_id}","user_type_id":"${user_type_id}","user_name":"${user_name}","user_email":"${user_email}","user_session_data":"${user_session_data}" }',
+    = '{"cookie":{"originalMaxAge":3600000,"expires":"${expire}","httpOnly":true,"path":"/"},"user_id":"${user_id}","user_type_id":"${user_type_id}","user_name":"${user_name}","user_email":"${user_email}","user_session_data":${user_session_data}}'
     expire = '${expire}'
     WHERE sid = '${session_id}'
     `
@@ -119,12 +140,106 @@ let sessionManager = {
     console.log("*SessionManager*: updateSession: ", updateSession)
     return updateSession
   },
-  //Check if session exists
+  //Check if user has an expired session
   checkSession: (db, session_id) => {
-    let checkSessionQuery = `SELECT * FROM sessions WHERE sid = '${session_id}'`
-    let checkSession = generalQuery(db, checkSessionQuery, "get")
-    console.log("*SessionManager*: checkSession: ", checkSession)
-    return checkSession
+    //Get session data
+    let sessionData = generalQuery(db, `SELECT * FROM sessions WHERE sid = '${session_id}'`, "get")
+    //console.log("*SessionManager*: sessionData: ", sessionData)
+    //Check if session data is null
+    if(sessionData === undefined){
+      return null
+    }
+    else{
+      //Get session expiration
+      let sessionExpiration = sessionData.expire
+      //Check if session has expired
+      if(sessionExpiration < Date.now()){
+        //Delete session
+        let deleted_session = sessionManager.deleteSession(db, sessionData.sid)
+        console.log("*SessionManager*: deleted_session: ", deleted_session)
+        return null
+      }
+      else{
+        console.log("Valid session")
+        return sessionData["sid"]
+      }
+    }
+  },
+  //update session data checkout cart with array of asset ids and checkout count
+  updateSessionCheckoutCart: (db, session_id, checkout_cart) => {
+    //get checkout count
+    let checkout_count = checkout_cart.length
+    //Get session data
+    let sessionData = sessionManager.getSessionData(db, session_id)
+    console.log(sessionData)
+    //Check if session data is null
+    if(sessionData === undefined || sessionData === null){
+      return null
+    }
+    else{
+      //console.log(sessionData["sess"])
+      //Get user_session_data string and parse to JSON
+      let parsed_sessionData = JSON.parse(sessionData)
+      //get expire date
+      let expire = parsed_sessionData["cookie"]["expires"]
+      //console.log(parsed_sessionData)
+      //Update user_session_data
+      let user_session_data = parsed_sessionData["user_data_items"]["user_session_data"]
+      
+      
+      //Update user_session_data
+      user_session_data.checkout_cart = checkout_cart
+      user_session_data.checkout_count = checkout_count
+      console.log(user_session_data)
+      //stringify user_session_data
+      let user_session_data_string = JSON.stringify(user_session_data)
+      console.log(user_session_data_string)
+      //Update session
+      let updateSession = sessionManager.updateSession(db, session_id, sessionData.user_id, sessionData.user_type_id, sessionData.user_name, sessionData.user_email, user_session_data_string)
+      return updateSession
+    }
+    
+
+  },
+  //get user session checkout cart
+  getSessionCheckoutCart: (db, session_id) => {
+    //Get session data
+    let sessionData = sessionManager.getSessionData(db, session_id)
+    //Check if session data is null
+    if(sessionData === undefined){
+      return null
+    }
+    else{
+      //Get user_session_data
+      let user_session_data = sessionData.user_session_data
+      //Get checkout cart
+      let checkout_cart = user_session_data.checkout_cart
+      return checkout_cart
+    }
+  },
+  //validate session exists and is not expired
+  validateSession: (db, session_id) => {
+    //Get session data
+    let sessionData = sessionManager.getSessionData(db, session_id)
+    //Check if session data is null
+    if(sessionData === undefined || sessionData === null){
+      return null
+    }
+    else{
+      //Get session expiration
+      let sessionExpiration = sessionData.expire
+      //Check if session has expired
+      if(sessionExpiration < Date.now()){
+        //Delete session
+        let deleted_session = sessionManager.deleteSession(db, sessionData.sid)
+        console.log("*SessionManager*: deleted_session: ", deleted_session)
+        return null
+      }
+      else{
+        console.log("Valid session")
+        return sessionData
+      }
+    }
   }
 }
 
