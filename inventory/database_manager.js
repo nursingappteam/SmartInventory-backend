@@ -105,23 +105,41 @@ let sessionManager = {
   //Create session with user information and expiration date as well as user_session_data if provided which is used to store user specific data such as cart
   createSession: (db, newSessionInsertQuery, user_id) => {
     //Check user_id has existing session
-    // let existingSession = generalQuery(db, `SELECT * FROM sessions WHERE user_id = '${user_id}'`, "get")
-    let existingSession = sessionManager.checkSession(db, user_id)
-    console.log("\n*SessionManager*: existingSession: ", existingSession)
+    let existingSession = generalQuery(db, `SELECT * FROM sessions WHERE user_id = '${user_id}'`, "get")
+    //let existingSession = sessionManager.checkSession(db, user_id)
+    //console.log("\n*existingSession: ", existingSession)
     //Check if existing session is null
     if(existingSession === undefined || existingSession === null){
       //Create new session
       let newSession = generalQuery(db, newSessionInsertQuery, "run")
-      console.log("/n*SessionManager*: newSession: ", newSession)
+      //console.log("/n*SessionManager*: newSession: ", newSession)
       let session_id = sessionManager.getSessionId(db, user_id)
       console.log("*SessionManager*: newSession: ", session_id)
-      return session_id
+      return {
+        name: "inventory_session_id",
+        value: session_id,
+        options: {
+          httpOnly: false,
+          expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+          path: '/',
+          SameSite: 'None',
+        }
+      }
     }
     else{
       //Return existing session
-      return existingSession
+      return {
+        name: "inventory_session_id",
+        value: existingSession["sid"],
+        options: {
+          httpOnly: false,
+          expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+          path: '/',
+          SameSite: 'None',
+
+        }
+      }
     }
-    
   },
   //Update session with user information and expiration date as well as user_session_data if provided which is used to store user specific data such as cart
   updateSession: (db, session_id, user_id, user_type_id, user_name, user_email, user_session_data) => {
@@ -132,8 +150,7 @@ let sessionManager = {
     let updateSessionQuery = `
     UPDATE sessions
     SET sess
-    = '{"cookie":{"originalMaxAge":3600000,"expires":"${expire}","httpOnly":true,"path":"/"},"user_id":"${user_id}","user_type_id":"${user_type_id}","user_name":"${user_name}","user_email":"${user_email}","user_session_data":${user_session_data}}'
-    expire = '${expire}'
+    = '{"cookie":{"originalMaxAge":null,"expires":${expire},"httpOnly":false,"path":"/"},"user_data":{"user_id":"${user_id}","user_type_id":"${user_type_id}","user_name":"${user_name}","user_email":"${user_email}","user_session_data":${user_session_data}}}'
     WHERE sid = '${session_id}'
     `
     let updateSession = generalQuery(db, updateSessionQuery, "run")

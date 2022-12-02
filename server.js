@@ -462,7 +462,7 @@ app.post('/users/validateUser', authorize(API_KEY), (req, res) => {
         "status": 200,
         "message": "Login Successful",
         "user": user_result,
-        "session_id": session_result
+        "cookie": session_result
       }
       res.setHeader('Access-Control-Allow-Origin', '*');
       //console.log("Session created: "+newSession)
@@ -756,6 +756,47 @@ app.post('/users/resetPassword', authorize(API_KEY), (req, res) => {
     })
   }
 });
+
+//Check email exists
+app.post('/users/checkEmail', authorize(API_KEY), (req, res) => {
+  if(!validateRequestParams(req.body, ["user_email"])){
+    console.log("Invalid or incomplete request");
+    res.status(400)
+    res.send({
+      "status" : 400,
+      "message": "Invalid Request Body"
+    });
+    return
+  }
+  //Get variables from body payload
+  var user_email = req.body["user_email"];
+  //log the request
+  console.log("Check Email Request: "+user_email)
+  let check_exists = `SELECT user_id FROM users WHERE user_email = '${user_email}'`
+  let check_exists_result = generalQuery(db, check_exists, "get")
+  console.log("check: "+JSON.stringify(check_exists_result).length)
+  //check if user already exists
+  if(check_exists_result == null || check_exists_result == []){
+    res.status(404)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 404,
+      message: "User Not Found"
+    })
+  }
+  else{
+    res.status(200);
+    res.setHeader('Content-Type','application/json');
+    res.json({
+      status: 200,
+      boolean: 1 
+    });
+  }
+});
+
+//Gene
+
+
 
 
 

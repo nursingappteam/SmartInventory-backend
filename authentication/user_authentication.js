@@ -1,5 +1,9 @@
 const bcrypt = require('bcrypt');
 const { v4: uuid } = require('uuid')
+
+//import crypto module
+const crypto = require('crypto');
+
 // Create user with bcrypt
 let createUserQuery = (username, password, email, user_type) => {
   //Use bcrypt syncronously salt and hash password
@@ -66,6 +70,7 @@ let createUserSession = (user_object) => {
     return createSessionQuery
 }
 
+//generate
 
 
 
