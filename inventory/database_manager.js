@@ -456,9 +456,26 @@ let checkoutManager = {
       available_assets.push(results[i].asset_id)
     }
     return available_assets
+  },
+  //Get user checkout history
+  getUserCheckoutHistory: (db, user_id) => {
+    let query = `
+    SELECT * FROM checkouts
+    WHERE user_id = ${user_id}
+    `
+    let results = generalQuery(db, query, "all")
+    return results
   }
 
 }
+
+
+
+
+
+
+
+
 
 //Function that holds all the queries for the checkout table
 let checkoutQueries = {

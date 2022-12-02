@@ -676,6 +676,36 @@ app.put("/checkout/denyCheckouts", authorize(API_KEY), (req, res) => {
   res.json(results);
 });
 
+//Get checkout history
+app.get("/checkout/getCheckoutHistory", authorize(API_KEY), (req, res) => {
+  !validateRequestParams(req.query, ["user_id"]) ? res.status(400).send("Invalid or incomplete request") : null;
+
+  //Get checkout history using checkoutManager
+  let results = checkoutManager.getCheckoutHistory(db, req.query["user_id"]);
+  if(results == null || results == undefined){
+    res.status(500);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 500,
+      message: "Server error",
+      error: results,
+    });
+  }
+  else if(results["code"] == "SQLITE_ERROR"){
+    res.status(500);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 500,
+      message: "Server error",
+      error: results,
+    });
+  }
+  res.status(200);
+  res.setHeader("Content-Type", "application/json");
+  res.json(results);
+});
+
+
 
 
 
