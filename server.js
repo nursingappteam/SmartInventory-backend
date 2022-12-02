@@ -610,6 +610,77 @@ app.put("/checkout/approveCheckout", authorize(API_KEY), (req, res) => {
 //TODO: deny checkout entry
 
 //TODO: get pending checkouts
+app.get("/checkout/getPendingCheckouts", authorize(API_KEY), (req, res) => {
+  //Get pending checkouts using checkoutManager
+  let results = checkoutManager.getAllPendingCheckouts(db);
+  if(results == null || results == undefined){
+    res.status(500);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 500,
+      message: "Server error",
+      error: results,
+    });
+  }
+  else if(results["code"] == "SQLITE_ERROR"){
+    res.status(500);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 500,
+      message: "Server error",
+      error: results,
+    });
+  }
+  res.status(200);
+  res.setHeader("Content-Type", "application/json");
+  res.json(results);
+});
+
+//Deny multiple checkouts
+app.put("/checkout/denyCheckouts", authorize(API_KEY), (req, res) => {
+  //Validate request body: must have an array of checkout_id's to deny
+  if (!validateRequestParams(req.body, ["checkout_id", "checkout_notes"])) {
+    console.log("Invalid or incomplete request");
+    res.status(400);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 400,
+      message: "Invalid Request Body",
+    });
+  }
+  //Validate checkout_id array
+  if (!Array.isArray(req.body["checkout_id"])) {
+    console.log("Invalid checkout_id format");
+    res.status(400);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 400,
+      message: "Invalid checkout_id format",
+    });
+
+  }
+
+  //Deny checkout record using checkoutManager
+  let results = checkoutManager.denyCheckout(db, req.body["checkout_id"], req.body["checkout_notes"]);
+  if (results["code"] == "SQLITE_ERROR") {
+    res.status(500);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 500,
+      message: "Server error",
+      error: results,
+    });
+  }
+  res.status(200);
+  res.setHeader("Content-Type", "application/json");
+  res.json(results);
+});
+
+
+
+
+
+
 
 //[1507...1601]
 //

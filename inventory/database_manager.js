@@ -117,7 +117,7 @@ let sessionManager = {
       console.log("*SessionManager*: newSession: ", session_id)
       return {
         name: "inventory_session_id",
-        value: session_id,
+        value: session_id["sid"],
         options: {
           httpOnly: false,
           expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
@@ -198,7 +198,7 @@ let sessionManager = {
       //Get user_session_data string and parse to JSON
       let parsed_sessionData = JSON.parse(sessionData)
       //get expire date
-      let expire = parsed_sessionData["cookie"]["expires"]
+      //let expire = parsed_sessionData["cookie"]["expires"]
       //console.log(parsed_sessionData)
       //Update user_session_data
       console.log(parsed_sessionData)
@@ -373,10 +373,14 @@ let checkoutManager = {
   insertCheckout: (db, asset_id, start_date, end_date, user_id) => {
     //Prevent duplicate checkouts where asset_id is an array of asset ids and user_id is the user id
     //Query to check if any of the assets are already checked out
-    let dupe_check = `SELECT * FROM checkouts WHERE asset_id IN (${asset_id}) AND user_id = ${user_id}`
+    let dupe_check = `
+      SELECT * FROM checkouts 
+      WHERE asset_id IN (${asset_id}) 
+      AND user_id = ${user_id}
+      AND approval_status = 0`
     //console.log("dupe_check: " + dupe_check)
     let dupe_results = generalQuery(db, dupe_check, "all")
-    console.log("dupe_results: " + dupe_results)
+    console.log("dupe_results: " + JSON.stringify(dupe_results))
     if(dupe_results.length > 0){
       return {"code" : "DUPLICATE_CHECKOUT"}
     }
@@ -407,8 +411,8 @@ let checkoutManager = {
     return results
   },
   //deny a checkout
-  denyCheckout: (db, checkout_id) => {
-    let query = checkoutQueries.createDenyCheckoutQuery(checkout_id)
+  denyCheckout: (db, checkout_id, checkout_msg) => {
+    let query = checkoutQueries.createDenyCheckoutQuery(checkout_id, checkout_msg)
     let results = generalQuery(db, query, "run")
     return results
   },  
@@ -555,14 +559,16 @@ let checkoutQueries = {
     query += ")"
     return query
   },
-  createDenyCheckoutQuery: (checkout_id) =>{
+  createDenyCheckoutQuery: (checkout_id, checkout_msg) =>{
     //validate input
     if (checkout_id == null){
       return "Error: checkout_id is null"
     }
     //create query
     return `
-    UPDATE checkouts SET approval_status = 2 WHERE checkout_id = ${checkout_id}`
+    UPDATE checkouts 
+    SET approval_status = 2, available = 1, checkout_notes = '${checkout_msg}' 
+    WHERE checkout_id IN (${checkout_id})`
   },
   //function to create a query to return a checkout where an array of checkout_ids is passed in as a parameter and the return_date is set to the current date, available is set to 1, and approval_status is set to 1
   createReturnCheckoutQuery: (checkout_id) =>{
