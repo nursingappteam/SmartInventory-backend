@@ -678,10 +678,20 @@ app.put("/checkout/denyCheckouts", authorize(API_KEY), (req, res) => {
 
 //Get checkout history
 app.get("/checkout/getCheckoutHistory", authorize(API_KEY), (req, res) => {
-  !validateRequestParams(req.query, ["user_id"]) ? res.status(400).send("Invalid or incomplete request") : null;
+  console.log("Getting checkout history");
+  if(!validateRequestParams(req.body, ["user_id"])){
+    console.log("Invalid or incomplete request");
+    res.status(400);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 400,
+      message: "Invalid Request Body",
+    });
+  }
 
+  console.log("user_id: " + req.body["user_id"]);
   //Get checkout history using checkoutManager
-  let results = checkoutManager.getCheckoutHistory(db, req.query["user_id"]);
+  let results = checkoutManager.getUserCheckoutHistory(db, req.body["user_id"]);
   if(results == null || results == undefined){
     res.status(500);
     res.setHeader("Content-Type", "application/json");

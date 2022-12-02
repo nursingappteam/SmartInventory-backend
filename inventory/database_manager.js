@@ -460,9 +460,10 @@ let checkoutManager = {
   //Get user checkout history
   getUserCheckoutHistory: (db, user_id) => {
     let query = `
-    SELECT * FROM checkouts
-    WHERE user_id = ${user_id}
-    `
+      SELECT * FROM checkouts
+      WHERE user_id = ${user_id}`
+    
+    console.log(query)
     let results = generalQuery(db, query, "all")
     return results
   }
