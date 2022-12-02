@@ -1,4 +1,9 @@
 const bcrypt = require('bcrypt');
+const { v4: uuid } = require('uuid')
+
+//import crypto module
+const crypto = require('crypto');
+
 // Create user with bcrypt
 let createUserQuery = (username, password, email, user_type) => {
   //Use bcrypt syncronously salt and hash password
@@ -31,9 +36,47 @@ let resetPasswordQuery = (user_id, password) => {
   `
 }
 
+//create user session with user_id and checkout_cart array that holes asset_ids and quantity
+let createUserSession = (user_object) => {
+    //
+
+    let session_id = uuid()
+    //Create expire date
+    let expire = Date.now() + 3600000
+    //Create session where user data is part of cookie
+    let sessionData = {
+     cookie: {
+        originalMaxAge: null,
+        expires: expire,
+        httpOnly: false,
+        path: '/'
+      },
+      user_data_items: {
+        user_id: user_object["user_id"],
+        user_name: user_object["user_name"],
+        user_type_id: user_object["user_type_id"],
+        user_email: user_object["user_email"],
+        user_enabled: user_object["user_enabled"],
+        user_session_data: {
+          checkout_cart: [],
+          checkout_count: 0,
+        }
+      }
+    }
+    //Create session query
+    
+    let createSessionQuery = `INSERT INTO sessions (sid, user_id, sess, expire) VALUES ('${session_id}', '${user_object["user_id"]}','${JSON.stringify(sessionData)}', '${expire}')`
+    console.log(sessionData)
+    return createSessionQuery
+}
+
+//generate
+
+
+
 
 
 let getUserQuery = (username) => {
   return `SELECT user_id FROM users WHERE user_name = '${username}'`
 }
-module.exports = {createUserQuery, validate_password, getUserQuery, resetPasswordQuery};
+module.exports = {createUserQuery, validate_password, getUserQuery, resetPasswordQuery, createUserSession};
