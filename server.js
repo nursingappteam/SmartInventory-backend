@@ -967,6 +967,62 @@ app.post('/users/session/updateCart', authorize(API_KEY), (req, res) => {
   }
 })
 
+//Get session data by session_id
+app.post('/users/session/getSession', authorize(API_KEY), (req, res) => {
+  if(!validateRequestParams(req.body, ["session_id"])){
+    console.log("\n******************\nInvalid or incomplete request");
+    console.log(req.body)
+    res.status(400)
+    res.send({
+      "status" : 400,
+      "message": "Invalid Request Body"
+    });
+    return
+  }
+  var session_id = req.body["session_id"];
+  sessionData = sessionManager.getSessionData(db, session_id)
+
+  if(sessionData == null || sessionData == undefined){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: sessionData
+    });
+  }
+  if(sessionData["code"] == "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: sessionData
+    });
+  }
+  if(sessionData.length == 0){
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 404,
+      message: "Invalid Credentials"
+    })
+  }
+  else{
+    //sessionData = sessionManager.validateSession(db, session_id)
+    res.status(200)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 200,
+      message: "Session Valid",
+      session: sessionData
+    })
+  }
+})
+
+
+
+
 
 app.post('/users/newUser', authorize(API_KEY), (req, res) => {
   if(!validateRequestParams(req.body, ["username","password","user_type", "user_email"])){
