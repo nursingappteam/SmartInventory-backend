@@ -201,6 +201,7 @@ let sessionManager = {
       let expire = parsed_sessionData["cookie"]["expires"]
       //console.log(parsed_sessionData)
       //Update user_session_data
+      console.log(parsed_sessionData)
       let user_session_data = parsed_sessionData["user_data_items"]["user_session_data"]
       
       
