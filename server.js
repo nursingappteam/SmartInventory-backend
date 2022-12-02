@@ -1,17 +1,23 @@
 require("dotenv").config({ path: "./.env" });
 const express = require("express");
+const session = require('express-session');
+
 // const https=require('https');
 // const http=require('http');
 const fs = require("fs");
 
+//Get environment variables
 const PORT = process.env.PORT;
 const API_KEY = process.env.API_KEY;
+const SESSION_SECRET = process.env.SESSION_SECRET;
+
 const authorize = require("./authentication/authorize.js");
 const {
   createUserQuery,
   validate_password,
   getUserQuery,
   resetPasswordQuery,
+  createUserSession
 } = require("./authentication/user_authentication.js");
 //const {checkoutManager} = require("./inventory/checkout_manager.js");
 
@@ -31,18 +37,42 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const Database = require("better-sqlite3");
-const db = new Database("./inventory/inventory_v5.db", {
-  verbose: console.log,
-});
-const {
-  generalQuery,
-  checkoutManager,
-} = require("./inventory/database_manager.js");
+const Database = require('better-sqlite3');
+const db = new Database("./inventory/inventory_v5.db", { verbose: console.log });
+const {generalQuery, checkoutManager, sessionManager} = require("./inventory/database_manager.js");
+
+//Store session data in database
+const SqliteStore = require("better-sqlite3-session-store")(session)
+
+//Session management functions with cookies
+//Idk if this is the best way to do this but it works
+//It creates a session table in the database and stores the session data there
+// app.use(
+//   session({
+//     secret: SESSION_SECRET,
+//     resave: false,
+//     store: new SqliteStore({
+//       client: db,
+//       table: "sessions",
+//       sidfieldname: "sid",
+//       user_id: "user_id",
+//       createtable: true,
+//       clearInterval: 60000 * 60 * 24
+//     }),
+//     saveUninitialized: false,
+//     cookie: {
+//       maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+//       sameSite: true,
+//       secure: false
+//     },
+//   })
+// )
 
 app.get("/", (req, res) => {
   res.send("SmartInventory API");
 });
+
+
 
 //get endpoint that will get all assets of inventory
 app.get("/assets/display_assets", authorize(API_KEY), (req, res) => {
@@ -681,12 +711,43 @@ app.post("/users/validateUser", authorize(API_KEY), (req, res) => {
       res.setHeader("Content-Type", "application/json");
       return res.json({
         status: 404,
-        message: "Invalid Credentials",
-      });
-    } else {
+        message: "Invalid Credentials"
+      })
+    }
+    else{
+      //TODO: add token generation and session management
+      newSessionInsertQuery = createUserSession(user_result)
+      //Insert new session into database
+      let session_result = sessionManager.createSession(db, newSessionInsertQuery, user_result["user_id"])
+      if(session_result == null){
+        res.status(500)
+        res.setHeader('Content-Type','application/json');
+        return res.json({
+          status : 500,
+          message: "Server error",
+          error: session_result
+        });
+      }
+      if(session_result["code"] == "SQLITE_ERROR" ){
+        console.log(session_result)
+        res.status(500);
+        return res.json({
+          status : 500,
+          message: "Server error",
+          error: session_result
+        });
+      }
+      //login verification successful
+      response_body = {
+        "status": 200,
+        "message": "Login Successful",
+        "user": user_result,
+        "cookie": session_result
+      }
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      //console.log("Session created: "+newSession)
       res.status(200);
-      res.setHeader("Content-Type", "application/json");
-      return res.json(user_result);
+      return res.json(response_body);
     }
   } else {
     res.status(400);
@@ -698,15 +759,99 @@ app.post("/users/validateUser", authorize(API_KEY), (req, res) => {
   }
 });
 
-app.post("/users/newUser", authorize(API_KEY), (req, res) => {
-  if (
-    !validateRequestParams(req.body, [
-      "username",
-      "password",
-      "user_type",
-      "user_email",
-    ])
-  ) {
+//Validate user has logged in by checking session_id
+app.post('/users/session/validateSession', authorize(API_KEY), (req, res) => {
+  if(!validateRequestParams(req.body, ["session_id"])){
+    console.log("\n******************\nInvalid or incomplete request");
+    console.log(req.body)
+    res.status(400)
+    res.send({
+      "status" : 400,
+      "message": "Invalid Request Body"
+    });
+    return
+  }
+  var session_id = req.body["session_id"];
+  sessionData = sessionManager.validateSession(db, session_id)
+  //let results = generalQuery(db, query, "get")
+  if(sessionData["code"] == "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: sessionData
+    });
+  }
+  if(sessionData.length == 0){
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 404,
+      message: "Invalid Credentials"
+    })
+  }
+  else{
+    //sessionData = sessionManager.validateSession(db, session_id)
+    res.status(200)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 200,
+      message: "Session Valid"
+    })
+  }
+})
+
+//update checkout cart in session
+app.post('/users/session/updateCart', authorize(API_KEY), (req, res) => {
+  !validateRequestParams(req.body, ["session_id", "cart_items"]) ? res.status(400).send({
+    "status" : 400,
+    "message": "Invalid Request Body"
+  }) : null;
+  var session_id = req.body["session_id"];
+  var cart_items = req.body["cart_items"];
+  //updateSessionCheckoutCart: (db, session_id, checkout_cart)
+  sessionData = sessionManager.updateSessionCheckoutCart(db, session_id, cart_items)
+  //let results = generalQuery(db, query, "get")
+  if(null == sessionData){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 404,
+      message: "Session Not Found"
+    });
+  }
+  if(sessionData["code"] == "SQLITE_ERROR"){
+    res.status(500)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status : 500,
+      message: "Server error",
+      error: sessionData
+    });
+  }
+  if(sessionData.length == 0){
+    res.status(400)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 404,
+      message: "Invalid Credentials"
+    })
+  }
+  else{
+    //let updatedcart = sessionManager.getSessionCheckoutCart(db, session_id)
+    res.status(200)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 200,
+      message: "Session Valid"
+    })
+  }
+})
+
+
+app.post('/users/newUser', authorize(API_KEY), (req, res) => {
+  if(!validateRequestParams(req.body, ["username","password","user_type", "user_email"])){
     console.log("Invalid or incomplete request");
     res.status(400);
     res.send({
@@ -891,6 +1036,50 @@ app.post("/users/resetPassword", authorize(API_KEY), (req, res) => {
     });
   }
 });
+
+//Check email exists
+app.post('/users/checkEmail', authorize(API_KEY), (req, res) => {
+  if(!validateRequestParams(req.body, ["user_email"])){
+    console.log("Invalid or incomplete request");
+    res.status(400)
+    res.send({
+      "status" : 400,
+      "message": "Invalid Request Body"
+    });
+    return
+  }
+  //Get variables from body payload
+  var user_email = req.body["user_email"];
+  //log the request
+  console.log("Check Email Request: "+user_email)
+  let check_exists = `SELECT user_id FROM users WHERE user_email = '${user_email}'`
+  let check_exists_result = generalQuery(db, check_exists, "get")
+  console.log("check: "+JSON.stringify(check_exists_result).length)
+  //check if user already exists
+  if(check_exists_result == null || check_exists_result == []){
+    res.status(404)
+    res.setHeader('Content-Type','application/json');
+    return res.json({
+      status: 404,
+      message: "User Not Found"
+    })
+  }
+  else{
+    res.status(200);
+    res.setHeader('Content-Type','application/json');
+    res.json({
+      status: 200,
+      boolean: 1 
+    });
+  }
+});
+
+//Gene
+
+
+
+
+
 
 const validateRequestParams = (body, params) => {
   let result = true;
