@@ -306,197 +306,271 @@ let getAssetByIdArray = (db, asset_id_array) => {
 
 
 // Define checkout manager
+/*
+  Checkout table has the following columns: checkout_id, asset_id, start_date, due_date, user_id, approval_status, checkout_notes, return_date, available
+
+  approval_status: 0 = pending, 1 = approved, 2 = denied
+  return_status: 0 = pending, 1 = returned
+  available: 0 = assets are locked, 1 = assets are available
+
+  Description of checkout process:
+  1) User requests checkout
+  2) Checkout request is sent to admin
+  3) Admin approves or denies request
+  4) If approved, user can checkout assets
+  5) If denied, user cannot checkout assets
+  6) User can return assets before or at due date
+  7) If returned before due date, user can checkout assets again
+  8) If returned after due date, admin is notified
+  9) Once assets are returned the checkout record is updated to reflect the return date and the assets are marked as available
+
+*/
 let checkoutManager = {
-  //function to create a checkout
-  createCheckout: (db, checkout) => {
-    /* checkoout object
-    {
-      asset_id: [1,2,3],
-      user_id: 1,
-      checkout_date: "2020-01-01",
-      due_date: "2020-01-01",
-      return_date: "2020-01-01",
-      checkout_notes: "notes"
-    }
-    */
-    //Check if asset is available assuming asset_id is an array of asset_ids
-
-    //define results with unavailable assets array and available assets array
-    let results = {
-      unavailable_assets: [],
-      available_assets: [],
-      query_results: []
-    }
-    
-    //available assets
-    let available_assets = checkoutManager.getAvailableCheckoutsByAssetId(db, checkout.asset_id)
-    //console.log(available_assets)
-    //if there are records in available_assets then will check each asset to see if it is available
-    if (available_assets.length > 0){
-      //Check each asset to see if it is available return unavailable asset
-      //If any asset is not available, return error
-      // available = 1 if asset is available
-      // available = 0 if asset is not available
-      for (let i = 0; i < available_assets.length; i++){
-        console.log(available_assets[i].available)
-        if (available_assets[i].available == 0){
-          results.unavailable_assets.push(available_assets[i])
-        }
-        else if( available_assets[i].available == 1){
-          results.available_assets.push(available_assets[i])
-        }
-      }
-
-      if (results.available_assets.length > 0){
-        for (let i = 0; i < results.available_assets.length; i++){
-          let query = createInsertCheckoutsQuery(results.available_assets[i].asset_id, checkout.start_date, checkout.due_date, checkout.user_id)
-          //push query results to results object
-          //results.query_results.push(generalQuery(db, query, "run"))
-        }
-      }
-      else{
-        return results
-      }
+  //get all checkouts
+  getAllCheckouts: (db) => {
+    let query = "SELECT * FROM checkouts"
+    let results = generalQuery(db, query, "all")
+    return results
+  },
+  //get checkout by id
+  getCheckoutById: (db, checkout_id) => {
+    let query = createGetCheckoutsQuery(checkout_id)
+    let results = generalQuery(db, query, "all")
+    return results
+  },
+  //get checkout by user id
+  getCheckoutByUserId: (db, user_id) => {
+    let query = `SELECT * FROM checkouts WHERE user_id = ${user_id}`
+    let results = generalQuery(db, query, "all")
+    return results
+  },
+  //get checkout by asset id
+  getCheckoutByAssetId: (db, asset_id, begin_date, end_date) => {
+    let query = createGetCheckoutsQuery(asset_id, begin_date, end_date)
+    let results = generalQuery(db, query, "all")
+    return results
+  },
+  //get checkout by approval status
+  getCheckoutByApprovalStatus: (db, approval_status) => {
+    let query = `SELECT * FROM checkouts WHERE approval_status = ${approval_status}`
+    let results = generalQuery(db, query, "all")
+    return results
+  },
+  //get checkout by return status
+  getCheckoutByReturnStatus: (db, return_status) => {
+    let query = `SELECT * FROM checkouts WHERE return_status = ${return_status}`
+    let results = generalQuery(db, query, "all")
+    return results
+  },
+  //get checkout by available status
+  getCheckoutByAvailableStatus: (db, available_status) => {
+    let query = `SELECT * FROM checkouts WHERE available = ${available_status}`
+    let results = generalQuery(db, query, "all")
+    return results
+  },
+  //insert a checkout
+  insertCheckout: (db, asset_id, start_date, end_date, user_id) => {
+    //Prevent duplicate checkouts where asset_id is an array of asset ids and user_id is the user id
+    //Query to check if any of the assets are already checked out
+    let dupe_check = `SELECT * FROM checkouts WHERE asset_id IN (${asset_id}) AND user_id = ${user_id}`
+    //console.log("dupe_check: " + dupe_check)
+    let dupe_results = generalQuery(db, dupe_check, "all")
+    console.log("dupe_results: " + dupe_results)
+    if(dupe_results.length > 0){
+      return {"code" : "DUPLICATE_CHECKOUT"}
     }
     else{
-      for (let i = 0; i < checkout.asset_id.length; i++){
-        let query = createInsertCheckoutsQuery(checkout.asset_id[i], checkout.checkout_date, checkout.due_date, checkout.user_id)
-        //push query results to results object
-        results.query_results.push(generalQuery(db, query, "run"))
+      let query = checkoutQueries.createInsertCheckoutsQuery(asset_id, start_date, end_date, user_id)
+      console.log(query)
+      let results = generalQuery(db, query, "run")
+      return results
+    }
+
+  },
+  //update a checkout
+  updateCheckout: (db, checkout_id, asset_id, start_date, end_date, user_id, approval_status, checkout_notes, return_date, available) => {
+    let query = checkoutQueries.createUpdateCheckoutsQuery(checkout_id, asset_id, start_date, end_date, user_id, approval_status, checkout_notes, return_date, available)
+    let results = generalQuery(db, query, "run")
+    return results
+  },
+  //delete a checkout
+  deleteCheckout: (db, checkout_id) => {
+    let query = checkoutQueries.createDeleteCheckoutsQuery(checkout_id)
+    let results = generalQuery(db, query, "run")
+    return results
+  },
+  //approve a checkout
+  approveCheckout: (db, checkout_id) => {
+    let query = checkoutQueries.createApproveCheckoutQuery(checkout_id)
+    let results = generalQuery(db, query, "run")
+    return results
+  },
+  //deny a checkout
+  denyCheckout: (db, checkout_id) => {
+    let query = checkoutQueries.createDenyCheckoutQuery(checkout_id)
+    let results = generalQuery(db, query, "run")
+    return results
+  },  
+  //return a checkout
+  returnCheckout: (db, checkout_id) => {
+    let query = checkoutQueries.createReturnCheckoutQuery(checkout_id)
+    let results = generalQuery(db, query, "run")
+    return results
+  },
+  //lock a checkout
+  lockCheckout: (db, checkout_id) => {
+    let query = checkoutQueries.createLockCheckoutQuery(checkout_id)
+    let results = generalQuery(db, query, "run")
+    return results
+  },
+  //unlock a checkout
+  unlockCheckout: (db, checkout_id) => {
+    let query = checkoutQueries.createUnlockCheckoutQuery(checkout_id)
+    let results = generalQuery(db, query, "run")
+    return results
+  },
+  //get all pending checkouts
+  getAllPendingCheckouts: (db) => {
+    let query = checkoutQueries.createGetPendingCheckoutsQuery()
+    let results = generalQuery(db, query, "all")
+    return results
+  },
+  //get all approved checkouts
+  getAllApprovedCheckouts: (db) => {
+    let query = checkoutQueries.createApproveCheckoutQuery()
+    let results = generalQuery(db, query, "all")
+    return results
+  },
+  //Get assets that are available for checkout given an array of asset ids and return list of asset ids that are available
+  getUnavailableAssets: (db, asset_id_array) => {
+    let query = checkoutQueries.createGetUnavailableCheckoutsQuery(asset_id_array)
+    let results = generalQuery(db, query, "all")
+
+    let available_assets = []
+    for (let i = 0; i < results.length; i++) {
+      available_assets.push(results[i].asset_id)
+    }
+    return available_assets
+  }
+
+}
+
+//Function that holds all the queries for the checkout table
+let checkoutQueries = {
+  //get all checkouts
+  getAllCheckouts: "SELECT * FROM checkouts",
+  //get checkout by id and start_date is in between begin_date and end_date
+  getCheckoutsById: (checkout_id,begin_date, end_date) => {
+    let query = `SELECT * FROM checkouts WHERE checkout_id = ${checkout_id} AND start_date BETWEEN ${begin_date} AND ${end_date}`
+    return query
+  },
+
+  //get checkout by user id
+  getCheckoutByUserId: (user_id) => {
+    let query = `SELECT * FROM checkouts WHERE user_id = ${user_id}`
+    return query
+  },
+  //get checkout by asset id
+  getCheckoutByAssetId: (asset_id) => {
+    let query = `SELECT * FROM checkouts WHERE asset_id = ${asset_id}`
+    return query
+  },
+  //get checkout by approval status
+  getCheckoutByApprovalStatus: (approval_status) => {
+    let query = `SELECT * FROM checkouts WHERE approval_status = ${approval_status}`
+    return query
+  },
+  createInsertCheckoutsQuery: (asset_id,start_date,end_date,user_id) =>{
+    //asset_id is an array of asset ids that the user wants to checkout
+    //Loop through the array and create a query for each asset
+    //Each values will set the approval status to 0 (pending) and aa available status to 1 (available)
+    let query = `INSERT INTO checkouts (asset_id, start_date, due_date, user_id, approval_status, available) VALUES `
+    for(let i = 0; i < asset_id.length; i++){
+      query += `(${asset_id[i]}, '${start_date}', '${end_date}', ${user_id}, 0, 1)`
+      if(i < asset_id.length - 1){
+        query += `,`
       }
     }
-    return results
-  },
-  //function to approve a checkout
-  approveCheckout: (db, checkout_item) => {
-    //validate input
-    if (checkout_item == null){
-      return "checkout object is required"
-    }
-    //create query
-    let query = `
-      UPDATE checkout
-      SET approval_status = 1, available = 0
-      WHERE checkout_id in (${checkout_item.checkout_id})
-    `
-    //run query
-    let results = generalQuery(db, query, "run")
-    // Deny checkouts that are pending and have the same asset_id
-    deny_results = checkoutManager.denyCheckoutsConflict(db, checkout_item.checkout_id, checkout_item.asset_id)
+    return query
     
-
-    return results
   },
-  //function to deny a checkout with id array and notes
-  denyCheckout: (db, checkout_id, notes) => {
+  createGetCheckoutsQuery: (checkout_id) =>{
+    //checkout_id is an array of checkout_ids
     //validate input
     if (checkout_id == null){
-      return "checkout_id is required"
+      return "Error: checkout_id is null"
     }
-    if (notes == null){
-      return "notes is required"
-    }
-    //create query
-    let query = `
-      UPDATE checkout
-      SET approval_status = 2, available = 1, notes = ${notes}
-      WHERE checkout_id in (${checkout_id})
-    `
-    //run query
-    let results = generalQuery(db, query, "run")
-    return results
-  },
-  //function to set checkouts to denied if another checkout is approved
-  denyCheckoutsConflict: (db, checkout_id, asset_id) => {
-    //validate input
-    if (checkout_id == null){
-      return "checkout_id is required"
-    }
-    //create query
-    let query = `
-      UPDATE checkout
-      SET approval_status = 2, available = 1, notes = "Another checkout was approved for this asset"
-      WHERE checkout_id NOT IN (${checkout_id})
-      AND asset_id IN (${asset_id})
-    `
-    //run query
-    let results = generalQuery(db, query, "run")
-    return results
-  },
-  //function to get all checkouts
-  getCheckouts: (db) => {
+    //check if checkout_id is an array
+    if (Array.isArray(checkout_id)){
       //create a query to get all checkouts
-      let query = "SELECT * FROM checkout"
-      //run the queryn
-      let results = generalQuery(db, query, "all")
-      //return the results
-      return results
-  },
-  //function to get a checkout
-  getCheckout: (db, checkout) => {
+      let query = "SELECT * FROM checkouts WHERE checkout_id IN ("
+      //add all checkout_ids to the query
+      for (let i = 0; i < checkout_id.length; i++){
+        query += checkout_id[i]
+        if (i < checkout_id.length - 1){
+          query += ","
+        }
+      }
+      query += ")"
+      return query
+    }
+    else {
       //create a query to get the checkout
-      let query = createGetCheckoutsQuery(checkout.checkout_id)
-      //run the query
-      let results = generalQuery(db, query, "get")
-      //return the results
-      return results
+      let query = `SELECT * FROM checkouts WHERE checkout_id = ${checkout_id}`
+      return query
+    }
   },
-  //function to update a checkout
-  updateCheckout: (db, checkout) => {
-      //create a query to update the checkout
-      let query = createUpdateCheckoutsQuery(checkout.checkout_id, checkout.asset_id, checkout.start_date, checkout.end_date, checkout.user_id, checkout.approval_status, checkout.return_status)
-      //run the query
-      let results = generalQuery(db, query, "run")
-      //return the results
-      return results
+  createUpdateCheckoutsQuery: (checkout_id, asset_id, start_date, end_date, user_id, approval_status, checkout_notes, return_date, available) =>{
+    //validate input
+    if (checkout_id == null || asset_id == null || start_date == null || end_date == null || user_id == null || approval_status == null || checkout_notes == null || return_date == null || available == null){
+      return "Error: one or more input values are null"
+    }
+    //create a query to update the checkout
+    let query = `UPDATE checkouts SET asset_id = ${asset_id}, start_date = '${start_date}', end_date = '${end_date}', user_id = ${user_id}, approval_status = ${approval_status}, checkout_notes = '${checkout_notes}', return_date = '${return_date}', available = ${available} WHERE checkout_id = ${checkout_id}`
+    return query
   },
-  //function to delete a checkout
-  deleteCheckout: (db, checkout) => {
-      //create a query to delete the checkout
-      let query = createDeleteCheckoutsQuery(checkout.checkout_id)
-      //run the query
-      let results = generalQuery(db, query, "run")
-      //return the results
-      return results
+  createDeleteCheckoutsQuery: (checkout_id) =>{
+    //validate input
+    if (checkout_id == null){
+        return "Error: checkout_id is null"
+    }
+    //create query
+    return `
+    DELETE FROM checkout WHERE checkout_id = '${checkout_id}'`
   },
-  //function to get active checkouts
-  getAvailableCheckouts: (db) => {
-      //create a query to get all active checkouts
-      let query = "SELECT * FROM checkout WHERE available = '1'"
-      //run the query
-      let results = generalQuery(db, query, "all")
-      //return the results
-      return results
+  createApproveCheckoutQuery: (checkout_id) =>{
+    //validate input
+    if (checkout_id == null){
+      return "Error: checkout_id is null"
+    }
+    //create query where checkout_id is in the array
+    let query = `UPDATE checkouts SET approval_status = 0, available = 0 WHERE checkout_id IN (`
+    for (let i = 0; i < checkout_id.length; i++){
+      query += checkout_id[i]
+      if (i < checkout_id.length - 1){
+        query += ","
+      }
+    }
+    query += ")"
+    return query
   },
-  //function to get active checkout by asset id array input
-  getAvailableCheckoutsByAssetId: (db, asset_id_array) => {
-      //create a query to get all active checkouts
-      let query = `SELECT * FROM checkout WHERE available = '1' AND asset_id IN (${asset_id_array})`
-      //run the query
-      let results = generalQuery(db, query, "all")
-      //return the results
-      return results
-  }
-}
-
-//insert a checkout
-let createInsertCheckoutsQuery = (asset_id,start_date,end_date,user_id) =>{
-  return `
-  INSERT INTO checkout (checkout_id, asset_id, start_date, due_date, user_id, approval_status, checkout_notes, return_date, available)
-  VALUES (NULL, '${asset_id}', '${start_date}', '${end_date}', '${user_id}', 0,NULL,NULL, 1)` 
-}
-
-//get a checkout
-let createGetCheckoutsQuery = (checkout_id) =>{
-  //checkout_id is an array of checkout_ids
-  //validate input
-  if (checkout_id == null){
-    return "Error: checkout_id is null"
-  }
-  //check if checkout_id is an array
-  if (Array.isArray(checkout_id)){
-    //create a query to get all checkouts
-    let query = "SELECT * FROM checkouts WHERE checkout_id IN ("
+  createDenyCheckoutQuery: (checkout_id) =>{
+    //validate input
+    if (checkout_id == null){
+      return "Error: checkout_id is null"
+    }
+    //create query
+    return `
+    UPDATE checkouts SET approval_status = 2 WHERE checkout_id = ${checkout_id}`
+  },
+  //function to create a query to return a checkout where an array of checkout_ids is passed in as a parameter and the return_date is set to the current date, available is set to 1, and approval_status is set to 1
+  createReturnCheckoutQuery: (checkout_id) =>{
+    //validate input
+    if (checkout_id == null){
+      return "Error: checkout_id is null"
+    }
+    //Loop through the array and create a query for each checkout
+    let query = "UPDATE checkouts SET return_date = CURRENT_DATE, available = 1, approval_status = 1 WHERE checkout_id IN ("
     //add all checkout_ids to the query
     for (let i = 0; i < checkout_id.length; i++){
       query += checkout_id[i]
@@ -506,53 +580,82 @@ let createGetCheckoutsQuery = (checkout_id) =>{
     }
     query += ")"
     return query
-  }
-  else {
-    //create a query to get the checkout
-    let query = `SELECT * FROM checkouts WHERE checkout_id = ${checkout_id}`
+  },
+  //function to create a query to lock a checkout where an array of checkout_ids is passed in as a parameter and the available is set to 0
+  createLockCheckoutQuery: (checkout_id) =>{
+    //validate input
+    if (checkout_id == null){
+      return "Error: checkout_id is null"
+    }
+    //Loop through the array and create a query for each checkout
+    let query = "UPDATE checkouts SET available = 0 WHERE checkout_id IN ("
+    //add all checkout_ids to the query
+    for (let i = 0; i < checkout_id.length; i++){
+      query += checkout_id[i]
+      if (i < checkout_id.length - 1){
+        query += ","
+      }
+    }
+    query += ")"
+    return query
+  },
+  //function to create a query to unlock a checkout where an array of checkout_ids is passed in as a parameter and the available is set to 1
+  createUnlockCheckoutQuery: (checkout_id) =>{
+    //validate input
+    if (checkout_id == null){
+      return "Error: checkout_id is null"
+    }
+    //Loop through the array and create a query for each checkout
+    let query = "UPDATE checkouts SET available = 1 WHERE checkout_id IN ("
+    //add all checkout_ids to the query
+    for (let i = 0; i < checkout_id.length; i++){
+      query += checkout_id[i]
+      if (i < checkout_id.length - 1){
+        query += ","
+      }
+    }
+    query += ")"
+    return query
+  },
+  //function to create a query to get all pending checkouts that are available and have not been approved or denied yet and have not been returned
+  createGetPendingCheckoutsQuery: () =>{
+    return `
+    SELECT * FROM checkouts WHERE approval_status = 0 AND available = 1 AND return_date IS NULL`
+  },
+  //function to create a query to get all approved checkouts that are available and have not been returned
+  createGetApprovedCheckoutsQuery: () =>{
+    return `
+    SELECT * FROM checkouts WHERE approval_status = 1 AND available = 1 AND return_date IS NULL`
+  },
+  //function to create a query to get all denied checkouts that are available and have not been returned
+  createGetDeniedCheckoutsQuery: () =>{
+    return `
+    SELECT * FROM checkouts WHERE approval_status = 2 AND available = 1 AND return_date IS NULL`
+  },
+  //function to create a query to get all returned checkouts that are available
+  createGetReturnedCheckoutsQuery: () =>{
+    return `
+    SELECT * FROM checkouts WHERE return_date IS NOT NULL AND available = 1`
+  },
+  //Function to create a query to get all checkouts that are available given an array of asset_ids
+  createGetUnavailableCheckoutsQuery: (asset_id) =>{  
+    //validate input
+    if (asset_id == null){
+      return "Error: asset_id is null"
+    }
+    //create a query where asset_id is in the array
+    let query = `SELECT * FROM checkouts WHERE asset_id IN (`
+    for (let i = 0; i < asset_id.length; i++){
+      query += asset_id[i]
+      if (i < asset_id.length - 1){
+        query += ","
+      }
+    }
+    query += ") AND available = 0"
     return query
   }
-}
-
-//update a checkout
-let createUpdateCheckoutsQuery = (checkout_id, asset_id, start_date, end_date, user_id, approval_status, return_status) =>{
-  //validate input
-  if (checkout_id == null){
-      return "Error: checkout_id is null"
-  }
-  if (asset_id == null){
-      return "Error: asset_id is null"
-  }
-  if (start_date == null){
-      return "Error: start_date is null"
-  }
-  if (end_date == null){
-      return "Error: end_date is null"
-  }
-  if (user_id == null){
-      return "Error: user_id is null"
-  }
-  if (approval_status == null){
-      return "Error: approval_status is null"
-  }
-  if (return_status == null){
-      return "Error: return_status is null"
-  }
-  //create query
-  return `
-  UPDATE checkout SET asset_id = '${asset_id}', start_date = '${start_date}', end_date = '${end_date}', user_id = '${user_id}', approval_status = '${approval_status}', return_status = '${return_status}' WHERE checkout_id = '${checkout_id}'`
-}
-
-//delete a checkout
-let createDeleteCheckoutsQuery = (checkout_id) =>{
-  //validate input
-  if (checkout_id == null){
-      return "Error: checkout_id is null"
-  }
-  //create query
-  return `
-  DELETE FROM checkout WHERE checkout_id = '${checkout_id}'`
+    
 }
 
 
-module.exports = {generalQuery, checkoutManager, sessionManager}
+module.exports = {generalQuery, checkoutManager, sessionManager, assetManager}
