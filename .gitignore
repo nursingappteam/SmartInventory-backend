@@ -6,3 +6,5 @@ certs
 .env
 .db
 .glitch-assets
+.db-shm
+.db-wal
