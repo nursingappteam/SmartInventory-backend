@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const { v4: uuid } = require('uuid')
+const { v4: uuidv4 } = require('uuid');
 
 //import crypto module
 const crypto = require('crypto');
@@ -37,37 +37,58 @@ let resetPasswordQuery = (user_id, password) => {
 }
 
 //create user session with user_id and checkout_cart array that holes asset_ids and quantity
-let createUserSession = (user_object) => {
-    //
+let createUserSession = (db, user) => {
+  // Check if a session for the specified user already exists
+  const existingSession = db.prepare(`
+    SELECT *
+    FROM sessions
+    WHERE user_id = ?
+  `).get(user.user_id);
 
-    let session_id = uuid()
-    //Create expire date
-    let expire = Date.now() + 3600000
-    //Create session where user data is part of cookie
-    let sessionData = {
-     cookie: {
-        originalMaxAge: null,
-        expires: expire,
-        httpOnly: false,
-        path: '/'
+  // If a session for the specified user already exists, return the existing session ID
+  if (existingSession) {
+    console.log('\n\nexisting session: '+ existingSession.sid);
+    return existingSession.sid;
+  }
+
+  // Initialize the sess object with data from the user object
+  const sess = {
+    cookie: {
+      expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days from now
+      httpOnly: false,
+      originalMaxAge: null,
+      path: '/',
+    },
+    user_data_items: {
+      user_email: user.user_email,
+      user_enabled: user.user_enabled,
+      user_id: user.user_id,
+      user_name: user.user_name,
+      user_session_data: {
+        checkout_cart: [],
+        checkout_count: 0,
       },
-      user_data_items: {
-        user_id: user_object["user_id"],
-        user_name: user_object["user_name"],
-        user_type_id: user_object["user_type_id"],
-        user_email: user_object["user_email"],
-        user_enabled: user_object["user_enabled"],
-        user_session_data: {
-          checkout_cart: [],
-          checkout_count: 0,
-        }
-      }
+      user_type_id: user.user_type_id,
+    },
+  };
+  // Generate a session ID
+  const sid = uuidv4();
+  // Insert a new session record into the sessions table
+  try{
+    db.prepare(`
+    INSERT INTO sessions (sid, user_id, sess, expire)
+    VALUES (?, ?, ?, ?)
+  `).run(sid, user.user_id, JSON.stringify(sess), expire);
+  }
+  catch(err){
+    console.log(err);
+    return {
+      error: err
     }
-    //Create session query
-    
-    let createSessionQuery = `INSERT INTO sessions (sid, user_id, sess, expire) VALUES ('${session_id}', '${user_object["user_id"]}','${JSON.stringify(sessionData)}', '${expire}')`
-    console.log(sessionData)
-    return createSessionQuery
+  }
+
+  // Return the session ID
+  return sid;
 }
 
 //generate

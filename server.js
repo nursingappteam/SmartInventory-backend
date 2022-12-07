@@ -37,36 +37,36 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const {generalQuery, initializeDatabase, checkoutManager, sessionManager,} = require("./inventory/database_manager.js");
+
 const Database = require('better-sqlite3');
-const db = new Database("./inventory/inventory_v5.db", { verbose: console.log });
-const {generalQuery, checkoutManager, sessionManager} = require("./inventory/database_manager.js");
+const db = new Database("./inventory/inventory_v6.db", { verbose: console.log });
+
+//initialize database
+initializeDatabase(db);
+// Use the PRAGMA statement to configure the table schema
+db.pragma('synchronous = 1');
+db.pragma('journal_mode = wal');
+
+// Create the checkouts table
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS checkouts (
+    checkout_id INTEGER PRIMARY KEY,
+    asset_id INTEGER NOT NULL,
+    start_date TEXT NOT NULL,
+    due_date TEXT NOT NULL,
+    user_id INTEGER NOT NULL,
+    approval_status INTEGER NOT NULL,
+    checkout_notes TEXT NOT NULL,
+    return_date TEXT NOT NULL,
+    available INTEGER NOT NULL
+  )
+`).run();
+
 
 //Store session data in database
-const SqliteStore = require("better-sqlite3-session-store")(session)
+//const SqliteStore = require("better-sqlite3-session-store")(session)
 
-//Session management functions with cookies
-//Idk if this is the best way to do this but it works
-//It creates a session table in the database and stores the session data there
-// app.use(
-//   session({
-//     secret: SESSION_SECRET,
-//     resave: false,
-//     store: new SqliteStore({
-//       client: db,
-//       table: "sessions",
-//       sidfieldname: "sid",
-//       user_id: "user_id",
-//       createtable: true,
-//       clearInterval: 60000 * 60 * 24
-//     }),
-//     saveUninitialized: false,
-//     cookie: {
-//       maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-//       sameSite: true,
-//       secure: false
-//     },
-//   })
-// )
 
 app.get("/", (req, res) => {
   res.send("SmartInventory API");
@@ -400,6 +400,7 @@ app.post("/checkout/createCheckout", authorize(API_KEY), (req, res) => {
       message: "Invalid Request Body",
     });
   }
+
   //Validate date format
   if (
     !validateDate(req.body["start_date"]) ||
@@ -423,79 +424,28 @@ app.post("/checkout/createCheckout", authorize(API_KEY), (req, res) => {
       message: "Invalid asset_id format",
     });
   }
-  //get unavailable assets
-  let unAvailableAssets = checkoutManager.getUnavailableAssets(
-    db,
-    req.body["asset_id"]
-  );
-  console.log("unavailable assets: " + unAvailableAssets);
-  console.log("unavailable assets length: " + unAvailableAssets.length);
-  //If available there are available assets then create checkout and return success with unavailable assets in response
-  if (unAvailableAssets.length < req.body["asset_id"].length) {
-    //Subtract unavailable assets from asset_id array
-    let availableAssets = req.body["asset_id"].filter(
-      (x) => !unAvailableAssets.includes(x)
-    );
-    console.log("available assets: " + availableAssets);
-    //insert available checkouts
-    let results = checkoutManager.insertCheckout(
-      db,
-      availableAssets,
-      req.body["start_date"],
-      req.body["end_date"],
-      req.body["user_id"]
-    );
-    if (results["code"] == "DUPLICATE_CHECKOUT") {
-      res.status(400);
-      res.setHeader("Content-Type", "application/json");
-      return res.json({
-        status: 400,
-        message: "Request error",
-        error: results,
-      });
-    }
-    if (results["code"] == "SQLITE_ERROR") {
-      res.status(500);
-      res.setHeader("Content-Type", "application/json");
-      return res.json({
-        status: 500,
-        message: "Server error",
-        error: results,
-      });
-    } else if (results["code"] == "SQLITE_CONSTRAINT") {
-      res.status(400);
-      res.setHeader("Content-Type", "application/json");
-      return res.json({
-        status: 400,
-        message: "Invalid request",
-        error: results,
-      });
-    }
-    res.status(200);
-    res.setHeader("Content-Type", "application/json");
-    return res.json({
-      status: 200,
-      message: "Checkout created",
-      assets_checked_out: availableAssets,
-      unavailable_assets: unAvailableAssets,
-    });
-  }
-  //If there are no available assets then return error
-  else {
-    res.status(400);
-    res.setHeader("Content-Type", "application/json");
-    return res.json({
-      status: 400,
-      message: "No available assets",
-      unavailable_assets: unAvailableAssets,
-    });
-  }
+  //get request body
+  let asset_id = req.body["asset_id"];
+  let start_date = req.body["start_date"];
+  let end_date = req.body["end_date"];
+  let user_id = req.body["user_id"];
 
-  // return res.json({
-  //   "status" : 400,
-  //   "message": "Invalid asset_id format",
-  //   "unavailable_assets": unAvailableAssets
-  // });
+  //insert checkout record
+  let results = checkoutManager.insertCheckout(db, asset_id, start_date, end_date, user_id);
+
+  console.log("results: ", results);
+  if (results["code"] == "SQLITE_ERROR") {
+    res.status(500);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 500,
+      message: "Server error",
+      error: results,
+    });
+  }
+  res.status(200);
+  res.setHeader("Content-Type", "application/json");
+  res.json(results);
 });
 
 //update checkout entry
@@ -571,7 +521,7 @@ app.put("/checkout/updateCheckout", authorize(API_KEY), (req, res) => {
 //approve checkout entry
 app.put("/checkout/approveCheckout", authorize(API_KEY), (req, res) => {
   //Validate request body: must have an array of checkout_id's to approve
-  if (!validateRequestParams(req.body, ["checkout_id"])) {
+  if (!validateRequestParams(req.body, ["checkout_ids"])) {
     console.log("Invalid or incomplete request");
     res.status(400);
     res.setHeader("Content-Type", "application/json");
@@ -581,8 +531,8 @@ app.put("/checkout/approveCheckout", authorize(API_KEY), (req, res) => {
     });
   }
   //Validate checkout_id array
-  if (!Array.isArray(req.body["checkout_id"])) {
-    console.log("Invalid checkout_id format");
+  if (!Array.isArray(req.body["checkout_ids"])) {
+    console.log("Invalid checkout_id format:" + req.body["checkout_ids"]);
     res.status(400);
     res.setHeader("Content-Type", "application/json");
     return res.json({
@@ -592,7 +542,7 @@ app.put("/checkout/approveCheckout", authorize(API_KEY), (req, res) => {
   }
 
   //Approve checkout record using checkoutManager
-  let results = checkoutManager.approveCheckout(db, req.body["checkout_id"]);
+  let results = checkoutManager.approveCheckouts(db, req.body["checkout_ids"]);
   if (results["code"] == "SQLITE_ERROR") {
     res.status(500);
     res.setHeader("Content-Type", "application/json");
@@ -722,6 +672,7 @@ app.get("/checkout/getCheckoutHistory", authorize(API_KEY), (req, res) => {
 
 
 
+
 //[1507...1601]
 //
 
@@ -834,9 +785,11 @@ app.post("/users/validateUser", authorize(API_KEY), (req, res) => {
     }
     else{
       //TODO: add token generation and session management
-      newSessionInsertQuery = createUserSession(user_result)
+      let session_result = createUserSession(db, user_result)
+      //console.log("new session insert query: "+newSessionInsertQuery)
       //Insert new session into database
-      let session_result = sessionManager.createSession(db, newSessionInsertQuery, user_result["user_id"])
+      //let session_result = sessionManager.createSession(db, newSessionInsertQuery, user_result["user_id"])
+      console.log("session result: "+session_result)
       if(session_result == null){
         res.status(500)
         res.setHeader('Content-Type','application/json');
@@ -1019,6 +972,32 @@ app.post('/users/session/getSession', authorize(API_KEY), (req, res) => {
     })
   }
 })
+
+//Get shopping cart by session_id
+app.post('/users/session/getCart', authorize(API_KEY), (req, res) => {
+  if(!validateRequestParams(req.body, ["session_id"])){
+    console.log("\n******************\nInvalid or incomplete request");
+    console.log(req.body)
+    res.status(400)
+    return res.send({
+      "status" : 400,
+      "message": "Invalid Request Body",
+      "error": "Invalid Request Body"
+    });
+  }
+
+  //Get variables from body payload
+  var session_id = req.body["session_id"];
+  //log the request
+  console.log(
+    "Get Cart Request: " + session_id
+  );
+
+  //Get cart from session
+  var cart = sessionManager.getSessionCheckoutCart(db, session_id);
+});
+
+
 
 
 

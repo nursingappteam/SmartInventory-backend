@@ -1,3 +1,4 @@
+const createUserQuery = require('../authentication/user_authentication').createUserQuery
 const { v4: uuid } = require('uuid')
 /*
 Existing tables
@@ -6,7 +7,114 @@ Existing tables
 3) checkout
 4) users
 5) user_types
+6) sessions
+7) email_verification
 */
+
+//function to initialize database and create tables if they don't exist asset table is not included and insert relevant data
+let initializeDatabase = (db) => {
+  //Create users table and insert admin user
+  db.prepare(`CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_email TEXT NOT NULL,
+    user_name TEXT NOT NULL,
+    user_pass_secure TEXT NOT NULL,
+    user_type_id INTEGER NOT NULL,
+    user_enabled INTEGER NOT NULL,
+    salt TEXT NOT NULL,
+    register_date TEXT NOT NULL
+  )`).run();
+  
+  //Create user_types table
+  db.prepare(`CREATE TABLE IF NOT EXISTS user_types (
+    type_id INTEGER PRIMARY KEY UNIQUE,
+    type_value TEXT NOT NULL,
+    type_desc TEXT
+  )`).run();
+  //Insert user types in one statement
+  try{
+    db.prepare(`
+    INSERT INTO user_types (type_id, type_value, type_desc)
+    VALUES 
+    (NULL, 'Admin', 'Admin user type'),
+    (NULL, 'General', 'General user type')
+  `).run()
+  }
+  catch(err){
+    console.log(err)
+  }
+
+  //if inventoryadmin doesn't exist create it with email: nursingappteam@gmail.com
+  try{
+    db.prepare(createUserQuery("inventoryadmin", "nusringinventory!#%UTA2022", "nursingappteam@gmail.com", 1)).run()
+  }
+  catch(err){
+    console.log(err)
+  }
+
+
+  //Create sessions table
+  db.prepare(`CREATE TABLE IF NOT EXISTS sessions (
+    sid TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    sess TEXT NOT NULL,
+    expire TEXT NOT NULL
+  )`).run()
+
+  //Create approval_statuses table
+  db.prepare(`CREATE TABLE IF NOT EXISTS approval_statuses (
+    status_id INTEGER PRIMARY KEY,
+    status_value TEXT NOT NULL,
+    status_desc TEXT
+  )`).run();
+  //Insert approval statuses in one statement with aproved, denied, pending - 1, 2, 0
+  try{
+    db.prepare(`
+    INSERT INTO approval_statuses (status_id, status_value, status_desc)
+    VALUES
+    (1, 'Approved', 'Checkout has been approved'),
+    (2, 'Denied', 'Checkout has been denied'),
+    (0, 'Pending', 'Checkout is pending approval')
+  `).run()
+  }
+  catch(err){
+    console.log(err)
+  }
+
+  //Create checkout table
+  db.prepare(`CREATE TABLE IF NOT EXISTS checkouts (
+    checkout_id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
+    asset_id INTEGER NOT NULL REFERENCES assets(asset_id),
+    start_date TEXT NOT NULL,
+    due_date TEXT NOT NULL,
+    user_id INTEGER NOT NULL REFERENCES users(user_id),
+    approval_status INTEGER NOT NULL REFERENCES approval_statuses(approval_status_id),
+    checkout_notes TEXT,
+    return_date TEXT,
+    available INTEGER NOT NULL
+  )`).run()
+
+  //Create sessions table
+  db.prepare(`CREATE TABLE IF NOT EXISTS sessions (
+    sid TEXT PRIMARY KEY NOT NULL,
+    user_id INTEGER NOT NULL,
+    sess TEXT NOT NULL,
+    expire TEXT NOT NULL
+    )
+  `).run()
+
+  //create email_verification table
+  db.prepare(`CREATE TABLE IF NOT EXISTS email_verification (
+    verification_id TEXT PRIMARY KEY NOT NULL,
+    user_id INTEGER NOT NULL,
+    verification_code TEXT NOT NULL,
+    verification_date TEXT NOT NULL
+  )`).run()
+}
+
+
+    
+
 let generalQuery = (db, query, query_type) => {
   if(query_type === "get"){
     try{
@@ -49,23 +157,25 @@ Session table has the following columns:
 1) sid - session id
 2) user_id - user id
 2) sess - session data (JSON) as string:
-    cookie: {
-          originalMaxAge: null,
-          expires: expire,
-          httpOnly: false,
-          path: '/'
+{
+    "cookie": {
+        "expires": 1670380585424,
+        "httpOnly": false,
+        "originalMaxAge": null,
+        "path": "/"
+    },
+    "user_data_items": {
+        "user_email": "kentest@test.com",
+        "user_enabled": 1,
+        "user_id": 2,
+        "user_name": "kentest",
+        "user_session_data": {
+            "checkout_cart": [],
+            "checkout_count": 0
         },
-        user_data: {
-          user_id: user_object["user_id"],
-          user_name: user_object["user_name"],
-          user_type_id: user_object["user_type_id"],
-          user_email: user_object["user_email"],
-          user_enabled: user_object["user_enabled"],
-          user_session_data: {
-            checkout_cart: [],
-            checkout_count: 0,
-          }
-        }
+        "user_type_id": 2
+    }
+}
 3) expire - session expiration
 
 
@@ -214,7 +324,9 @@ let sessionManager = {
       console.log(user_session_data_string)
       //Update session
       let updateSession = sessionManager.updateSession(db, session_id, sessionData.user_id, sessionData.user_type_id, sessionData.user_name, sessionData.user_email, user_session_data_string)
-      return updateSession
+      //get updated cart count
+      let updated_cart_count = sessionManager.getSessionData(db, session_id)["user_data_items"]["user_session_data"]["checkout_count"]
+      return updated_cart_count
     }
     
 
@@ -327,6 +439,7 @@ let getAssetByIdArray = (db, asset_id_array) => {
 
 */
 let checkoutManager = {
+  //create checkout table
   //get all checkouts
   getAllCheckouts: (db) => {
     let query = "SELECT * FROM checkouts"
@@ -370,27 +483,61 @@ let checkoutManager = {
     return results
   },
   //insert a checkout
-  insertCheckout: (db, asset_id, start_date, end_date, user_id) => {
-    //Prevent duplicate checkouts where asset_id is an array of asset ids and user_id is the user id
-    //Query to check if any of the assets are already checked out
-    let dupe_check = `
-      SELECT * FROM checkouts 
-      WHERE asset_id IN (${asset_id}) 
-      AND user_id = ${user_id}
-      AND approval_status = 0`
-    //console.log("dupe_check: " + dupe_check)
-    let dupe_results = generalQuery(db, dupe_check, "all")
-    console.log("dupe_results: " + JSON.stringify(dupe_results))
-    if(dupe_results.length > 0){
-      return {"code" : "DUPLICATE_CHECKOUT"}
-    }
-    else{
-      let query = checkoutQueries.createInsertCheckoutsQuery(asset_id, start_date, end_date, user_id)
-      console.log(query)
-      let results = generalQuery(db, query, "run")
-      return results
+  insertCheckout: (db, assetIds, startDate, endDate, userId) => {
+
+    // Check if the user has already checked out the specified asset IDs
+    const duplicate_checkout = db.prepare(`
+      SELECT asset_id
+      FROM checkouts
+      WHERE asset_id IN (${assetIds.join(',')})
+      AND user_id = '${userId}'
+      AND return_date IS NULL
+    `).all();
+
+    if(duplicate_checkout.length > 0){
+      console.log("Duplicate checkout: "+duplicate_checkout)
+      return {
+        code: "DUPLICATE_CHECKOUT",
+        message: "Some of the specified assets are already checked out by the user. Resubmit request when assets are available",
+        duplicates: duplicate_checkout
+      }
     }
 
+    // Check if the specified asset IDs are unavailable
+    const unavailable_assets = db.prepare(`
+      SELECT asset_id
+      FROM checkouts
+      WHERE asset_id IN (${assetIds.join(',')})
+      AND available = 0
+    `).all();
+
+    if(unavailable_assets.length > 0){
+      console.log("Unavailable assets: "+unavailable_assets)
+      return {
+        code: "UNAVAILABLE_ASSETS",
+        message: "Some of the specified assets are unavailable. Resubmit request when assets are available",
+        unavailable: unavailable_assets
+      }
+    }
+
+    // Insert checkout records into the checkouts table where the assets are marked are still available but not yet approved and handle errors
+    try {
+      const insertAssetIds = db.prepare(`
+        INSERT INTO checkouts (asset_id, start_date, due_date, user_id, approval_status, available)
+        VALUES ${assetIds.map(assetId => `(${assetId}, '${startDate}', '${endDate}', '${userId}', 0, 0)`).join(',')}
+      `).run()
+
+      // Return the IDs of the assets that were successfully checked out
+      return insertAssetIds;
+    }
+    catch(error){
+      console.log("Error inserting checkout: "+error)
+      return {
+        code: "ERROR_INSERTING_CHECKOUT",
+        message: "Error inserting checkout. Please try again",
+        error: error
+      }
+    }
   },
   //update a checkout
   updateCheckout: (db, checkout_id, asset_id, start_date, end_date, user_id, approval_status, checkout_notes, return_date, available) => {
@@ -405,22 +552,31 @@ let checkoutManager = {
     return results
   },
   //approve a checkout
-  approveCheckout: (db, checkout_id) => {
-    let query = checkoutQueries.createApproveCheckoutQuery(checkout_id)
-    let results = generalQuery(db, query, "run")
+  approveCheckouts: (db, checkout_id) => {
+    let results = db.prepare(`
+      UPDATE checkouts
+      SET approval_status = 1, available = 0
+      WHERE checkout_id IN (${checkout_id.join(',')})
+    `).run();
     return results
   },
   //deny a checkout
-  denyCheckout: (db, checkout_id, checkout_msg) => {
-    let query = checkoutQueries.createDenyCheckoutQuery(checkout_id, checkout_msg)
-    let results = generalQuery(db, query, "run")
-    return results
+  denyCheckouts: (db, checkoutIds) => {
+    // Set the approval_status value for the specified checkout records
+    db.prepare(`
+      UPDATE checkouts
+      SET approval_status = 2
+      WHERE checkout_id IN (${checkoutIds.join(',')})
+    `).run();
   },  
   //return a checkout
-  returnCheckout: (db, checkout_id) => {
-    let query = checkoutQueries.createReturnCheckoutQuery(checkout_id)
-    let results = generalQuery(db, query, "run")
-    return results
+  returnItems: (db, checkoutIds, returnDate) => {
+    // Set the return_date and available values for the specified checkout records
+    db.prepare(`
+      UPDATE checkouts
+      SET return_date = ?, available = 1
+      WHERE checkout_id IN (${checkoutIds.join(',')})
+    `).run(returnDate);
   },
   //lock a checkout
   lockCheckout: (db, checkout_id) => {
@@ -683,4 +839,4 @@ let checkoutQueries = {
 }
 
 
-module.exports = {generalQuery, checkoutManager, sessionManager, assetManager}
+module.exports = {generalQuery, initializeDatabase, checkoutManager, sessionManager, assetManager}
