@@ -293,9 +293,9 @@ app.post("/assets/add", authorize(API_KEY), (req, res) => {
        '${PO_IDS}',
        '${location}',
        '${sub_location}',
-       '${building}'),
-       '${acquisition_date}'
-       `;
+       '${building}',
+       '${acquisition_date}')`;
+  console.log(insertQ);
 
   const insertRes = generalQuery(db, insertQ, "run");
   if (insertRes["code"] === "SQLITE_ERROR") {
@@ -704,7 +704,9 @@ app.get("/checkout/getAllCheckouts", authorize(API_KEY), (req, res) => {
 //User endpoints
 app.get("/users/getUsers", authorize(API_KEY), (req, res) => {
   let query =
-    "SELECT user_id, user_email, user_name, user_type_id, user_enabled, register_date FROM users";
+    //TODO: put this back
+    //"SELECT user_id, user_email, user_name, user_type_id, user_enabled, register_date FROM users";
+    `select * from sessions`;
   let results = generalQuery(db, query);
   console.log(results);
   if (results["code"] == "SQLITE_ERROR") {
@@ -720,6 +722,7 @@ app.get("/users/getUsers", authorize(API_KEY), (req, res) => {
   res.setHeader("Content-Type", "application/json");
   res.json(results);
 });
+
 app.post("/users/validateUser", authorize(API_KEY), (req, res) => {
   if (!validateRequestParams(req.body, ["user_email", "password"])) {
     console.log("\n******************\nInvalid or incomplete request");

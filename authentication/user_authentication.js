@@ -38,6 +38,7 @@ let resetPasswordQuery = (user_id, password) => {
 
 //create user session with user_id and checkout_cart array that holes asset_ids and quantity
 let createUserSession = (db, user) => {
+  console.log(user);
   // Check if a session for the specified user already exists
   const existingSession = db
     .prepare(

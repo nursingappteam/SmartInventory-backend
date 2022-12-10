@@ -226,7 +226,7 @@ let sessionManager = {
       `SELECT sess FROM sessions WHERE sid = '${session_id}'`,
       "get"
     );
-    //console.log("*SessionManager*: sessionData: ", sessionData)
+    console.log("*SessionManager*: sessionData: ", sessionData);
     //Check if session data is null
     if (sessionData === undefined) {
       return null;
@@ -314,7 +314,7 @@ let sessionManager = {
     let updateSessionQuery = `
     UPDATE sessions
     SET sess
-    = '{"cookie":{"originalMaxAge":null,"expires":${expire},"httpOnly":false,"path":"/"},"user_data":{"user_id":"${user_id}","user_type_id":"${user_type_id}","user_name":"${user_name}","user_email":"${user_email}","user_session_data":${user_session_data}}}'
+    = '{"cookie":{"originalMaxAge":null,"expires":${expire},"httpOnly":false,"path":"/"},"user_data_items":{"user_email":"${user_email}","user_enabled":"1","user_id":"${user_id}","user_name":"${user_name}","user_session_data":${user_session_data},"user_type_id":"${user_type_id}"}}'
     WHERE sid = '${session_id}'
     `;
     let updateSession = generalQuery(db, updateSessionQuery, "run");
@@ -388,6 +388,7 @@ let sessionManager = {
         user_session_data_string
       );
       //get updated cart count
+
       let updated_cart_count = sessionManager.getSessionData(db, session_id)[
         "user_data_items"
       ]["user_session_data"]["checkout_count"];
