@@ -1,6 +1,6 @@
-const createUserQuery =
-  require("../authentication/user_authentication").createUserQuery;
-const { v4: uuid } = require("uuid");
+const createUserQuery = require('../authentication/user_authentication').createUserQuery
+const { v4: uuid } = require('uuid')
+
 /*
 Existing tables
 1) assets
@@ -154,9 +154,47 @@ let initializeDatabase = (db) => {
     user_id INTEGER NOT NULL,
     verification_code TEXT NOT NULL,
     verification_date TEXT NOT NULL
-  )`
-  ).run();
-};
+  )`).run()
+
+  //create assets table
+  db.prepare(`CREATE TABLE IF NOT EXISTS "assets" (
+    "asset_id"	INTEGER NOT NULL UNIQUE,
+    "inventory_status"	TEXT,
+    "cust_dept_desc"	TEXT,
+    "tag_num"	TEXT,
+    "tagged"	INTEGER NOT NULL,
+    "type"	TEXT NOT NULL,
+    "sub_type"	TEXT NOT NULL,
+    "description"	TEXT,
+    "serial_id"	INTEGER,
+    "acquisition_cost"	INTEGER,
+    "company"	TEXT,
+    "PO_IDS"	TEXT,
+    "location"	TEXT,
+    "sub_location"	TEXT,
+    "building"	TEXT,
+    "acquisition_date"	TEXT,
+    PRIMARY KEY("asset_id" AUTOINCREMENT)
+  )
+  `).run()
+
+  try{
+    //get insert statements for assets from sql file
+    const fs = require('fs')
+    const path = require('path')
+    const sql = fs.readFileSync(path.resolve(__dirname, 'assets_121022.sql'), 'utf8')
+
+    const stmt = db.prepare(sql)
+    stmt.run()
+
+  }
+  catch(err){
+    console.log(err)
+  }
+}
+
+
+    
 
 let generalQuery = (db, query, query_type) => {
   if (query_type === "get") {
