@@ -354,8 +354,6 @@ let sessionManager = {
     let checkout_count = checkout_cart.length;
     //Get session data
     let sessionData = sessionManager.getSessionData(db, session_id);
-    console.log("UUUUUNParsed_sessData");
-
     console.log(sessionData);
     //Check if session data is null
     if (sessionData === undefined || sessionData === null) {
@@ -368,7 +366,6 @@ let sessionManager = {
       //let expire = parsed_sessionData["cookie"]["expires"]
       //console.log(parsed_sessionData)
       //Update user_session_data
-      console.log("Parsed_sessData");
       console.log(parsed_sessionData);
       let user_session_data =
         parsed_sessionData["user_data_items"]["user_session_data"];
