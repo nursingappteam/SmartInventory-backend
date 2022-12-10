@@ -1,6 +1,6 @@
 require("dotenv").config({ path: "./.env" });
 const express = require("express");
-const session = require('express-session');
+const session = require("express-session");
 
 // const https=require('https');
 // const http=require('http');
@@ -17,7 +17,7 @@ const {
   validate_password,
   getUserQuery,
   resetPasswordQuery,
-  createUserSession
+  createUserSession,
 } = require("./authentication/user_authentication.js");
 //const {checkoutManager} = require("./inventory/checkout_manager.js");
 
@@ -37,19 +37,27 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const {generalQuery, initializeDatabase, checkoutManager, sessionManager,} = require("./inventory/database_manager.js");
+const {
+  generalQuery,
+  initializeDatabase,
+  checkoutManager,
+  sessionManager,
+} = require("./inventory/database_manager.js");
 
-const Database = require('better-sqlite3');
-const db = new Database("./inventory/inventory_v6.db", { verbose: console.log });
+const Database = require("better-sqlite3");
+const db = new Database("./inventory/inventory_v6.db", {
+  verbose: console.log,
+});
 
 //initialize database
 initializeDatabase(db);
 // Use the PRAGMA statement to configure the table schema
-db.pragma('synchronous = 1');
-db.pragma('journal_mode = wal');
+db.pragma("synchronous = 1");
+db.pragma("journal_mode = wal");
 
 // Create the checkouts table
-db.prepare(`
+db.prepare(
+  `
   CREATE TABLE IF NOT EXISTS checkouts (
     checkout_id INTEGER PRIMARY KEY,
     asset_id INTEGER NOT NULL,
@@ -61,18 +69,15 @@ db.prepare(`
     return_date TEXT NOT NULL,
     available INTEGER NOT NULL
   )
-`).run();
-
+`
+).run();
 
 //Store session data in database
 //const SqliteStore = require("better-sqlite3-session-store")(session)
 
-
 app.get("/", (req, res) => {
   res.send("SmartInventory API");
 });
-
-
 
 //get endpoint that will get all assets of inventory
 app.get("/assets/display_assets", authorize(API_KEY), (req, res) => {
@@ -232,7 +237,6 @@ app.post("/assets/add", authorize(API_KEY), (req, res) => {
   if (
     !validateRequestParams(req.body.values, [
       "cust_dept_desc",
-      "acquisition_date",
       "tag_num",
       "tagged",
       "type",
@@ -245,6 +249,7 @@ app.post("/assets/add", authorize(API_KEY), (req, res) => {
       "location",
       "sub_location",
       "building",
+      "acquisition_date",
     ])
   ) {
     console.log("Invalid or incomplete request");
@@ -255,9 +260,9 @@ app.post("/assets/add", authorize(API_KEY), (req, res) => {
       message: "Invalid Request Body",
     });
   }
+  console.log(req.body.values);
   const {
     cust_dept_desc,
-    acquisition_date,
     tag_num,
     tagged,
     type,
@@ -270,12 +275,13 @@ app.post("/assets/add", authorize(API_KEY), (req, res) => {
     location,
     sub_location,
     building,
+    acquisition_date,
   } = req.body.values;
 
+  //TODO: Check to make sure assets order lines up
   var insertQ = `INSERT INTO assets 
   VALUES (null , null,
        '${cust_dept_desc}',
-       '${acquisition_date}',
        '${tag_num}',
        '${tagged}',
        '${type}',
@@ -287,7 +293,9 @@ app.post("/assets/add", authorize(API_KEY), (req, res) => {
        '${PO_IDS}',
        '${location}',
        '${sub_location}',
-       '${building}')`;
+       '${building}'),
+       '${acquisition_date}'
+       `;
 
   const insertRes = generalQuery(db, insertQ, "run");
   if (insertRes["code"] === "SQLITE_ERROR") {
@@ -431,7 +439,13 @@ app.post("/checkout/createCheckout", authorize(API_KEY), (req, res) => {
   let user_id = req.body["user_id"];
 
   //insert checkout record
-  let results = checkoutManager.insertCheckout(db, asset_id, start_date, end_date, user_id);
+  let results = checkoutManager.insertCheckout(
+    db,
+    asset_id,
+    start_date,
+    end_date,
+    user_id
+  );
 
   console.log("results: ", results);
   if (results["code"] == "SQLITE_ERROR") {
@@ -563,7 +577,7 @@ app.put("/checkout/approveCheckout", authorize(API_KEY), (req, res) => {
 app.get("/checkout/getPendingCheckouts", authorize(API_KEY), (req, res) => {
   //Get pending checkouts using checkoutManager
   let results = checkoutManager.getAllPendingCheckouts(db);
-  if(results == null || results == undefined){
+  if (results == null || results == undefined) {
     res.status(500);
     res.setHeader("Content-Type", "application/json");
     return res.json({
@@ -571,8 +585,7 @@ app.get("/checkout/getPendingCheckouts", authorize(API_KEY), (req, res) => {
       message: "Server error",
       error: results,
     });
-  }
-  else if(results["code"] == "SQLITE_ERROR"){
+  } else if (results["code"] == "SQLITE_ERROR") {
     res.status(500);
     res.setHeader("Content-Type", "application/json");
     return res.json({
@@ -607,11 +620,14 @@ app.put("/checkout/denyCheckouts", authorize(API_KEY), (req, res) => {
       status: 400,
       message: "Invalid checkout_id format",
     });
-
   }
 
   //Deny checkout record using checkoutManager
-  let results = checkoutManager.denyCheckout(db, req.body["checkout_id"], req.body["checkout_notes"]);
+  let results = checkoutManager.denyCheckout(
+    db,
+    req.body["checkout_id"],
+    req.body["checkout_notes"]
+  );
   if (results["code"] == "SQLITE_ERROR") {
     res.status(500);
     res.setHeader("Content-Type", "application/json");
@@ -629,7 +645,7 @@ app.put("/checkout/denyCheckouts", authorize(API_KEY), (req, res) => {
 //Get checkout history
 app.get("/checkout/getCheckoutHistory", authorize(API_KEY), (req, res) => {
   console.log("Getting checkout history");
-  if(!validateRequestParams(req.body, ["user_id"])){
+  if (!validateRequestParams(req.body, ["user_id"])) {
     console.log("Invalid or incomplete request");
     res.status(400);
     res.setHeader("Content-Type", "application/json");
@@ -642,7 +658,7 @@ app.get("/checkout/getCheckoutHistory", authorize(API_KEY), (req, res) => {
   console.log("user_id: " + req.body["user_id"]);
   //Get checkout history using checkoutManager
   let results = checkoutManager.getUserCheckoutHistory(db, req.body["user_id"]);
-  if(results == null || results == undefined){
+  if (results == null || results == undefined) {
     res.status(500);
     res.setHeader("Content-Type", "application/json");
     return res.json({
@@ -650,8 +666,7 @@ app.get("/checkout/getCheckoutHistory", authorize(API_KEY), (req, res) => {
       message: "Server error",
       error: results,
     });
-  }
-  else if(results["code"] == "SQLITE_ERROR"){
+  } else if (results["code"] == "SQLITE_ERROR") {
     res.status(500);
     res.setHeader("Content-Type", "application/json");
     return res.json({
@@ -664,14 +679,6 @@ app.get("/checkout/getCheckoutHistory", authorize(API_KEY), (req, res) => {
   res.setHeader("Content-Type", "application/json");
   res.json(results);
 });
-
-
-
-
-
-
-
-
 
 //[1507...1601]
 //
@@ -780,42 +787,41 @@ app.post("/users/validateUser", authorize(API_KEY), (req, res) => {
       res.setHeader("Content-Type", "application/json");
       return res.json({
         status: 404,
-        message: "Invalid Credentials"
-      })
-    }
-    else{
+        message: "Invalid Credentials",
+      });
+    } else {
       //TODO: add token generation and session management
-      let session_result = createUserSession(db, user_result)
+      let session_result = createUserSession(db, user_result);
       //console.log("new session insert query: "+newSessionInsertQuery)
       //Insert new session into database
       //let session_result = sessionManager.createSession(db, newSessionInsertQuery, user_result["user_id"])
-      console.log("session result: "+session_result)
-      if(session_result == null){
-        res.status(500)
-        res.setHeader('Content-Type','application/json');
+      console.log("session result: " + session_result);
+      if (session_result == null) {
+        res.status(500);
+        res.setHeader("Content-Type", "application/json");
         return res.json({
-          status : 500,
+          status: 500,
           message: "Server error",
-          error: session_result
+          error: session_result,
         });
       }
-      if(session_result["code"] == "SQLITE_ERROR" ){
-        console.log(session_result)
+      if (session_result["code"] == "SQLITE_ERROR") {
+        console.log(session_result);
         res.status(500);
         return res.json({
-          status : 500,
+          status: 500,
           message: "Server error",
-          error: session_result
+          error: session_result,
         });
       }
       //login verification successful
       response_body = {
-        "status": 200,
-        "message": "Login Successful",
-        "user": user_result,
-        "cookie": session_result
-      }
-      res.setHeader('Access-Control-Allow-Origin', '*');
+        status: 200,
+        message: "Login Successful",
+        user: user_result,
+        cookie: session_result,
+      };
+      res.setHeader("Access-Control-Allow-Origin", "*");
       //console.log("Session created: "+newSession)
       res.status(200);
       return res.json(response_body);
@@ -831,180 +837,182 @@ app.post("/users/validateUser", authorize(API_KEY), (req, res) => {
 });
 
 //Validate user has logged in by checking session_id
-app.post('/users/session/validateSession', authorize(API_KEY), (req, res) => {
-  if(!validateRequestParams(req.body, ["session_id"])){
+app.post("/users/session/validateSession", authorize(API_KEY), (req, res) => {
+  if (!validateRequestParams(req.body, ["session_id"])) {
     console.log("\n******************\nInvalid or incomplete request");
-    console.log(req.body)
-    res.status(400)
+    console.log(req.body);
+    res.status(400);
     res.send({
-      "status" : 400,
-      "message": "Invalid Request Body"
+      status: 400,
+      message: "Invalid Request Body",
     });
-    return
+    return;
   }
   var session_id = req.body["session_id"];
-  sessionData = sessionManager.validateSession(db, session_id)
+  sessionData = sessionManager.validateSession(db, session_id);
   //let results = generalQuery(db, query, "get")
-  if(sessionData["code"] == "SQLITE_ERROR"){
-    res.status(500)
-    res.setHeader('Content-Type','application/json');
+  if (sessionData["code"] == "SQLITE_ERROR") {
+    res.status(500);
+    res.setHeader("Content-Type", "application/json");
     return res.json({
-      status : 500,
+      status: 500,
       message: "Server error",
-      error: sessionData
+      error: sessionData,
     });
   }
-  if(sessionData.length == 0){
-    res.status(400)
-    res.setHeader('Content-Type','application/json');
+  if (sessionData.length == 0) {
+    res.status(400);
+    res.setHeader("Content-Type", "application/json");
     return res.json({
       status: 404,
-      message: "Invalid Credentials"
-    })
-  }
-  else{
+      message: "Invalid Credentials",
+    });
+  } else {
     //sessionData = sessionManager.validateSession(db, session_id)
-    res.status(200)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status: 200,
-      message: "Session Valid"
-    })
-  }
-})
-
-//update checkout cart in session
-app.post('/users/session/updateCart', authorize(API_KEY), (req, res) => {
-  !validateRequestParams(req.body, ["session_id", "cart_items"]) ? res.status(400).send({
-    "status" : 400,
-    "message": "Invalid Request Body"
-  }) : null;
-  var session_id = req.body["session_id"];
-  var cart_items = req.body["cart_items"];
-  //updateSessionCheckoutCart: (db, session_id, checkout_cart)
-  sessionData = sessionManager.updateSessionCheckoutCart(db, session_id, cart_items)
-  //let results = generalQuery(db, query, "get")
-  if(null == sessionData){
-    res.status(500)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status : 404,
-      message: "Session Not Found"
-    });
-  }
-  if(sessionData["code"] == "SQLITE_ERROR"){
-    res.status(500)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status : 500,
-      message: "Server error",
-      error: sessionData
-    });
-  }
-  if(sessionData.length == 0){
-    res.status(400)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status: 404,
-      message: "Invalid Credentials"
-    })
-  }
-  else{
-    //let updatedcart = sessionManager.getSessionCheckoutCart(db, session_id)
-    res.status(200)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status: 200,
-      message: "Session Valid"
-    })
-  }
-})
-
-//Get session data by session_id
-app.post('/users/session/getSession', authorize(API_KEY), (req, res) => {
-  if(!validateRequestParams(req.body, ["session_id"])){
-    console.log("\n******************\nInvalid or incomplete request");
-    console.log(req.body)
-    res.status(400)
-    res.send({
-      "status" : 400,
-      "message": "Invalid Request Body"
-    });
-    return
-  }
-  var session_id = req.body["session_id"];
-  sessionData = sessionManager.getSessionData(db, session_id)
-
-  if(sessionData == null || sessionData == undefined){
-    res.status(500)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status : 500,
-      message: "Server error",
-      error: sessionData
-    });
-  }
-  if(sessionData["code"] == "SQLITE_ERROR"){
-    res.status(500)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status : 500,
-      message: "Server error",
-      error: sessionData
-    });
-  }
-  if(sessionData.length == 0){
-    res.status(400)
-    res.setHeader('Content-Type','application/json');
-    return res.json({
-      status: 404,
-      message: "Invalid Credentials"
-    })
-  }
-  else{
-    //sessionData = sessionManager.validateSession(db, session_id)
-    res.status(200)
-    res.setHeader('Content-Type','application/json');
+    res.status(200);
+    res.setHeader("Content-Type", "application/json");
     return res.json({
       status: 200,
       message: "Session Valid",
-      session: sessionData
-    })
+    });
   }
-})
+});
+
+//update checkout cart in session
+app.post("/users/session/updateCart", authorize(API_KEY), (req, res) => {
+  !validateRequestParams(req.body, ["session_id", "cart_items"])
+    ? res.status(400).send({
+        status: 400,
+        message: "Invalid Request Body",
+      })
+    : null;
+  var session_id = req.body["session_id"];
+  var cart_items = req.body["cart_items"];
+  //updateSessionCheckoutCart: (db, session_id, checkout_cart)
+  sessionData = sessionManager.updateSessionCheckoutCart(
+    db,
+    session_id,
+    cart_items
+  );
+  //let results = generalQuery(db, query, "get")
+  if (null == sessionData) {
+    res.status(500);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 404,
+      message: "Session Not Found",
+    });
+  }
+  if (sessionData["code"] == "SQLITE_ERROR") {
+    res.status(500);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 500,
+      message: "Server error",
+      error: sessionData,
+    });
+  }
+  if (sessionData.length == 0) {
+    res.status(400);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 404,
+      message: "Invalid Credentials",
+    });
+  } else {
+    //let updatedcart = sessionManager.getSessionCheckoutCart(db, session_id)
+    res.status(200);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 200,
+      message: "Session Valid",
+    });
+  }
+});
+
+//Get session data by session_id
+app.post("/users/session/getSession", authorize(API_KEY), (req, res) => {
+  if (!validateRequestParams(req.body, ["session_id"])) {
+    console.log("\n******************\nInvalid or incomplete request");
+    console.log(req.body);
+    res.status(400);
+    res.send({
+      status: 400,
+      message: "Invalid Request Body",
+    });
+    return;
+  }
+  var session_id = req.body["session_id"];
+  sessionData = sessionManager.getSessionData(db, session_id);
+
+  if (sessionData == null || sessionData == undefined) {
+    res.status(500);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 500,
+      message: "Server error",
+      error: sessionData,
+    });
+  }
+  if (sessionData["code"] == "SQLITE_ERROR") {
+    res.status(500);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 500,
+      message: "Server error",
+      error: sessionData,
+    });
+  }
+  if (sessionData.length == 0) {
+    res.status(400);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 404,
+      message: "Invalid Credentials",
+    });
+  } else {
+    //sessionData = sessionManager.validateSession(db, session_id)
+    res.status(200);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 200,
+      message: "Session Valid",
+      session: sessionData,
+    });
+  }
+});
 
 //Get shopping cart by session_id
-app.post('/users/session/getCart', authorize(API_KEY), (req, res) => {
-  if(!validateRequestParams(req.body, ["session_id"])){
+app.post("/users/session/getCart", authorize(API_KEY), (req, res) => {
+  if (!validateRequestParams(req.body, ["session_id"])) {
     console.log("\n******************\nInvalid or incomplete request");
-    console.log(req.body)
-    res.status(400)
+    console.log(req.body);
+    res.status(400);
     return res.send({
-      "status" : 400,
-      "message": "Invalid Request Body",
-      "error": "Invalid Request Body"
+      status: 400,
+      message: "Invalid Request Body",
+      error: "Invalid Request Body",
     });
   }
 
   //Get variables from body payload
   var session_id = req.body["session_id"];
   //log the request
-  console.log(
-    "Get Cart Request: " + session_id
-  );
+  console.log("Get Cart Request: " + session_id);
 
   //Get cart from session
   var cart = sessionManager.getSessionCheckoutCart(db, session_id);
 });
 
-
-
-
-
-
-
-app.post('/users/newUser', authorize(API_KEY), (req, res) => {
-  if(!validateRequestParams(req.body, ["username","password","user_type", "user_email"])){
+app.post("/users/newUser", authorize(API_KEY), (req, res) => {
+  if (
+    !validateRequestParams(req.body, [
+      "username",
+      "password",
+      "user_type",
+      "user_email",
+    ])
+  ) {
     console.log("Invalid or incomplete request");
     res.status(400);
     res.send({
@@ -1191,48 +1199,42 @@ app.post("/users/resetPassword", authorize(API_KEY), (req, res) => {
 });
 
 //Check email exists
-app.post('/users/checkEmail', authorize(API_KEY), (req, res) => {
-  if(!validateRequestParams(req.body, ["user_email"])){
+app.post("/users/checkEmail", authorize(API_KEY), (req, res) => {
+  if (!validateRequestParams(req.body, ["user_email"])) {
     console.log("Invalid or incomplete request");
-    res.status(400)
+    res.status(400);
     res.send({
-      "status" : 400,
-      "message": "Invalid Request Body"
+      status: 400,
+      message: "Invalid Request Body",
     });
-    return
+    return;
   }
   //Get variables from body payload
   var user_email = req.body["user_email"];
   //log the request
-  console.log("Check Email Request: "+user_email)
-  let check_exists = `SELECT user_id FROM users WHERE user_email = '${user_email}'`
-  let check_exists_result = generalQuery(db, check_exists, "get")
-  console.log("check: "+JSON.stringify(check_exists_result).length)
+  console.log("Check Email Request: " + user_email);
+  let check_exists = `SELECT user_id FROM users WHERE user_email = '${user_email}'`;
+  let check_exists_result = generalQuery(db, check_exists, "get");
+  console.log("check: " + JSON.stringify(check_exists_result).length);
   //check if user already exists
-  if(check_exists_result == null || check_exists_result == []){
-    res.status(404)
-    res.setHeader('Content-Type','application/json');
+  if (check_exists_result == null || check_exists_result == []) {
+    res.status(404);
+    res.setHeader("Content-Type", "application/json");
     return res.json({
       status: 404,
-      message: "User Not Found"
-    })
-  }
-  else{
+      message: "User Not Found",
+    });
+  } else {
     res.status(200);
-    res.setHeader('Content-Type','application/json');
+    res.setHeader("Content-Type", "application/json");
     res.json({
       status: 200,
-      boolean: 1 
+      boolean: 1,
     });
   }
 });
 
 //Gene
-
-
-
-
-
 
 const validateRequestParams = (body, params) => {
   let result = true;
