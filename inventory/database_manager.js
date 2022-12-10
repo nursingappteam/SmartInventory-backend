@@ -354,6 +354,8 @@ let sessionManager = {
     let checkout_count = checkout_cart.length;
     //Get session data
     let sessionData = sessionManager.getSessionData(db, session_id);
+    console.log("UUUUUNParsed_sessData");
+
     console.log(sessionData);
     //Check if session data is null
     if (sessionData === undefined || sessionData === null) {
@@ -366,6 +368,7 @@ let sessionManager = {
       //let expire = parsed_sessionData["cookie"]["expires"]
       //console.log(parsed_sessionData)
       //Update user_session_data
+      console.log("Parsed_sessData");
       console.log(parsed_sessionData);
       let user_session_data =
         parsed_sessionData["user_data_items"]["user_session_data"];
@@ -381,18 +384,20 @@ let sessionManager = {
       let updateSession = sessionManager.updateSession(
         db,
         session_id,
-        sessionData.user_id,
-        sessionData.user_type_id,
-        sessionData.user_name,
-        sessionData.user_email,
+        parsed_sessionData.user_data_items.user_id,
+        parsed_sessionData.user_data_items.user_type_id,
+        parsed_sessionData.user_data_items.user_name,
+        parsed_sessionData.user_data_items.user_email,
         user_session_data_string
       );
       //get updated cart count
 
-      let updated_cart_count = sessionManager.getSessionData(db, session_id)[
-        "user_data_items"
-      ]["user_session_data"]["checkout_count"];
-      return updated_cart_count;
+      let updated_cart_count = JSON.parse(
+        sessionManager.getSessionData(db, session_id)
+      );
+
+      return updated_cart_count.user_data_items.user_session_data
+        .checkout_count;
     }
   },
   //get user session checkout cart

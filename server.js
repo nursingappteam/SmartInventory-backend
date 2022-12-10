@@ -892,13 +892,13 @@ app.post("/users/session/updateCart", authorize(API_KEY), (req, res) => {
   var session_id = req.body["session_id"];
   var cart_items = req.body["cart_items"];
   //updateSessionCheckoutCart: (db, session_id, checkout_cart)
-  sessionData = sessionManager.updateSessionCheckoutCart(
+  const updatedCartCount = sessionManager.updateSessionCheckoutCart(
     db,
     session_id,
     cart_items
   );
   //let results = generalQuery(db, query, "get")
-  if (null == sessionData) {
+  if (null == updatedCartCount) {
     res.status(500);
     res.setHeader("Content-Type", "application/json");
     return res.json({
@@ -906,16 +906,16 @@ app.post("/users/session/updateCart", authorize(API_KEY), (req, res) => {
       message: "Session Not Found",
     });
   }
-  if (sessionData["code"] == "SQLITE_ERROR") {
+  if (updatedCartCount["code"] == "SQLITE_ERROR") {
     res.status(500);
     res.setHeader("Content-Type", "application/json");
     return res.json({
       status: 500,
       message: "Server error",
-      error: sessionData,
+      error: updatedCartCount,
     });
   }
-  if (sessionData.length == 0) {
+  if (updatedCartCount.length == 0) {
     res.status(400);
     res.setHeader("Content-Type", "application/json");
     return res.json({
@@ -929,6 +929,7 @@ app.post("/users/session/updateCart", authorize(API_KEY), (req, res) => {
     return res.json({
       status: 200,
       message: "Session Valid",
+      updatedCartCount: updatedCartCount,
     });
   }
 });
