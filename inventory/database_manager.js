@@ -1,5 +1,6 @@
-const createUserQuery = require('../authentication/user_authentication').createUserQuery
-const { v4: uuid } = require('uuid')
+const createUserQuery =
+  require("../authentication/user_authentication").createUserQuery;
+const { v4: uuid } = require("uuid");
 
 /*
 Existing tables
@@ -154,10 +155,12 @@ let initializeDatabase = (db) => {
     user_id INTEGER NOT NULL,
     verification_code TEXT NOT NULL,
     verification_date TEXT NOT NULL
-  )`).run()
+  )`
+  ).run();
 
   //create assets table
-  db.prepare(`CREATE TABLE IF NOT EXISTS "assets" (
+  db.prepare(
+    `CREATE TABLE IF NOT EXISTS "assets" (
     "asset_id"	INTEGER NOT NULL UNIQUE,
     "inventory_status"	TEXT,
     "cust_dept_desc"	TEXT,
@@ -176,25 +179,24 @@ let initializeDatabase = (db) => {
     "acquisition_date"	TEXT,
     PRIMARY KEY("asset_id" AUTOINCREMENT)
   )
-  `).run()
+  `
+  ).run();
 
-  try{
+  try {
     //get insert statements for assets from sql file
-    const fs = require('fs')
-    const path = require('path')
-    const sql = fs.readFileSync(path.resolve(__dirname, 'assets_121022.sql'), 'utf8')
+    const fs = require("fs");
+    const path = require("path");
+    const sql = fs.readFileSync(
+      path.resolve(__dirname, "assets_121022.sql"),
+      "utf8"
+    );
 
-    const stmt = db.prepare(sql)
-    stmt.run()
-
+    const stmt = db.prepare(sql);
+    stmt.run();
+  } catch (err) {
+    console.log(err);
   }
-  catch(err){
-    console.log(err)
-  }
-}
-
-
-    
+};
 
 let generalQuery = (db, query, query_type) => {
   if (query_type === "get") {
@@ -430,7 +432,9 @@ let sessionManager = {
       let updated_cart_count = JSON.parse(
         sessionManager.getSessionData(db, session_id)
       );
-
+      console.log(
+        updated_cart_count.user_data_items.user_session_data.checkout_count
+      );
       return updated_cart_count.user_data_items.user_session_data
         .checkout_count;
     }
@@ -438,15 +442,16 @@ let sessionManager = {
   //get user session checkout cart
   getSessionCheckoutCart: (db, session_id) => {
     //Get session data
-    let sessionData = sessionManager.getSessionData(db, session_id);
+    let sessionData = JSON.parse(sessionManager.getSessionData(db, session_id));
     //Check if session data is null
     if (sessionData === undefined) {
       return null;
     } else {
+      console.log(sessionData.user_data_items);
       //Get user_session_data
-      let user_session_data = sessionData.user_session_data;
-      //Get checkout cart
-      let checkout_cart = user_session_data.checkout_cart;
+      let checkout_cart =
+        sessionData.user_data_items.user_session_data.checkout_cart;
+      console.log("checkout Cart: " + checkout_cart);
       return checkout_cart;
     }
   },

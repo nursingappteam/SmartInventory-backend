@@ -1004,8 +1004,19 @@ app.post("/users/session/getCart", authorize(API_KEY), (req, res) => {
   //log the request
   console.log("Get Cart Request: " + session_id);
 
-  //Get cart from session
+  //Get asset_id cart from session
   var cart = sessionManager.getSessionCheckoutCart(db, session_id);
+  console.log(cart);
+  //Get assets object from assets table
+  let searchQ = `SELECT * FROM assets WHERE asset_id IN (${cart})`;
+  let assets = generalQuery(db, searchQ);
+  console.log(assets);
+
+  return res.json({
+    status: 200,
+    message: "Cart Sent",
+    cart: assets,
+  });
 });
 
 app.post("/users/newUser", authorize(API_KEY), (req, res) => {
