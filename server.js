@@ -293,9 +293,9 @@ app.post("/assets/add", authorize(API_KEY), (req, res) => {
        '${PO_IDS}',
        '${location}',
        '${sub_location}',
-       '${building}'),
-       '${acquisition_date}'
-       `;
+       '${building}',
+       '${acquisition_date}')`;
+  console.log(insertQ);
 
   const insertRes = generalQuery(db, insertQ, "run");
   if (insertRes["code"] === "SQLITE_ERROR") {
@@ -704,7 +704,9 @@ app.get("/checkout/getAllCheckouts", authorize(API_KEY), (req, res) => {
 //User endpoints
 app.get("/users/getUsers", authorize(API_KEY), (req, res) => {
   let query =
-    "SELECT user_id, user_email, user_name, user_type_id, user_enabled, register_date FROM users";
+    //TODO: put this back
+    //"SELECT user_id, user_email, user_name, user_type_id, user_enabled, register_date FROM users";
+    `select * from sessions`;
   let results = generalQuery(db, query);
   console.log(results);
   if (results["code"] == "SQLITE_ERROR") {
@@ -720,6 +722,7 @@ app.get("/users/getUsers", authorize(API_KEY), (req, res) => {
   res.setHeader("Content-Type", "application/json");
   res.json(results);
 });
+
 app.post("/users/validateUser", authorize(API_KEY), (req, res) => {
   if (!validateRequestParams(req.body, ["user_email", "password"])) {
     console.log("\n******************\nInvalid or incomplete request");
@@ -889,13 +892,13 @@ app.post("/users/session/updateCart", authorize(API_KEY), (req, res) => {
   var session_id = req.body["session_id"];
   var cart_items = req.body["cart_items"];
   //updateSessionCheckoutCart: (db, session_id, checkout_cart)
-  sessionData = sessionManager.updateSessionCheckoutCart(
+  const updatedCartCount = sessionManager.updateSessionCheckoutCart(
     db,
     session_id,
     cart_items
   );
   //let results = generalQuery(db, query, "get")
-  if (null == sessionData) {
+  if (null == updatedCartCount) {
     res.status(500);
     res.setHeader("Content-Type", "application/json");
     return res.json({
@@ -903,16 +906,16 @@ app.post("/users/session/updateCart", authorize(API_KEY), (req, res) => {
       message: "Session Not Found",
     });
   }
-  if (sessionData["code"] == "SQLITE_ERROR") {
+  if (updatedCartCount["code"] == "SQLITE_ERROR") {
     res.status(500);
     res.setHeader("Content-Type", "application/json");
     return res.json({
       status: 500,
       message: "Server error",
-      error: sessionData,
+      error: updatedCartCount,
     });
   }
-  if (sessionData.length == 0) {
+  if (updatedCartCount.length == 0) {
     res.status(400);
     res.setHeader("Content-Type", "application/json");
     return res.json({
@@ -926,6 +929,7 @@ app.post("/users/session/updateCart", authorize(API_KEY), (req, res) => {
     return res.json({
       status: 200,
       message: "Session Valid",
+      updatedCartCount: updatedCartCount,
     });
   }
 });
@@ -1000,8 +1004,19 @@ app.post("/users/session/getCart", authorize(API_KEY), (req, res) => {
   //log the request
   console.log("Get Cart Request: " + session_id);
 
-  //Get cart from session
+  //Get asset_id cart from session
   var cart = sessionManager.getSessionCheckoutCart(db, session_id);
+  console.log(cart);
+  //Get assets object from assets table
+  let searchQ = `SELECT * FROM assets WHERE asset_id IN (${cart})`;
+  let assets = generalQuery(db, searchQ);
+  console.log(assets);
+
+  return res.json({
+    status: 200,
+    message: "Cart Sent",
+    cart: assets,
+  });
 });
 
 app.post("/users/newUser", authorize(API_KEY), (req, res) => {
