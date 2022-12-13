@@ -1,6 +1,9 @@
 require("dotenv").config({ path: "./.env" });
 const express = require("express");
 const session = require("express-session");
+const {
+  getInventoryData
+} = require("./inventory/excel_converter.js");
 
 // const https=require('https');
 // const http=require('http');
@@ -30,6 +33,10 @@ const {
 //   cert: cert
 // }
 
+//Use multer to handle file uploads
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
+
 //Declare and initialize server log file
 const cors = require("cors");
 
@@ -45,7 +52,7 @@ const {
 } = require("./inventory/database_manager.js");
 
 const Database = require("better-sqlite3");
-const db = new Database("./inventory/inventory_v6.db", {
+const db = new Database("./inventory/inventory_v8.db", {
   verbose: console.log,
 });
 
@@ -596,7 +603,7 @@ app.get("/checkout/getPendingCheckouts", authorize(API_KEY), (req, res) => {
   }
   res.status(200);
   res.setHeader("Content-Type", "application/json");
-  res.json(results);
+  return res.json(results);
 });
 
 //Deny multiple checkouts
@@ -639,7 +646,7 @@ app.put("/checkout/denyCheckouts", authorize(API_KEY), (req, res) => {
   }
   res.status(200);
   res.setHeader("Content-Type", "application/json");
-  res.json(results);
+  return res.json(results);
 });
 
 //Get checkout history
@@ -677,11 +684,67 @@ app.get("/checkout/getCheckoutHistory", authorize(API_KEY), (req, res) => {
   }
   res.status(200);
   res.setHeader("Content-Type", "application/json");
-  res.json(results);
+  return res.json(results);
 });
 
-//[1507...1601]
-//
+
+//Endpoint that handles the return of a checkout item
+app.put("/checkout/returnCheckout", authorize(API_KEY), (req, res) => {
+  //Validate request body: must have an array of checkout_id's to deny
+  if (!validateRequestParams(req.body, ["checkout_ids"])) {
+    console.log("Invalid or incomplete request");
+    res.status(400);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 400,
+      message: "Invalid Request Body",
+    });
+  }
+
+  // //validate return_date
+  // if (!validateDate(req.body["return_date"])) {
+  //   console.log("Invalid return_date format");
+  //   res.status(400);
+  //   res.setHeader("Content-Type", "application/json");
+  //   return res.json({
+  //     status: 400,
+  //     message: "Invalid return_date format",
+  //   });
+  // }
+
+  //validate checkout_ids
+  if (!Array.isArray(req.body["checkout_ids"])) {
+    console.log("Invalid checkout_ids format");
+    res.status(400);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 400,
+      message: "Invalid checkout_ids format",
+    });
+  }
+
+  //get params from request body
+  let checkout_ids = req.body["checkout_ids"];
+
+  let results = checkoutManager.returnCheckouts(db, checkout_ids);
+
+  if (results["code"] == "SQLITE_ERROR") {
+    res.status(500);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 500,
+      message: "Server error",
+      error: results,
+    });
+  }
+  res.status(200);
+  res.setHeader("Content-Type", "application/json");
+  return res.json({
+    status: 200,
+    message: "Checkout returned successfully",
+    results: results,
+  });
+});
 
 //get all checkout entries
 app.get("/checkout/getAllCheckouts", authorize(API_KEY), (req, res) => {
@@ -698,7 +761,7 @@ app.get("/checkout/getAllCheckouts", authorize(API_KEY), (req, res) => {
   }
   res.status(200);
   res.setHeader("Content-Type", "application/json");
-  res.json(results);
+  return res.json(results);
 });
 
 //User endpoints
@@ -718,7 +781,7 @@ app.get("/users/getUsers", authorize(API_KEY), (req, res) => {
   }
   res.status(200);
   res.setHeader("Content-Type", "application/json");
-  res.json(results);
+  return res.json(results);
 });
 
 app.post("/users/validateUser", authorize(API_KEY), (req, res) => {
@@ -1211,6 +1274,7 @@ app.post("/users/resetPassword", authorize(API_KEY), (req, res) => {
   }
 });
 
+
 //Check email exists
 app.post("/users/checkEmail", authorize(API_KEY), (req, res) => {
   if (!validateRequestParams(req.body, ["user_email"])) {
@@ -1247,7 +1311,78 @@ app.post("/users/checkEmail", authorize(API_KEY), (req, res) => {
   }
 });
 
-//Gene
+
+
+
+//Get excel file of inventory database given that request is sent from an admin
+//Uses getInventoryData function to generate excel file and returns the path to the file
+app.get("/inventory/excel", authorize(API_KEY), (req, res) => {
+  if(!validateRequestParams(req.body, ["user_id", "user_type"])){
+    console.log("Invalid or incomplete request");
+    res.status(400);
+    return res.send({
+      status: 400,
+      message: "Invalid Request Body",
+    });
+  }
+
+  //Get variables from body payload
+  var user_id = req.body["user_id"];
+  var user_type = req.body["user_type"];
+  //log the request
+  console.log("Get Inventory Excel Request: " + user_id + " " + user_type);
+  //check if user is admin
+  if (user_type != 2) {
+    res.status(401);
+    //res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 401,
+      message: "Unauthorized",
+    });
+  }
+  //get inventory data
+  let inventory_spreadsheet_file_path = getInventoryData(db);
+  //check if inventory data is empty
+  if (inventory_spreadsheet_file_path == null) {
+    res.status(404);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 404,
+      message: "Inventory Not Found",
+    });
+  }
+
+  //check if file exists
+  if (fs.existsSync(inventory_spreadsheet_file_path)) {
+    res.status(200);
+    res.setHeader("Content-Type", "application/json");
+    //return the xlsx file to client
+    return res.download(inventory_spreadsheet_file_path);
+  } else {
+    res.status(404);
+    res.setHeader("Content-Type", "application/json");
+    return res.json({
+      status: 404,
+      message: "Inventory Spreadsheet File Not Found",
+    });
+  }
+});
+
+//Enpoint that gets uploaded file and saves it to the server
+app.post("/inventory/upload", upload.single('file'), (req, res) => {
+  
+  const file = req.file;
+
+  console.log(file);
+
+  return res.send({status: 200, message: "File uploaded successfully"});
+
+});
+  
+
+
+
+
 
 const validateRequestParams = (body, params) => {
   let result = true;
