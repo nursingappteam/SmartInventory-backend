@@ -6,7 +6,7 @@ const { v4: uuid } = require("uuid");
 Existing tables
 1) assets
 2) approval_statuses
-3) checkout
+3) checkouts
 4) users
 5) user_types
 6) sessions
@@ -61,30 +61,39 @@ let initializeDatabase = (db) => {
     type_desc TEXT
   )`
   ).run();
-  //Insert user types in one statement
+  //Insert user types in one statement if they don't exist
   try {
-    db.prepare(
+    //check if user types exist
+    let results = db.prepare(`SELECT * FROM user_types`).all();
+
+    //if user types don't exist insert them
+    if(results.length == 0){
+      db.prepare(
+        `INSERT INTO user_types (type_id, type_value, type_desc)
+        VALUES
+        (1, 'Admin', 'Admin user'),
+        (2, 'General', 'Inventory User user')
       `
-    INSERT INTO user_types (type_id, type_value, type_desc)
-    VALUES 
-    (NULL, 'Admin', 'Admin user type'),
-    (NULL, 'General', 'General user type')
-  `
-    ).run();
+      ).run();
+    }
+
   } catch (err) {
     console.log(err);
   }
 
   //if inventoryadmin doesn't exist create it with email: nursingappteam@gmail.com
   try {
-    db.prepare(
-      createUserQuery(
-        "inventoryadmin",
-        "nusringinventory!#%UTA2022",
-        "nursingappteam@gmail.com",
-        1
-      )
-    ).run();
+    let results = db.prepare(`SELECT * FROM users WHERE user_name = 'inventoryadmin'`).all();
+    if(results.length == 0){
+      db.prepare(
+        createUserQuery(
+          "inventoryadmin",
+          "nusringinventory!#%UTA2022",
+          "nursingappteam@gmail.com",
+          1
+        )
+      ).run();
+    }
   } catch (err) {
     console.log(err);
   }
@@ -109,15 +118,20 @@ let initializeDatabase = (db) => {
   ).run();
   //Insert approval statuses in one statement with aproved, denied, pending - 1, 2, 0
   try {
-    db.prepare(
-      `
-    INSERT INTO approval_statuses (status_id, status_value, status_desc)
-    VALUES
-    (1, 'Approved', 'Checkout has been approved'),
-    (2, 'Denied', 'Checkout has been denied'),
-    (0, 'Pending', 'Checkout is pending approval')
-  `
-    ).run();
+    //check if approval statuses exist
+    let results = db.prepare(`SELECT * FROM approval_statuses`).all();
+
+    if(results.length == 0){
+      db.prepare(
+        `
+        INSERT INTO approval_statuses (status_id, status_value, status_desc)
+        VALUES
+        (1, 'Approved', 'Checkout has been approved'),
+        (2, 'Denied', 'Checkout has been denied'),
+        (0, 'Pending', 'Checkout is pending approval')
+        `
+      ).run();
+    }
   } catch (err) {
     console.log(err);
   }
@@ -130,7 +144,7 @@ let initializeDatabase = (db) => {
     start_date TEXT NOT NULL,
     due_date TEXT NOT NULL,
     user_id INTEGER NOT NULL REFERENCES users(user_id),
-    approval_status INTEGER NOT NULL REFERENCES approval_statuses(approval_status_id),
+    approval_status INTEGER NOT NULL REFERENCES approval_statuses(status_id),
     checkout_notes TEXT,
     return_date TEXT,
     available INTEGER NOT NULL
@@ -183,16 +197,21 @@ let initializeDatabase = (db) => {
   ).run();
 
   try {
-    //get insert statements for assets from sql file
-    const fs = require("fs");
-    const path = require("path");
-    const sql = fs.readFileSync(
-      path.resolve(__dirname, "assets_121022.sql"),
-      "utf8"
-    );
+    //check if assets exist
+    let results = db.prepare(`SELECT * FROM assets`).all();
 
-    const stmt = db.prepare(sql);
-    stmt.run();
+    if(results.length == 0){
+      //get insert statements for assets from sql file
+      const fs = require("fs");
+      const path = require("path");
+      const sql = fs.readFileSync(
+        path.resolve(__dirname, "assets_121022.sql"),
+        "utf8"
+      );
+
+      const stmt = db.prepare(sql);
+      stmt.run();
+    }
   } catch (err) {
     console.log(err);
   }
@@ -634,7 +653,7 @@ let checkoutManager = {
         VALUES ${assetIds
           .map(
             (assetId) =>
-              `(${assetId}, '${startDate}', '${endDate}', '${userId}', 0, 0)`
+              `(${assetId}, '${startDate}', '${endDate}', '${userId}', 0, 1)`
           )
           .join(",")}
       `
@@ -710,33 +729,42 @@ let checkoutManager = {
     ).run();
   },
   //return a checkout
-  returnItems: (db, checkoutIds, returnDate) => {
+  returnCheckouts: (db, checkoutIds) => {
     // Set the return_date and available values for the specified checkout records
-    db.prepare(
+
+    // Get the current date in 
+    //const returnDate = new Date().toISOString().slice(0, 10);
+    let results = db.prepare(
       `
       UPDATE checkouts
-      SET return_date = ?, available = 1
+      SET return_date = datetime('now'), available = 1
       WHERE checkout_id IN (${checkoutIds.join(",")})
     `
-    ).run(returnDate);
-  },
-  //lock a checkout
-  lockCheckout: (db, checkout_id) => {
-    let query = checkoutQueries.createLockCheckoutQuery(checkout_id);
-    let results = generalQuery(db, query, "run");
-    return results;
-  },
-  //unlock a checkout
-  unlockCheckout: (db, checkout_id) => {
-    let query = checkoutQueries.createUnlockCheckoutQuery(checkout_id);
-    let results = generalQuery(db, query, "run");
+    ).run();
+
     return results;
   },
   //get all pending checkouts
   getAllPendingCheckouts: (db) => {
-    let query = checkoutQueries.createGetPendingCheckoutsQuery();
-    let results = generalQuery(db, query, "all");
-    return results;
+    // Prepare the SQL statement
+    const stmt = db.prepare(
+      'SELECT * FROM checkouts WHERE approval_status = 0 AND available = 1'
+    );
+
+    // Query the database
+    const checkouts = stmt.all();
+
+    // Group the checkouts by user_id
+    const checkoutsByUser = checkouts.reduce((byUser, checkout) => {
+      if (!byUser[checkout.user_id]) {
+        byUser[checkout.user_id] = [];
+      }
+      byUser[checkout.user_id].push(checkout);
+      return byUser;
+    }, {});
+
+    // Return the checkouts grouped by user
+    return checkoutsByUser;
   },
   //get all approved checkouts
   getAllApprovedCheckouts: (db) => {
