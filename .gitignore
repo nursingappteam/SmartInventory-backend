@@ -4,8 +4,7 @@ node_modules
 logs
 certs
 .env
-.db
-.glitch-assets
-.db-shm
-.db-wal
-.xlsx
+*.db
+*.glitch-assets
+*.db-shm
+*.xlsx
