@@ -22,7 +22,10 @@
 
   *Steps required to install project and how to get the development environment running:*
 
-  Firstly, you would need to download the repo from the github repository website or you can clone it to your local directory. Secondly, you would need to run NPM install to download the needed dependencies for the database server. Thirdly, The project is depended on sensitive data in an .env file including: API_KEY, PORT, INVENTORY_ADMIN_USERNAME, INVENTORY_ADMIN_PASSWORD, INVENTORY_ADMIN_EMAIL. Lastly, to start the project you could simply run npm start, or npm run hot-dev for development work.
+  - Step 1: Download the repo
+  - Step 2: Run `npm install`
+  - Step 3: Create an `.env` file
+  - Step 4: Start the project with `npm start` or `npm run hot-dev`
 
   ## Usage
 
