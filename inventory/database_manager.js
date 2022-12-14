@@ -2,6 +2,11 @@ const createUserQuery =
   require("../authentication/user_authentication").createUserQuery;
 const { v4: uuid } = require("uuid");
 
+//Import inventory admin user email, username, and password
+const INVENTORY_ADMIN_EMAIL = process.env.INVENTORY_ADMIN_EMAIL;
+const INVENTORY_ADMIN_USERNAME = process.env.INVENTORY_ADMIN_USERNAME;
+const INVENTORY_ADMIN_PASSWORD = process.env.INVENTORY_ADMIN_PASSWORD;
+
 /*
 Existing tables
 1) assets
@@ -88,9 +93,9 @@ let initializeDatabase = (db) => {
     if (results.length == 0) {
       db.prepare(
         createUserQuery(
-          "inventoryadmin",
-          "nusringinventory!#%UTA2022",
-          "nursingappteam@gmail.com",
+          INVENTORY_ADMIN_USERNAME,
+          INVENTORY_ADMIN_PASSWORD,
+          INVENTORY_ADMIN_EMAIL,
           1
         )
       ).run();
