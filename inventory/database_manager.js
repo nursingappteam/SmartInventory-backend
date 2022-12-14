@@ -67,7 +67,7 @@ let initializeDatabase = (db) => {
     let results = db.prepare(`SELECT * FROM user_types`).all();
 
     //if user types don't exist insert them
-    if(results.length == 0){
+    if (results.length == 0) {
       db.prepare(
         `INSERT INTO user_types (type_id, type_value, type_desc)
         VALUES
@@ -76,15 +76,16 @@ let initializeDatabase = (db) => {
       `
       ).run();
     }
-
   } catch (err) {
     console.log(err);
   }
 
   //if inventoryadmin doesn't exist create it with email: nursingappteam@gmail.com
   try {
-    let results = db.prepare(`SELECT * FROM users WHERE user_name = 'inventoryadmin'`).all();
-    if(results.length == 0){
+    let results = db
+      .prepare(`SELECT * FROM users WHERE user_name = 'inventoryadmin'`)
+      .all();
+    if (results.length == 0) {
       db.prepare(
         createUserQuery(
           "inventoryadmin",
@@ -121,7 +122,7 @@ let initializeDatabase = (db) => {
     //check if approval statuses exist
     let results = db.prepare(`SELECT * FROM approval_statuses`).all();
 
-    if(results.length == 0){
+    if (results.length == 0) {
       db.prepare(
         `
         INSERT INTO approval_statuses (status_id, status_value, status_desc)
@@ -200,7 +201,7 @@ let initializeDatabase = (db) => {
     //check if assets exist
     let results = db.prepare(`SELECT * FROM assets`).all();
 
-    if(results.length == 0){
+    if (results.length == 0) {
       //get insert statements for assets from sql file
       const fs = require("fs");
       const path = require("path");
@@ -732,15 +733,17 @@ let checkoutManager = {
   returnCheckouts: (db, checkoutIds) => {
     // Set the return_date and available values for the specified checkout records
 
-    // Get the current date in 
+    // Get the current date in
     //const returnDate = new Date().toISOString().slice(0, 10);
-    let results = db.prepare(
-      `
+    let results = db
+      .prepare(
+        `
       UPDATE checkouts
       SET return_date = datetime('now'), available = 1
       WHERE checkout_id IN (${checkoutIds.join(",")})
     `
-    ).run();
+      )
+      .run();
 
     return results;
   },
@@ -748,7 +751,7 @@ let checkoutManager = {
   getAllPendingCheckouts: (db) => {
     // Prepare the SQL statement
     const stmt = db.prepare(
-      'SELECT * FROM checkouts WHERE approval_status = 0 AND available = 1'
+      "SELECT checkouts.*, users.user_name FROM checkouts, users WHERE approval_status = 0 AND available = 1 AND users.user_id = checkouts.user_id"
     );
 
     // Query the database

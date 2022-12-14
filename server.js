@@ -767,9 +767,7 @@ app.get("/checkout/getAllCheckouts", authorize(API_KEY), (req, res) => {
 //User endpoints
 app.get("/users/getUsers", authorize(API_KEY), (req, res) => {
   let query =
-    //TODO: put this back
-    //"SELECT user_id, user_email, user_name, user_type_id, user_enabled, register_date FROM users";
-    `select * from sessions`;
+    "SELECT user_id, user_email, user_name, user_type_id, user_enabled, register_date FROM users";
   let results = generalQuery(db, query);
   console.log(results);
   if (results["code"] == "SQLITE_ERROR") {
