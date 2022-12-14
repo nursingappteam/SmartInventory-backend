@@ -1,9 +1,7 @@
 require("dotenv").config({ path: "./.env" });
 const express = require("express");
 const session = require("express-session");
-const {
-  getInventoryData
-} = require("./inventory/excel_converter.js");
+const { getInventoryData } = require("./inventory/excel_converter.js");
 
 // const https=require('https');
 // const http=require('http');
@@ -107,7 +105,7 @@ app.get("/assets/display_assets", authorize(API_KEY), (req, res) => {
 });
 
 //get endpoint to get items with specific asset id's
-app.get("/assets/get_assets", authorize(API_KEY), (req, res) => {
+app.post("/assets/get_assets", authorize(API_KEY), (req, res) => {
   if (!validateRequestParams(req.body, ["asset_id"])) {
     console.log("Invalid or incomplete request");
     res.status(400);
@@ -470,7 +468,7 @@ app.post("/checkout/createCheckout", authorize(API_KEY), (req, res) => {
 });
 
 //update checkout entry
-app.put("/checkout/updateCheckout", authorize(API_KEY), (req, res) => {
+app.post("/checkout/updateCheckout", authorize(API_KEY), (req, res) => {
   //Validate request body: must have asset_id, start_date, end_date where asset_id is an array of asset_id's
   if (
     !validateRequestParams(req.body, [
@@ -540,7 +538,7 @@ app.put("/checkout/updateCheckout", authorize(API_KEY), (req, res) => {
 });
 
 //approve checkout entry
-app.put("/checkout/approveCheckout", authorize(API_KEY), (req, res) => {
+app.post("/checkout/approveCheckout", authorize(API_KEY), (req, res) => {
   //Validate request body: must have an array of checkout_id's to approve
   if (!validateRequestParams(req.body, ["checkout_ids"])) {
     console.log("Invalid or incomplete request");
@@ -686,7 +684,6 @@ app.get("/checkout/getCheckoutHistory", authorize(API_KEY), (req, res) => {
   res.setHeader("Content-Type", "application/json");
   return res.json(results);
 });
-
 
 //Endpoint that handles the return of a checkout item
 app.put("/checkout/returnCheckout", authorize(API_KEY), (req, res) => {
@@ -1274,7 +1271,6 @@ app.post("/users/resetPassword", authorize(API_KEY), (req, res) => {
   }
 });
 
-
 //Check email exists
 app.post("/users/checkEmail", authorize(API_KEY), (req, res) => {
   if (!validateRequestParams(req.body, ["user_email"])) {
@@ -1311,13 +1307,10 @@ app.post("/users/checkEmail", authorize(API_KEY), (req, res) => {
   }
 });
 
-
-
-
 //Get excel file of inventory database given that request is sent from an admin
 //Uses getInventoryData function to generate excel file and returns the path to the file
 app.get("/inventory/excel", authorize(API_KEY), (req, res) => {
-  if(!validateRequestParams(req.body, ["user_id", "user_type"])){
+  if (!validateRequestParams(req.body, ["user_id", "user_type"])) {
     console.log("Invalid or incomplete request");
     res.status(400);
     return res.send({
@@ -1369,20 +1362,13 @@ app.get("/inventory/excel", authorize(API_KEY), (req, res) => {
 });
 
 //Enpoint that gets uploaded file and saves it to the server
-app.post("/inventory/upload", upload.single('file'), (req, res) => {
-  
+app.post("/inventory/upload", upload.single("file"), (req, res) => {
   const file = req.file;
 
   console.log(file);
 
-  return res.send({status: 200, message: "File uploaded successfully"});
-
+  return res.send({ status: 200, message: "File uploaded successfully" });
 });
-  
-
-
-
-
 
 const validateRequestParams = (body, params) => {
   let result = true;
