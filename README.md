@@ -35,7 +35,34 @@
 
   ## Usage
 
-  *Instructions and examples for use:*
+  ### Endpoints
+
+####The following endpoints are available in the SmartInventory API:
+
+- `GET /assets/display_assets`: Display a list of assets.
+- `GET /assets/get_assets`: Retrieve a list of assets.
+- `POST /assets/update`: Update an existing asset.
+- `POST /assets/add`: Add a new asset.
+- `GET /checkout/getCheckouts`: Retrieve a list of checkouts.
+- `POST /checkout/createCheckout`: Create a new checkout.
+- `POST /checkout/updateCheckout`: Update an existing checkout.
+- `POST /checkout/approveCheckout`: Approve a checkout.
+- `GET /checkout/getPendingCheckouts`: Retrieve a list of pending checkouts.
+- `POST /checkout/denyCheckouts`: Deny a checkout.
+- `GET /checkout/getCheckoutHistory`: Retrieve the checkout history.
+- `POST /checkout/returnCheckout`: Return a checkout.
+- `GET /checkout/getAllCheckouts`: Retrieve all checkouts.
+- `GET /users/getUsers`: Retrieve a list of users.
+- `POST /users/validateUser`: Validate a user.
+- `POST /users/session/validateSession`: Validate a session.
+- `GET /users/session/getSession`: Retrieve a session.
+- `POST /users/session/updateCart`: Update a cart.
+- `GET /users/session/getCart`: Retrieve a cart.
+- `POST /users/newUser`: Create a new user.
+- `POST /users/deleteUser`: Delete a user.
+- `POST /users/resetPassword`: Reset a user's password.
+- `POST /users/checkEmail`: Check if an email is available.
+
 
   Too Be Continued
 
