@@ -41,6 +41,7 @@
   To include the API KEY verification middleware in your requests, you will need to provide the API KEY in the `api_key` header of your request.
 
   - Here is an example of how to include the API KEY in a `fetch` request:
+   ```
     fetch('http://example.com/endpoint', 
       {
         method: 'GET',
@@ -50,7 +51,7 @@
         }
       }
     )
-   
+  ```
   - And here is an example of how to include the API KEY in a `postman` request:
 
     1. Open Postman and create a new request.
