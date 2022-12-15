@@ -37,6 +37,26 @@
   ### API KEY Verification Middleware
 
   This project uses API KEY verification to secure the endpoints in the API. The API KEY verification middleware is included in the code for reference:
+  
+  To include the API KEY verification middleware in your requests, you will need to provide the API KEY in the `api_key` header of your request.
+
+  - Here is an example of how to include the API KEY in a `fetch` request:
+    fetch('http://example.com/endpoint', 
+      {
+        method: 'GET',
+        headers: 
+        {
+          'api_key': 'your-api-key-here'
+        }
+      }
+    )
+   
+  - And here is an example of how to include the API KEY in a `postman` request:
+
+    1. Open Postman and create a new request.
+    2. In the request headers, add a new header called `api_key` and set its value to your API KEY.
+    3. Send the request as usual.
+
 
   ### Endpoints
 
