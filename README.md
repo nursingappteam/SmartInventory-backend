@@ -12,11 +12,13 @@
   This repository contains the code for the SmartInventory database API server, which is a Node.js server that uses Express.js to create endpoints for the frontend of the SmartInventory app to access the database logic system. This server is part of the senior design project for the nursing department at UTA, and is designed to provide a comprehensive inventory solution for the department.
 
   ## Table of Contents
-  * [Installation](#installation)
-  * [Usage](#usage)
-  * [Contributing](#contributing)
-  * [Tests](#tests)
-  * [License](#license)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Authorization](#authorization)
+    - [Endpoints](#endpoints)
+  - [Contributing](#contributing)
+  - [Tests](#tests)
+  - [License](#license)
 
   ## Installation
 
@@ -34,7 +36,7 @@
 
 
   ## Usage
-  ### API KEY Verification Middleware
+  ### Authorization
 
   This project uses API KEY verification to secure the endpoints in the API. The API KEY verification middleware is included in the code for reference:
   
