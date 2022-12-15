@@ -34,6 +34,9 @@
 
 
   ## Usage
+  ### API KEY Verification Middleware
+
+  This project uses API KEY verification to secure the endpoints in the API. The API KEY verification middleware is included in the code for reference:
 
   ### Endpoints
 
